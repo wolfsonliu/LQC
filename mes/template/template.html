@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="en">
+<head>
+<!-- Required meta tags -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+<!-- JavaScript Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+<title>MES report</title>
+
+</head>
+
+<body>
+
+  <div class="container-fluid">
+    <div class="row">
+
+      <!-- nav -->
+      <div class="col col-2 position-fixed" style="padding-left:0;top:0;bottom:0;background-color:#7a0177;box-shadow:3px 3px 5px gray;" >
+        <div class="navbar navbar-dark">
+          <ul class="navbar-nav p-3 d-flex gap-2 mx-md-auto">
+            <li class="nav-item text-center">
+              <div class="text-light py-4" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAbout" aria-expanded="true" aria-controls="collapseAbout" data-bs-parent="#toggleGroup">
+                <img src="fig/logo_white.svg" height="64"  width="64"/>
+              </div>
+            </li>
+            <li class="nav-item text-center">
+              <div class="text-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseReadstat" aria-expanded="false" aria-controls="collapseReadstat" data-bs-parent="#toggleGroup">
+                <p class="fs-5 fw-bold">Read</p>
+              </div>
+            </li>
+            <li class="nav-item text-center">
+              <div class="text-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInsertion" aria-expanded="false" aria-controls="collapseInsertion" data-bs-parent="#toggleGroup">
+                <p class="fs-5 fw-bold">Insertion</p>
+              </div>
+            </li>
+            <li class="nav-item text-center">
+              <div class="text-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDeletion" aria-expanded="false" aria-controls="collapseDeletion" data-bs-parent="#toggleGroup">
+                <p class="fs-5 fw-bold">Deletion</p>
+              </div>
+            </li>
+            <li class="nav-item text-center">
+              <div class="text-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMismatch" aria-expanded="false" aria-controls="collapseMismatch" data-bs-parent="#toggleGroup">
+                <p class="fs-5 fw-bold">Mismatch</p>
+              </div>
+            </li>
+            <li class="nav-item text-center">
+              <div class="text-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSplice" aria-expanded="false" aria-controls="collapseSplice" data-bs-parent="#toggleGroup">
+                <p class="fs-5 fw-bold">Splicing</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- content -->
+      <div class="col col-10" style="padding-left:20%;">
+        <div class="accordion" id="toggleGroup">
+          <div class="accordion-collapse collapse p-3 show" id="collapseAbout" data-bs-parent="#toggleGroup">
+            <h1 id="h_about">MES: Mapping Element Statistic</h1>
+            <div class="p-2">
+              <p>
+                Please cite:
+              </p>
+              <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing
+                elit, sed do eiusmod tempor incididunt ut labore et dolore
+                magna aliqua. Ut enim ad minim veniam, quis nostrud
+                exercitation ullamco laboris nisi ut aliquip ex ea commodo
+                consequat. Duis aute irure dolor in reprehenderit in
+                voluptate velit esse cillum dolore eu fugiat nulla
+                pariatur. Excepteur sint occaecat cupidatat non proident,
+                sunt in culpa qui officia deserunt mollit anim id est
+                laborum.
+              </p>
+              <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit,
+                sed do eiusmod tempor incididunt ut labore et dolore magna
+                aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+                ullamco laboris nisi ut aliquip ex ea commodo
+                consequat. Duis aute irure dolor in reprehenderit in
+                voluptate velit esse cillum dolore eu fugiat nulla
+                pariatur. Excepteur sint occaecat cupidatat non proident,
+                sunt in culpa qui officia deserunt mollit anim id est
+                laborum.
+            </p>
+            </div>
+          </div>
+
+
+          <div class="accordion-collapse collapse p-3" id="collapseReadstat" data-bs-parent="#toggleGroup">
+            <h1 id="h_readstat">Read Statistic</h1>
+            <div class="d-flex flex-column gap-3">
+              <div id="readstat_read_count" class="card">
+                <div class="card-body">
+                  <h3 class="card-title">Read count for each contig</h3>
+                  <p class="card-text">Total read count for all the
+                  analyzed contigs is
+                  {%readstat_total_read_count%}.</p>
+                  <p class="card-text">Total base number for all the
+                  analyzed contigs is {%readstat_total_base%}.</p>
+                  <p class="card-text">The barplot shows the read
+                  count for each contig.</p>
+                </div>
+                <img class="card-img-bottom" src="fig/readstat_bar_Read_count.png" />
+              </div>
+              <div class="card mb-3">
+                <div class="row g-0">
+                  <div class="col-md-5">
+                    <div class="card-body">
+                      <h3 class="card-title">Histogram of length</h3>
+                      <p class="card-text">The histogram shows the
+                      read length distribution for all the analyzed
+                      contigs.</p>
+                      <p class="card-text">The median of read length
+                      is {%readstat_median_read_length%}.</p>
+                      <p class="card-text">The mean of read length is
+                      {%readstat_mean_read_length%}.</p>
+                    </div>
+                  </div>
+                  <div class="col-md-7">
+                    <img class="card-img" src="fig/readstat_hist_length.Total.png"/>
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">Histogram of length by contig</h3>
+                  <p class="card-text">The histogram shows the read
+                  length distribution for each analyzed contig.</p>
+                </div>
+                <img class="card-img-bottom" src="fig/readstat_hist_length.png" />
+              </div>
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">N50 of reads</h3>
+                  <p class="card-text">N50 is the shortest read length
+                  with reads longer than N50 cover 50% of all the
+                  bases, which can assess the sequencing quality.</p>
+                  <p class="card-text">Read N50 for all the analyzed
+                  contigs is {%readstat_N50%}.</p>
+                </div>
+                <img class="card-img-bottom" src="fig/readstat_bar_N50.png" />
+              </div>
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">L50 of reads</h3>
+                  <p class="card-text">L50 is the rank of the N50 read
+                  (descendent rank by read length).</p>
+                  <p class="card-text">Read L50 for all the analyzed
+                  contigs is {%readstat_L50%}.</p>
+                </div>
+                <img class="card-img-bottom" src="fig/readstat_bar_L50.png" />
+              </div>
+              <div class="card mb-3">
+                <div class="row g-0">
+                  <div class="col-md-5">
+                    <div class="card-body">
+                      <h3 class="card-title">Read ratio with elements</h3>
+                      <p class="card-text">The ratio of reads with at
+                      least one element (insertion, deletion,
+                      mismatch) is calculated for all the analyzed
+                      contigs.</p>
+                    </div>
+                  </div>
+                  <div class="col-md-7">
+                    <img class="card-img" src="fig/readstat_bar_ratio_with_element.Total.png"/>
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">Read ratio with elements by contig</h3>
+                  <p class="card-text">The ratio of reads with at
+                      least one element (insertion, deletion,
+                      mismatch) is calculated for each analyzed
+                      contig.</p>
+                </div>
+                <img class="card-img-bottom" src="fig/readstat_bar_ratio_with_element.png" />
+              </div>
+              <div class="card">
+                <div class="card-header">Statistic Summary</div>
+                <div class="card-body">
+                  <h3 class="card-title"></h3>
+                  <table class="table table-striped text-center">
+                    <thead>
+                      <tr>
+                        <th scope="col">Contig</th>
+                        <th scope="col">Read count</th>
+                        <th scope="col">Total base</th>
+                        <th scope="col">Mean read length</th>
+                        <th scope="col">Median read length</th>
+                        <th scope="col">Read length N50</th>
+                        <th scope="col">Read length L50</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {%readstat_table%}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          <div class="accordion-collapse collapse p-3" id="collapseInsertion" data-bs-parent="#toggleGroup">
+            <h1 id="h_insertion">Insertion</h1>
+            <div class="d-flex flex-column gap-3">
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">Count of insertion</h3>
+                  <p class="card-text">The total number of insertions
+                  found in all the analyzed contigs is {%insertion_total_insertion_number%}.</p>
+                  <p class="card-text">The total number of bases
+                  inserted found in all the analyzed contigs is
+                  {%insertion_total_insertion_length%}.</p>
+                  <p class="card-text">The mean length of insertions
+                  is {%insertion_mean_insertion_length%}.</p>
+                </div>
+                <img class="card-img-bottom" src="fig/insertion_bar.png" />
+              </div>
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">Average number of insertions per read</h3>
+                  <p class="card-text">The mean numbers of insertions
+                  found in reads are presented in the barplot.In
+                  average, {%insertion_mean_insertion_per_read%}
+                  insertions can be found per read.</p>
+                </div>
+                <img class="card-img-bottom" src="fig/readstat_bar_Mean_insertion_number.png" />
+              </div>
+              <div class="card">
+                <div class="card-header">Statistic Summary</div>
+                <div class="card-body">
+                  <h3 class="card-title"></h3>
+                  <table class="table table-striped text-center">
+                    <thead>
+                      <tr>
+                        <th scope="col">Contig</th>
+                        <th scope="col">Total insertion count</th>
+                        <th scope="col">Total insertion length</th>
+                        <th scope="col">Mean insertion length</th>
+                        <th scope="col">Median insertion length</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {%insertion_table%}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          <div class="accordion-collapse collapse p-3" id="collapseDeletion" data-bs-parent="#toggleGroup">
+            <h1 id="h_deletion">Deletion</h1>
+            <div class="d-flex flex-column gap-3">
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">Count of deletion</h3>
+                  <p class="card-text">The total number of deletions
+                  found in all the analyzed contigs is {%deletion_total_deletion_number%}.</p>
+                  <p class="card-text">The total number of bases
+                  deleted found in all the analyzed contigs is
+                  {%deletion_total_deletion_length%}.</p>
+                  <p class="card-text">The mean length of deletions
+                  is {%deletion_mean_deletion_length%}.</p>
+                </div>
+                <img class="card-img-bottom" src="fig/deletion_bar.png" />
+              </div>
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">Average number of deletions per read</h3>
+                  <p class="card-text">The mean numbers of deletions
+                  found in reads are presented in the barplot. In
+                  average, {%deletion_mean_deletion_per_read%}
+                  deletions can be found per read.</p>
+                </div>
+                <img class="card-img-bottom" src="fig/readstat_bar_Mean_deletion_number.png" />
+              </div>
+              <div class="card">
+                <div class="card-header">Statistic Summary</div>
+                <div class="card-body">
+                  <h3 class="card-title"></h3>
+                  <table class="table table-striped text-center">
+                    <thead>
+                      <tr>
+                        <th scope="col">Contig</th>
+                        <th scope="col">Total deletion count</th>
+                        <th scope="col">Total deletion length</th>
+                        <th scope="col">Mean deletion length</th>
+                        <th scope="col">Median deletion length</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {%deletion_table%}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          <div class="accordion-collapse collapse p-3" id="collapseMismatch" data-bs-parent="#toggleGroup">
+            <h1 id="h_mismatch">Mismatch</h1>
+            <div class="d-flex flex-column gap-3">
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">Count of mismatch</h3>
+                  <p class="card-text">The total number of mismatches
+                  found in all the analyzed contigs is
+                  {%mismatch_total_mismatch_number%}.</p>
+                </div>
+                <img class="card-img-bottom" src="fig/mismatch_bar.png" />
+              </div>
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">Average number of mismatchs per read</h3>
+                  <p class="card-text">The mean numbers of mismatches
+                  found in reads are presented in the barplot. In
+                  average, {%mismatch_mean_mismatch_per_read%}
+                  mismatches can be found per read.</p>
+                </div>
+                <img class="card-img-bottom" src="fig/readstat_bar_Mean_mismatch_number.png" />
+              </div>
+              <div class="card mb-3">
+                <div class="row g-0">
+                  <div class="col-md-5">
+                    <div class="card-body">
+                      <h3 class="card-title">Mismatch types</h3>
+                      <p class="card-text">The mismatch types are
+                        counted for all the analyzed contigs.</p>
+                      <div class="d-flex">
+                        {%mismatch_type_list1%}
+                        {%mismatch_type_list2%}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-7">
+                    <img class="card-img" src="fig/mismatch_type.Total.png"/>
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">Mismatch types by contig</h3>
+                  <p class="card-text">The mismatch types are counted
+                  for each analyzed contig.</p>
+                </div>
+                <img class="card-img-bottom" src="fig/mismatch_type.png" />
+              </div>
+              <div class="card">
+                <div class="card-header">Statistic Summary</div>
+                <div class="card-body">
+                  <h3 class="card-title"></h3>
+                  <table class="table table-striped text-center">
+                    <thead>
+                      <tr>
+                        <th scope="col">Contig</th>
+                        <th scope="col">a=>c</th>
+                        <th scope="col">a=>g</th>
+                        <th scope="col">a=>t</th>
+                        <th scope="col">c=>a</th>
+                        <th scope="col">c=>g</th>
+                        <th scope="col">c=>t</th>
+                        <th scope="col">g=>a</th>
+                        <th scope="col">g=>c</th>
+                        <th scope="col">g=>t</th>
+                        <th scope="col">t=>a</th>
+                        <th scope="col">t=>c</th>
+                        <th scope="col">t=>g</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {%mismatch_table%}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          <div class="accordion-collapse collapse p-3" id="collapseSplice" data-bs-parent="#toggleGroup">
+            <h1 id="h_splice">Splicing</h1>
+            <div class="d-flex flex-column gap-3">
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">Count of intron</h3>
+                  <p class="card-text">The total number of introns
+                    found in all the analyzed contigs is
+                    {%intron_total_intron_number%}.</p>
+                </div>
+                <img class="card-img-bottom" src="fig/intron_bar.png" />
+              </div>
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">Average number of introns per read</h3>
+                  <p class="card-text">The mean numbers of introns
+                  found in reads are presented in the barplot. In
+                  average, {%intron_mean_intron_per_read%}
+                  introns can be found per read.</p>
+                </div>
+                <img class="card-img-bottom" src="fig/readstat_bar_Mean_intron_number.png" />
+              </div>
+              <div class="card mb-3">
+                <div class="row g-0">
+                  <div class="col-md-5">
+                    <div class="card-body">
+                      <h3 class="card-title">Splice sites types</h3>
+                      <p class="card-text">The splice types are
+                        counted for all the analyzed contigs.</p>
+                      <div class="d-flex">
+                        {%splice_type_list%}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-7">
+                    <img class="card-img" src="fig/splice_type.Total.png"/>
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">Splice sites types by contig</h3>
+                  <p class="card-text">The intron types are counted
+                  for each analyzed contig.</p>
+                </div>
+                <img class="card-img-bottom" src="fig/splice_type.png" />
+              </div>
+              <div class="card">
+                <div class="card-header">Statistic Summary</div>
+                <div class="card-body">
+                  <h3 class="card-title"></h3>
+                  <table class="table table-striped text-center">
+                    <thead>
+                      <tr>
+                        <th scope="col">Contig</th>
+                        <th scope="col">gt-ag</th>
+                        <th scope="col">gt-ag %</th>
+                        <th scope="col">gc-ag</th>
+                        <th scope="col">gc-ag %</th>
+                        <th scope="col">at-ac</th>
+                        <th scope="col">at-ac %</th>
+                        <th scope="col">Other</th>
+                        <th scope="col">Other %</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {%splice_table%}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</body>
