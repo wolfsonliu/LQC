@@ -23,10 +23,10 @@ def determine_figure_size(row, col,
     return col * base_width, row * base_height
 
 
-def plot_readstat_list_bar(readstat_list,
-                           feature,
-                           width = None,
-                           height = None):
+def plot_readstat_bar(readstat_list,
+                      feature,
+                      width = None,
+                      height = None):
     assert feature in [
         "Read count",
         "Median read length",
@@ -116,9 +116,9 @@ def plot_readstat_list_bar(readstat_list,
     return fig
 
 
-def plot_readstat_list_bar_mean_element_per_read(readstat_list,
-                                                 width = None,
-                                                 height = None):
+def plot_readstat_bar_mean_element_per_read(readstat_list,
+                                            width = None,
+                                            height = None):
     read_feature = [
         [a.get_mean_insertions(),
          a.get_mean_deletions(),
@@ -184,9 +184,9 @@ def plot_readstat_list_bar_mean_element_per_read(readstat_list,
     return fig
 
 
-def plot_readstat_list_bar_ratio_with_element(readstat_list,
-                                              width = None,
-                                              height = None):
+def plot_readstat_bar_ratio_with_element(readstat_list,
+                                         width = None,
+                                         height = None):
     read_feature = [
         [1 -
          a.get_read_count_with_n_insertions(0) /
@@ -266,9 +266,9 @@ def plot_readstat_list_bar_ratio_with_element(readstat_list,
     return fig
 
 
-def plot_readstat_list_cumulative_length(readstat_list,
-                                         width = None,
-                                         height = None):
+def plot_readstat_cumulative_length(readstat_list,
+                                    width = None,
+                                    height = None):
     row, col = get_facet_row_col(
         len(readstat_list)
     )
@@ -341,9 +341,9 @@ def plot_readstat_list_cumulative_length(readstat_list,
     return fig
 
 
-def plot_readstat_list_length_hist(readstat_list,
-                                   width = None,
-                                   height = None):
+def plot_readstat_length_hist(readstat_list,
+                              width = None,
+                              height = None):
 
     row, col = get_facet_row_col(
         len(readstat_list)
@@ -370,9 +370,10 @@ def plot_readstat_list_length_hist(readstat_list,
             fig.axes[ai].set_title(
                 readstat_list[ai].label
             )
+            xlimits = fig.axes[ai].get_xlim()
             ylimits = fig.axes[ai].get_ylim()
             fig.axes[ai].text(
-                readstat_list[ai].get_max_length(),
+                xlimits[1] * 0.98,
                 ylimits[1] * 0.98,
                 "Median:\n{}".format(int(
                     readstat_list[ai].get_median_length()
@@ -389,10 +390,10 @@ def plot_readstat_list_length_hist(readstat_list,
     return fig
 
 
-def plot_element_list_total_count(element_list,
-                                  element_name,
-                                  width = None,
-                                  height = None):
+def plot_element_total_count(element_list,
+                             element_name,
+                             width = None,
+                             height = None):
     assert element_name in [
         "Insertion", "Deletion", "Mismatch", "Intron"
     ], "element_name should be one of [Insertion, Deletion, Mismatch, Intron]."
@@ -440,21 +441,109 @@ def plot_element_list_total_count(element_list,
     return fig
 
 
-def plot_mismatch_list_type_count(mismatch_list,
-                                  width = None,
-                                  height = None):
+def plot_indel_hist_length(indel_list,
+                           width = None,
+                           height = None):
+
+    row, col = get_facet_row_col(
+        len(indel_list)
+    )
+    if width is None and height is None:
+        width, height = determine_figure_size(
+            row, col,
+            base_width = 3, base_height = 2
+        )
+        width = max(width, 5)
+        height = max(height, 5)
+    else:
+        pass
+    fig, axes = plt.subplots(
+        row, col, figsize = (width, height)
+    )
+    for ai in range(row * col):
+        if ai in list(range(len(indel_list))):
+            fig.axes[ai].hist(
+                indel_list[ai].get_lengths(),
+                color = "#7a0177",
+                label = indel_list[ai].label
+            )
+            fig.axes[ai].set_title(
+                indel_list[ai].label
+            )
+            xlimits = fig.axes[ai].get_xlim()
+            ylimits = fig.axes[ai].get_ylim()
+            fig.axes[ai].text(
+                xlimits[1] * 0.98,
+                ylimits[1] * 0.98,
+                "Median:\n{}".format(int(
+                    indel_list[ai].get_median_length()
+                )),
+                ha = "right", va = "top"
+            )
+        else:
+            fig.axes[ai].set_frame_on(False)
+            fig.axes[ai].set_axis_off()
+
+    fig.supxlabel("Element length")
+    fig.supylabel("Element count")
+    plt.tight_layout()
+    return fig
+
+
+def plot_indel_hist_location(indel_list,
+                             width = None,
+                             height = None):
+
+    row, col = get_facet_row_col(
+        len(indel_list)
+    )
+    if width is None and height is None:
+        width, height = determine_figure_size(
+            row, col,
+            base_width = 3, base_height = 2
+        )
+        width = max(width, 5)
+        height = max(height, 5)
+    else:
+        pass
+    fig, axes = plt.subplots(
+        row, col, figsize = (width, height)
+    )
+    for ai in range(row * col):
+        if ai in list(range(len(indel_list))):
+            fig.axes[ai].hist(
+                indel_list[ai].get_locations(),
+                color = "#7a0177",
+                label = indel_list[ai].label
+            )
+            fig.axes[ai].set_title(
+                indel_list[ai].label
+            )
+        else:
+            fig.axes[ai].set_frame_on(False)
+            fig.axes[ai].set_axis_off()
+
+    fig.supxlabel("Normalized read location")
+    fig.supylabel("Element count")
+    plt.tight_layout()
+    return fig
+
+
+def plot_mismatch_type_count(mismatch_list,
+                             width = None,
+                             height = None):
     miscolors = {
-        "a=>c": "#a50f15", "a=>g": "#ef3b2c",
-        "a=>t": "#fc9272", "c=>a": "#54278f",
-        "c=>g": "#807dba", "c=>t": "#bcbddc",
-        "g=>a": "#08519c", "g=>c": "#4292c6",
-        "g=>t": "#9ecae1", "t=>a": "#006d2c",
-        "t=>c": "#41ab5d", "t=>g": "#a1d99b"
+        "ac": "#a50f15", "ag": "#ef3b2c",
+        "at": "#fc9272", "ca": "#54278f",
+        "cg": "#807dba", "ct": "#bcbddc",
+        "ga": "#08519c", "gc": "#4292c6",
+        "gt": "#9ecae1", "ta": "#006d2c",
+        "tc": "#41ab5d", "tg": "#a1d99b"
     }
-    mistypes = ["a=>c", "a=>g", "a=>t",
-                "c=>a", "c=>g", "c=>t",
-                "g=>a", "g=>c", "g=>t",
-                "t=>a", "t=>c", "t=>g"]
+    mistypes = ["ac", "ag", "at",
+                "ca", "cg", "ct",
+                "ga", "gc", "gt",
+                "ta", "tc", "tg"]
     row, col = get_facet_row_col(
         len(mismatch_list) + 1
     )
@@ -474,7 +563,7 @@ def plot_mismatch_list_type_count(mismatch_list,
     for a in mismatch_list:
         alist = list()
         for mt in mistypes:
-            alist.append(a.get_count_dict()[mt])
+            alist.append(a.get_type_count()[mt])
         alist.append(a.label)
         mislist.append(alist)
 
@@ -487,7 +576,10 @@ def plot_mismatch_list_type_count(mismatch_list,
                 fig.axes[ai].bar(
                     j, mislist[ai][j],
                     color = miscolors[mistypes[j]],
-                    label = mistypes[j]
+                    label = '{}=>{}'.format(
+                        mistypes[j][0],
+                        mistypes[j][1]
+                    )
                 )
             fig.axes[ai].set_xticks([])
             fig.axes[ai].set_title(
@@ -511,9 +603,48 @@ def plot_mismatch_list_type_count(mismatch_list,
     return fig
 
 
-def plot_splice_list_type_count(splice_list,
+def plot_mismatch_hist_location(mismatch_list,
                                 width = None,
                                 height = None):
+
+    row, col = get_facet_row_col(
+        len(mismatch_list)
+    )
+    if width is None and height is None:
+        width, height = determine_figure_size(
+            row, col,
+            base_width = 3, base_height = 2
+        )
+        width = max(width, 5)
+        height = max(height, 5)
+    else:
+        pass
+    fig, axes = plt.subplots(
+        row, col, figsize = (width, height)
+    )
+    for ai in range(row * col):
+        if ai in list(range(len(mismatch_list))):
+            fig.axes[ai].hist(
+                mismatch_list[ai].get_locations(),
+                color = "#7a0177",
+                label = mismatch_list[ai].label
+            )
+            fig.axes[ai].set_title(
+                mismatch_list[ai].label
+            )
+        else:
+            fig.axes[ai].set_frame_on(False)
+            fig.axes[ai].set_axis_off()
+
+    fig.supxlabel("Normalized read location")
+    fig.supylabel("Mismatch count")
+    plt.tight_layout()
+    return fig
+
+
+def plot_splice_type_count(splice_list,
+                           width = None,
+                           height = None):
     splicecolors = {
         "gt-ag": "#7a0177", "gc-ag": "#dd3497",
         "at-ac": "#f768a1", "other": "#969696"

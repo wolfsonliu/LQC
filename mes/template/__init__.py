@@ -11,7 +11,7 @@ def get_html_template():
         "r"
     )
     html_string = "\n".join(
-        [read for read in html]
+        [read.strip() for read in html]
     )
     html.close()
     return html_string

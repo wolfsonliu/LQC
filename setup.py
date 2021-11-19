@@ -7,7 +7,7 @@ except ImportError:
     from distutils.core import setup
 
 PACKAGE = 'mes'
-VMAJOR, VMINOR, VMICRO = 0, 0, 1
+VMAJOR, VMINOR, VMICRO = 0, 0, 2
 VERSION = '{}.{}.{}'.format(VMAJOR, VMINOR, VMICRO)
 
 def readme():
@@ -31,7 +31,7 @@ setup(
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)'
     ],
-    url = 'https://github.com/wolfsonliu/mes',
+    url = 'https://github.com/xiaolab/mes',
     author = 'Zhiheng Liu',
     author_email = 'wolfsonliu@live.com',
     license = 'GPL',

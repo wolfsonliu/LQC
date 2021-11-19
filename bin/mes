@@ -2,6 +2,7 @@
 
 import os
 import argparse
+import logging
 import multiprocessing as mp
 import pysam
 import pickle
@@ -12,18 +13,20 @@ from mes import stat_element_from_bam_by_contig
 from mes import check_bam_with_cs_or_md
 from mes import bam_or_sam
 from mes import create_readstat_table
-from mes import create_insertion_table
-from mes import create_deletion_table
-from mes import create_mismatch_table
+from mes import create_indel_summary_table
+from mes import create_mismatch_normalized_read_location_table
 from mes import create_splice_table
-from mes import plot_readstat_list_bar
-from mes import plot_readstat_list_bar_mean_element_per_read
-from mes import plot_readstat_list_cumulative_length
-from mes import plot_readstat_list_bar_ratio_with_element
-from mes import plot_readstat_list_length_hist
-from mes import plot_element_list_total_count
-from mes import plot_mismatch_list_type_count
-from mes import plot_splice_list_type_count
+from mes import plot_readstat_bar
+from mes import plot_readstat_bar_mean_element_per_read
+from mes import plot_readstat_cumulative_length
+from mes import plot_readstat_bar_ratio_with_element
+from mes import plot_readstat_length_hist
+from mes import plot_element_total_count
+from mes import plot_indel_hist_length
+from mes import plot_indel_hist_location
+from mes import plot_mismatch_type_count
+from mes import plot_mismatch_hist_location
+from mes import plot_splice_type_count
 from mes import copy_logo
 from mes import get_html_template
 from mes import html_add_readstat_table
@@ -31,110 +34,32 @@ from mes import html_add_mismatch_table
 from mes import html_add_insertion_table
 from mes import html_add_deletion_table
 from mes import html_add_splice_table
-
+from mes import write_readcs
 import matplotlib
 import matplotlib.pyplot as plt
-matplotlib.use("Agg")
+matplotlib.use('Agg')
 
 
 def stat_bam(contig, variables):
     return stat_element_from_bam_by_contig(
-        bam_file = variables["bam_file"],
-        genome_file = variables["genome_file"],
+        bam_file = variables['bam_file'],
+        genome_file = variables['genome_file'],
         contig = contig,
-        method = variables["bam_type"],
-        reverse_complement = True
+        method = variables['bam_type']
     )
-
-
-def write_readcs(bam_file,
-                 genome_file,
-                 output_file,
-                 method = 'cs'):
-    assert method in ['cs', 'MD', 'both'],\
-        "method should be either: cs, MD, both."
-    file_type = bam_or_sam(bam_file)
-    file_read = "rb" if file_type == "BAM" else "r"
-    bam = pysam.AlignmentFile(bam_file, file_read)
-
-    if method not in ['cs', 'both']:
-        genome = pysam.FastaFile(genome_file)
-    else:
-        pass
-
-    output = open(output_file, 'w')
-    output.write(
-        '\t'.join([
-            'read_name', 'contig',
-            'low', 'high',
-            'cs_mark', 'cs_value'
-        ]) + '\n'
-    )
-    for read in bam:
-        strand = '-' if read.is_reverse else '+'
-        if method == 'cs':
-            # there're cs tags in the bam file
-            cs_string = [
-                a[1] for a in read.tags
-                if a[0] == 'cs'
-            ][0]
-            cs = CS.from_cs_tag_string(
-                cs_tag_string = cs_string,
-                contig = read.reference_name,
-                start_pos = read.reference_start,
-                strand = strand
-            )
-        else:
-            # there's no cs tag in the bam file, and there're MD tags.
-            read_seq = read.query_sequence
-            ref_seq = genome.fetch(
-                read.reference_name,
-                read.reference_start,
-                read.reference_end
-            )
-            md_string = [
-                a[1] for a in read.tags
-                if a[0] == 'MD'
-            ][0]
-            cs = CS.from_cigar_string(
-                cigar_string = read.cigarstring,
-                md_string = md_string,
-                read_seq = read_seq,
-                ref_seq = ref_seq,
-                contig = read.reference_name,
-                start_pos = read.reference_start,
-                strand = strand
-            )
-        # read cs
-        cs_list = cs.get_contig_position()
-        for line in cs_list:
-            output.write(
-                '\t'.join(
-                    [read.query_name,
-                     read.reference_name] +
-                    ['{}'.format(a) for a in line]
-                ) + '\n'
-            )
-    output.close()
-    bam.close()
-    if method not in ['cs', 'both']:
-        genome.close()
-    else:
-        pass
-    return
 
 
 def get_stat_list(result, stat_type):
     stat_type_ids = {
-        "readstat": 0,
-        "insertion": 1,
-        "deletion": 2,
-        "mismatch": 3,
-        "splice": 4
+        'readstat': 0,
+        'insertion': 1,
+        'deletion': 2,
+        'mismatch': 3,
+        'splice': 4
     }
     assert stat_type in stat_type_ids,\
-        "stat_type should be in [{}].".format(
-            ",".join(
+        'stat_type should be in [{}].'.format(
+            ','.join(
                 stat_type_ids.keys()
             )
         )
@@ -143,9 +68,7 @@ def get_stat_list(result, stat_type):
     idx = stat_type_ids[stat_type]
 
     for i in range(len(result)):
-        merge_strand = result[i][idx]['+'] + result[i][idx]['-']
-        merge_strand.label = result[i][idx]['+'].label
-        stat_list.append(merge_strand)
+        stat_list.append(result[i][idx])
     return stat_list
 
 
@@ -156,13 +79,36 @@ def build_directories(dir_dict):
 
 
 def savefig(fig, prefix):
-    fig.savefig(prefix + ".png")
-    fig.savefig(prefix + ".pdf")
+    fig.savefig(prefix + '.png')
+    fig.savefig(prefix + '.pdf')
+
+
+def generate_multiple_figs(plot_func,
+                           data_list, data_sum,
+                           filelabel,
+                           width = 5, height = 4):
+    fig = plot_func(data_list)
+    savefig(fig, filelabel)
+    fig = plot_func(
+        [data_sum],
+        width = width, height = height
+    )
+    savefig(fig, filelabel + '.' + 'Total')
+    for i in range(len(data_list)):
+        seqname = data_list[i].label
+        fig = plot_func(
+            [data_list[i]],
+            width = width, height = height
+        )
+        savefig(
+            fig, filelabel + '.' + seqname
+        )
+        plt.close('all')
+    return
 
 
 if __name__ == '__main__':
-
-    VMAJOR, VMINOR, VMICRO = 0, 0, 1
+    VMAJOR, VMINOR, VMICRO = 0, 0, 2
     VERSION = '{}.{}.{}'.format(VMAJOR, VMINOR, VMICRO)
 
     chromosomes = [
@@ -174,45 +120,51 @@ if __name__ == '__main__':
         'chr21', 'chr22', 'chrX', 'chrY'
     ]
     parser = argparse.ArgumentParser(
-        description=""
+        description=''
     )
     parser.add_argument(
-        "-b", "--bam_file",
-        help = "input bam file, with cs tags, sorted and indexed",
+        '-b', '--bam-file',
+        help = 'input bam file, with cs tags, sorted and indexed',
         type = str,
         default = None,
         required = True
     )
     parser.add_argument(
-        "--genome_fasta",
-        help = "path of genome fasta file",
+        '--genome-fasta',
+        help = 'path of genome fasta file',
         type = str,
         default = None,
         required = False
     )
     parser.add_argument(
-        "-o", "--output_dir",
-        help = "directory to store output files",
+        '-o', '--output_dir',
+        help = 'directory to store output files',
         type = str,
         default = 'out'
     )
     parser.add_argument(
-        "--output-cs",
-        help = "output processed cs tags",
-        action = "store_true"
+        '--output-cs',
+        help = 'output processed cs tags',
+        action = 'store_true'
     )
     parser.add_argument(
-        "-c", "--contig",
-        help = "contigs to be analyzed",
+        '-c', '--contig',
+        help = 'contigs to be analyzed',
         nargs = '*',
         type = str,
         default = chromosomes
     )
     parser.add_argument(
-        "-t", "--thread",
-        help = "threads to be used in calculation",
+        '-t', '--thread',
+        help = 'threads to be used in calculation',
         type = int,
         default = 1
+    )
+    parser.add_argument(
+        '--log-level',
+        help = 'logging level (default INFO): [DEBUG, INFO]',
+        type = str,
+        default = 'INFO'
     )
     parser.add_argument(
         '--version',
@@ -220,358 +172,461 @@ if __name__ == '__main__':
         version='%(prog)s {0}'.format(VERSION)
     )
     args = vars(parser.parse_args())
+
+    loglevel = logging.INFO
+    if args['log_level'] == 'DEBUG':
+        loglevel = logging.DEBUG
+    logging.basicConfig(
+        encoding='utf-8',
+        format='%(asctime)s %(levelname)s %(message)s',
+        level=loglevel
+    )
     ##########
 
     # check input bam file
-    bam_type = check_bam_with_cs_or_md(args["bam_file"])
+    message = 'Determine whether the SAM/BAM file has CS or MD tags.'
+    logging.debug(message)
+    bam_type = check_bam_with_cs_or_md(args['bam_file'])
 
     if bam_type is None:
-        raise ValueError(
-            "The SAM/BAM file input should have cs tags or MD tags."
-        )
-    elif bam_type == "MD":
-        if args["genome_fasta"] is None:
-            raise ValueError(
-                "The SAM/BAM file has MD tags but no cs tags, "
-                "so the genome fasta file should be provided."
-            )
+        message = 'The SAM/BAM file input should have cs tags or MD tags.'
+        logging.error(message)
+        raise ValueError(message)
+    elif bam_type == 'MD':
+        message = 'The SAM/BAM has MD tag.'
+        logging.debug(message)
+        if args['genome_fasta'] is None:
+            message = 'The SAM/BAM file has MD tags but no cs tags, ' +\
+                'so the genome fasta file should be provided.'
+            logging.error(message)
+            raise ValueError(message)
         else:
-            pass
-    elif bam_type == "both":
-        bam_type = "cs"
+            message = 'Genome fasta provided.'
+            logging.debug(message)
+    elif bam_type == 'both':
+        message = 'The SAM/BAM has both cs tag and MD tag. Use cs tag.'
+        logging.debug(message)
+        bam_type = 'cs'
     else:
-        pass
+        message = 'The SAM/BAM has cs tag.'
+        logging.debug(message)
 
-    # run jobs by contigs
-    with mp.Pool(args["thread"]) as p:
-        result = p.map(
-            partial(
-                stat_bam,
-                variables = {
-                    "bam_file": args["bam_file"],
-                    "genome_file": args["genome_fasta"],
-                    "bam_type": bam_type
-                }
-            ),
-            args["contig"]
-        )
 
-    l_readstat = get_stat_list(result, "readstat")
-    l_insertion = get_stat_list(result, "insertion")
-    l_deletion = get_stat_list(result, "deletion")
-    l_mismatch = get_stat_list(result, "mismatch")
-    l_splice = get_stat_list(result, "splice")
-
-    t_readstat = create_readstat_table(l_readstat)
-    t_insertion = create_insertion_table(l_insertion)
-    t_deletion = create_deletion_table(l_deletion)
-    t_mismatch = create_mismatch_table(l_mismatch)
-    t_splice = create_splice_table(l_splice)
-
-    # output
+    # output path
     o_dirs = {
-        "base": args["output_dir"],
-        "table": os.path.join(
-            args["output_dir"], "table"
+        'base': args['output_dir'],
+        'table': os.path.join(
+            args['output_dir'], 'table'
         ),
-        "fig": os.path.join(
-            args["output_dir"], "fig"
+        'fig': os.path.join(
+            args['output_dir'], 'fig'
         ),
     }
 
     o_files = {
-        "pickle": os.path.join(
-            o_dirs["base"], "result.pickle"
+        'pickle': os.path.join(
+            o_dirs['base'], 'result.pickle'
         ),
-        "cs": os.path.join(
-            o_dirs["base"], "read.cs"
+        'cs': os.path.join(
+            o_dirs['base'], 'read.cs'
         ),
-        "t_readstat": os.path.join(
-            o_dirs["table"],
-            "read_stat.txt"
+        't_readstat': os.path.join(
+            o_dirs['table'],
+            'read_stat.txt'
         ),
-        "t_insertion": os.path.join(
-            o_dirs["table"],
-            "insertion.txt"
+        't_insertion': os.path.join(
+            o_dirs['table'],
+            'insertion.txt'
         ),
-        "t_deletion": os.path.join(
-            o_dirs["table"],
-            "deletion.txt"
+        't_deletion': os.path.join(
+            o_dirs['table'],
+            'deletion.txt'
         ),
-        "t_mismatch": os.path.join(
-            o_dirs["table"],
-            "mismatch.txt"
+        't_mismatch': os.path.join(
+            o_dirs['table'],
+            'mismatch.txt'
         ),
-        "t_splice": os.path.join(
-            o_dirs["table"],
-            "splice.txt"
+        't_splice': os.path.join(
+            o_dirs['table'],
+            'splice.txt'
         ),
-        "f_readstat_bar_Read count": os.path.join(
-            o_dirs["fig"], "readstat_bar_Read_count"
+        'f_readstat_bar_Read count': os.path.join(
+            o_dirs['fig'], 'readstat_bar_Read_count'
         ),
-        "f_readstat_bar_Median read length": os.path.join(
-            o_dirs["fig"], "readstat_bar_Median_read_length"
+        'f_readstat_bar_Median read length': os.path.join(
+            o_dirs['fig'], 'readstat_bar_Median_read_length'
         ),
-        "f_readstat_bar_Mean read length": os.path.join(
-            o_dirs["fig"], "readstat_bar_Mean_read_length"
+        'f_readstat_bar_Mean read length': os.path.join(
+            o_dirs['fig'], 'readstat_bar_Mean_read_length'
         ),
-        "f_readstat_bar_Mean insertion number": os.path.join(
-            o_dirs["fig"], "readstat_bar_Mean_insertion_number"
+        'f_readstat_bar_Mean insertion number': os.path.join(
+            o_dirs['fig'], 'readstat_bar_Mean_insertion_number'
         ),
-        "f_readstat_bar_Mean deletion number": os.path.join(
-            o_dirs["fig"], "readstat_bar_Mean_deletion_number"
+        'f_readstat_bar_Mean deletion number': os.path.join(
+            o_dirs['fig'], 'readstat_bar_Mean_deletion_number'
         ),
-        "f_readstat_bar_Mean mismatch number": os.path.join(
-            o_dirs["fig"], "readstat_bar_Mean_mismatch_number"
+        'f_readstat_bar_Mean mismatch number': os.path.join(
+            o_dirs['fig'], 'readstat_bar_Mean_mismatch_number'
         ),
-        "f_readstat_bar_Mean intron number": os.path.join(
-            o_dirs["fig"], "readstat_bar_Mean_intron_number"
+        'f_readstat_bar_Mean intron number': os.path.join(
+            o_dirs['fig'], 'readstat_bar_Mean_intron_number'
         ),
-        "f_readstat_bar_N50": os.path.join(
-            o_dirs["fig"], "readstat_bar_N50"
+        'f_readstat_bar_N50': os.path.join(
+            o_dirs['fig'], 'readstat_bar_N50'
         ),
-        "f_readstat_bar_L50": os.path.join(
-            o_dirs["fig"], "readstat_bar_L50"
+        'f_readstat_bar_L50': os.path.join(
+            o_dirs['fig'], 'readstat_bar_L50'
         ),
-        "f_readstat_bar_mean_element_per_read": os.path.join(
-            o_dirs["fig"], "readstat_bar_mean_element_per_read"
+        'f_readstat_bar_mean_element_per_read': os.path.join(
+            o_dirs['fig'], 'readstat_bar_mean_element_per_read'
         ),
-        "f_readstat_line_cumulative_length": os.path.join(
-            o_dirs["fig"], "readstat_line_cumulative_length"
+        'f_readstat_line_cumulative_length': os.path.join(
+            o_dirs['fig'], 'readstat_line_cumulative_length'
         ),
-        "f_readstat_bar_ratio_with_element": os.path.join(
-            o_dirs["fig"], "readstat_bar_ratio_with_element"
+        'f_readstat_bar_ratio_with_element': os.path.join(
+            o_dirs['fig'], 'readstat_bar_ratio_with_element'
         ),
-        "f_readstat_hist_length": os.path.join(
-            o_dirs["fig"], "readstat_hist_length"
+        'f_readstat_hist_length': os.path.join(
+            o_dirs['fig'], 'readstat_hist_length'
         ),
-        "f_element_Insertion": os.path.join(
-            o_dirs["fig"], "insertion_bar"
+        'f_element_Insertion_bar_count': os.path.join(
+            o_dirs['fig'], 'insertion_bar_count'
         ),
-        "f_element_Deletion": os.path.join(
-            o_dirs["fig"], "deletion_bar"
+        'f_element_Deletion_bar_count': os.path.join(
+            o_dirs['fig'], 'deletion_bar_count'
         ),
-        "f_element_Mismatch": os.path.join(
-            o_dirs["fig"], "mismatch_bar"
+        'f_element_Mismatch_bar_count': os.path.join(
+            o_dirs['fig'], 'mismatch_bar_count'
         ),
-        "f_element_Intron": os.path.join(
-            o_dirs["fig"], "intron_bar"
+        'f_element_Intron_bar_count': os.path.join(
+            o_dirs['fig'], 'intron_bar_count'
         ),
-        "f_mismatch_type": os.path.join(
-            o_dirs["fig"], "mismatch_type"
+        'f_insertion_hist_length': os.path.join(
+            o_dirs['fig'], 'insertion_hist_length'
         ),
-        "f_splice_type": os.path.join(
-            o_dirs["fig"], "splice_type"
+        'f_deletion_hist_length': os.path.join(
+            o_dirs['fig'], 'deletion_hist_length'
         ),
-        "html": os.path.join(
-            o_dirs["base"], "mes_report.html"
+        'f_insertion_hist_location': os.path.join(
+            o_dirs['fig'], 'insertion_hist_location'
+        ),
+        'f_deletion_hist_location': os.path.join(
+            o_dirs['fig'], 'deletion_hist_location'
+        ),
+        'f_mismatch_type': os.path.join(
+            o_dirs['fig'], 'mismatch_type'
+        ),
+        'f_mismatch_hist_location': os.path.join(
+            o_dirs['fig'], 'mismatch_hist_location'
+        ),
+        'f_splice_type': os.path.join(
+            o_dirs['fig'], 'splice_type'
+        ),
+        'html': os.path.join(
+            o_dirs['base'], 'mes_report.html'
         )
     }
 
     # build output directory structure
     build_directories(o_dirs)
 
-    # write a pickle for results
-    with open(o_files["pickle"], 'wb') as f:
-        pickle.dump(result, f)
 
-    if args["output_cs"]:
-        write_readcs(bam_file = args["bam_file"],
-                     genome_file = args["genome_fasta"],
-                     output_file = o_files["cs"],
-                     method = bam_type)
+    # run jobs by contigs
+    message = 'Element statistic process starts.'
+    logging.info(message)
+    with mp.Pool(args['thread']) as p:
+        result = p.map(
+            partial(
+                stat_bam,
+                variables = {
+                    'bam_file': args['bam_file'],
+                    'genome_file': args['genome_fasta'],
+                    'bam_type': bam_type
+                }
+            ),
+            args['contig']
+        )
+
+    message = 'Element statistic process finished.'
+    logging.info(message)
+
+    l_readstat = get_stat_list(result, 'readstat')
+    l_insertion = get_stat_list(result, 'insertion')
+    l_deletion = get_stat_list(result, 'deletion')
+    l_mismatch = get_stat_list(result, 'mismatch')
+    l_splice = get_stat_list(result, 'splice')
+
+    message = 'Sum of statistics from each contig.'
+    logging.debug(message)
+    sreadstat = sum(l_readstat)
+    sreadstat.label = 'Total'
+    sinsertion = sum(l_insertion)
+    sinsertion.label = 'Total'
+    sdeletion = sum(l_deletion)
+    sdeletion.label = 'Total'
+    smismatch = sum(l_mismatch)
+    smismatch.label = 'Total'
+    ssplice = sum(l_splice)
+    ssplice.label = 'Total'
+
+    message = 'Generate summary tables.'
+    logging.info(message)
+    t_readstat = create_readstat_table(l_readstat, sreadstat)
+    t_insertion = create_indel_summary_table(l_insertion, sinsertion)
+    t_deletion = create_indel_summary_table(l_deletion, sdeletion)
+    t_mismatch = create_mismatch_normalized_read_location_table(l_mismatch, smismatch)
+    t_splice = create_splice_table(l_splice, ssplice)
+
+    ####################
+    # output
+
+    # write a pickle for results
+    message = 'Output pickle file.'
+    logging.info(message)
+    outdict = {
+        'readstat_contig': l_readstat,
+        'readstat_sum': sreadstat,
+        'insertion_contig': l_insertion,
+        'insertion_sum': sinsertion,
+        'deletion_contig': l_deletion,
+        'deletio_sum': sdeletion,
+        'mismatch_list': l_mismatch,
+        'mismatch_sum': smismatch,
+        'splice_list': l_splice,
+        'splice_sum': ssplice
+    }
+    with open(o_files['pickle'], 'wb') as f:
+        pickle.dump(outdict, f)
+
+    message = 'Output pickle file finished.'
+    logging.debug(message)
+
+    if args['output_cs']:
+        message = 'Output processed cs tags.'
+        logging.info(message)
+        write_readcs(
+            bam_file = args['bam_file'],
+            genome_file = args['genome_fasta'],
+            output_file = o_files['cs'],
+            method = bam_type
+        )
+        message = 'Output processed cs tags finished.'
+        logging.debug(message)
     else:
         pass
 
     ####################
     # write output tables
+    message = 'Output summary tables.'
+    logging.info(message)
     t_readstat.to_csv(
-        o_files["t_readstat"], sep = '\t', index = False
+        o_files['t_readstat'],
+        sep = '\t', index = False
     )
     t_insertion.to_csv(
-        o_files["t_insertion"], sep = '\t', index = False
+        o_files['t_insertion'],
+        sep = '\t', index = False
     )
     t_deletion.to_csv(
-        o_files["t_deletion"], sep = '\t', index = False
+        o_files['t_deletion'],
+        sep = '\t', index = False
     )
     t_mismatch.to_csv(
-        o_files["t_mismatch"], sep = '\t', index = False
+        o_files['t_mismatch'],
+        sep = '\t', index = False
     )
     t_splice.to_csv(
-        o_files["t_splice"], sep = '\t', index = False
+        o_files['t_splice'],
+        sep = '\t', index = False
     )
+    message = 'Output summary tables finished.'
+    logging.debug(message)
 
     ####################
     # plot figures
+    message = 'Output figures.'
+    logging.info(message)
     # readstat: feature
+    message = 'Output figures: readstat summary features.'
+    logging.debug(message)
     for feature in [
-            "Read count", "Median read length",
-            "Mean read length", "Mean insertion number",
-            "Mean deletion number", "Mean mismatch number",
-            "Mean intron number", "N50", "L50"
+            'Read count', 'Median read length',
+            'Mean read length', 'Mean insertion number',
+            'Mean deletion number', 'Mean mismatch number',
+            'Mean intron number', 'N50', 'L50'
     ]:
-        filelabel = "f_readstat_bar_" + feature
-        fig = plot_readstat_list_bar(l_readstat, feature)
+        filelabel = 'f_readstat_bar_' + feature
+        fig = plot_readstat_bar(l_readstat, feature)
         savefig(fig, o_files[filelabel])
-        plt.close("all")
+        plt.close('all')
 
     # readstat: mean element per read
-    filelabel = "f_readstat_bar_mean_element_per_read"
-    fig = plot_readstat_list_bar_mean_element_per_read(
-        l_readstat
+    message = 'Output figures: readstat_bar_mean_element_per_read.'
+    logging.debug(message)
+    filelabel = 'f_readstat_bar_mean_element_per_read'
+    generate_multiple_figs(
+        plot_readstat_bar_mean_element_per_read,
+        data_list = l_readstat,
+        data_sum = sreadstat,
+        filelabel = o_files[filelabel],
+        width = 5, height = 4
     )
-    savefig(fig, o_files[filelabel])
-    sreadstat = sum(l_readstat)
-    sreadstat.label = "Total"
-    fig = plot_readstat_list_bar_mean_element_per_read(
-        [sreadstat], width = 5, height = 4
-    )
-    savefig(fig, o_files[filelabel] + '.' + "Total")
-    for i in range(len(l_readstat)):
-        seqname = l_readstat[i].label
-        fig = plot_readstat_list_bar_mean_element_per_read(
-            [l_readstat[i]], width = 5, height = 4
-        )
-        savefig(
-            fig,
-            o_files[filelabel] + '.' + seqname
-        )
-        plt.close("all")
 
     # readstat: cumulative length
-    filelabel = "f_readstat_line_cumulative_length"
-    fig = plot_readstat_list_cumulative_length(
-        l_readstat
+    message = 'Output figures: readstat_line_cumulative_length.'
+    logging.debug(message)
+    filelabel = 'f_readstat_line_cumulative_length'
+    generate_multiple_figs(
+        plot_readstat_cumulative_length,
+        data_list = l_readstat,
+        data_sum = sreadstat,
+        filelabel = o_files[filelabel],
+        width = 5, height = 4
     )
-    savefig(fig, o_files[filelabel])
-    sreadstat = sum(l_readstat)
-    sreadstat.label = "Total"
-    fig = plot_readstat_list_cumulative_length(
-        [sreadstat], width = 5, height = 4
-    )
-    savefig(fig, o_files[filelabel] + '.' + "Total")
-    for i in range(len(l_readstat)):
-        seqname = l_readstat[i].label
-        fig = plot_readstat_list_cumulative_length(
-            [l_readstat[i]], width = 5, height = 4
-        )
-        savefig(
-            fig,
-            o_files[filelabel] + '.' + seqname
-        )
-        plt.close("all")
 
     # readstat: ratio with error element
-    filelabel = "f_readstat_bar_ratio_with_element"
-    fig = plot_readstat_list_bar_ratio_with_element(l_readstat)
-    savefig(fig, o_files[filelabel])
-    sreadstat = sum(l_readstat)
-    sreadstat.label = "Total"
-    fig = plot_readstat_list_bar_ratio_with_element(
-        [sreadstat], width = 5, height = 4
+    message = 'Output figures: readstat_bar_ratio_with_element.'
+    logging.debug(message)
+    filelabel = 'f_readstat_bar_ratio_with_element'
+    generate_multiple_figs(
+        plot_readstat_bar_ratio_with_element,
+        data_list = l_readstat,
+        data_sum = sreadstat,
+        filelabel = o_files[filelabel],
+        width = 5, height = 4
     )
-    savefig(fig, o_files[filelabel] + '.' + "Total")
-    for i in range(len(l_readstat)):
-        seqname = l_readstat[i].label
-        fig = plot_readstat_list_bar_ratio_with_element(
-            [l_readstat[i]], width = 5, height = 4
-        )
-        savefig(
-            fig,
-            o_files[filelabel] + '.' + seqname
-        )
-        plt.close("all")
 
     # readstat: length hist
-    filelabel = "f_readstat_hist_length"
-    fig = plot_readstat_list_length_hist(l_readstat)
-    savefig(fig, o_files[filelabel])
-    sreadstat = sum(l_readstat)
-    sreadstat.label = "Total"
-    fig = plot_readstat_list_length_hist(
-        [sreadstat], width = 5, height = 4
+    message = 'Output figures: readstat_hist_length.'
+    logging.debug(message)
+    filelabel = 'f_readstat_hist_length'
+    generate_multiple_figs(
+        plot_readstat_length_hist,
+        data_list = l_readstat,
+        data_sum = sreadstat,
+        filelabel = o_files[filelabel],
+        width = 5, height = 4
     )
-    savefig(fig, o_files[filelabel] + '.' + "Total")
-    for i in range(len(l_readstat)):
-        seqname = l_readstat[i].label
-        fig = plot_readstat_list_length_hist(
-            [l_readstat[i]], width = 5, height = 4
-        )
-        savefig(
-            fig,
-            o_files[filelabel] + '.' + seqname
-        )
-        plt.close("all")
 
-    # error element: insertion
-    filelabel = "f_element_Insertion"
-    fig = plot_element_list_total_count(
-        l_insertion, "Insertion"
+    # error element
+    message = 'Output figures: error element barplots.'
+    logging.debug(message)
+    filelabel = 'f_element_Insertion_bar_count'
+    fig = plot_element_total_count(
+        l_insertion, 'Insertion'
     )
     savefig(fig, o_files[filelabel])
-    filelabel = "f_element_Deletion"
-    fig = plot_element_list_total_count(
-        l_deletion, "Deletion"
+    filelabel = 'f_element_Deletion_bar_count'
+    fig = plot_element_total_count(
+        l_deletion, 'Deletion'
     )
     savefig(fig, o_files[filelabel])
-    filelabel = "f_element_Mismatch"
-    fig = plot_element_list_total_count(
-        l_mismatch, "Mismatch"
+    filelabel = 'f_element_Mismatch_bar_count'
+    fig = plot_element_total_count(
+        l_mismatch, 'Mismatch'
     )
     savefig(fig, o_files[filelabel])
-    plt.close("all")
-    filelabel = "f_element_Intron"
-    fig = plot_element_list_total_count(
-        l_splice, "Intron"
+    plt.close('all')
+    filelabel = 'f_element_Intron_bar_count'
+    fig = plot_element_total_count(
+        l_splice, 'Intron'
     )
     savefig(fig, o_files[filelabel])
-    plt.close("all")
+    plt.close('all')
+
+    # indel: length hist
+    # insertion
+    message = 'Output figures: insertion_hist_length.'
+    logging.debug(message)
+    filelabel = 'f_insertion_hist_length'
+    generate_multiple_figs(
+        plot_indel_hist_length,
+        data_list = l_insertion,
+        data_sum = sinsertion,
+        filelabel = o_files[filelabel],
+        width = 5, height = 4
+    )
+    # deletion
+    message = 'Output figures: deletion_hist_length.'
+    logging.debug(message)
+    filelabel = 'f_deletion_hist_length'
+    generate_multiple_figs(
+        plot_indel_hist_length,
+        data_list = l_deletion,
+        data_sum = sdeletion,
+        filelabel = o_files[filelabel],
+        width = 5, height = 4
+    )
+
+    # indel: read location hist
+    # insertion
+    message = 'Output figures: insertion_hist_location.'
+    logging.debug(message)
+    filelabel = 'f_insertion_hist_location'
+    generate_multiple_figs(
+        plot_indel_hist_location,
+        data_list = l_insertion,
+        data_sum = sinsertion,
+        filelabel = o_files[filelabel],
+        width = 5, height = 4
+    )
+    # deletion
+    message = 'Output figures: deletion_hist_location.'
+    logging.debug(message)
+    filelabel = 'f_deletion_hist_location'
+    generate_multiple_figs(
+        plot_indel_hist_location,
+        data_list = l_deletion,
+        data_sum = sdeletion,
+        filelabel = o_files[filelabel],
+        width = 5, height = 4
+    )
 
     # mismatch type
-    filelabel = "f_mismatch_type"
-    fig = plot_mismatch_list_type_count(l_mismatch)
-    savefig(fig, o_files[filelabel])
-    smismatch = sum(l_mismatch)
-    smismatch.label = "Total"
-    fig = plot_mismatch_list_type_count(
-        [smismatch], width = 7, height = 4
+    message = 'Output figures: mismatch_type.'
+    logging.debug(message)
+    filelabel = 'f_mismatch_type'
+    generate_multiple_figs(
+        plot_mismatch_type_count,
+        data_list = l_mismatch,
+        data_sum = smismatch,
+        filelabel = o_files[filelabel],
+        width = 5, height = 4
     )
-    savefig(fig, o_files[filelabel] + '.' + "Total")
-    for i in range(len(l_mismatch)):
-        seqname = l_mismatch[i].label
-        fig = plot_mismatch_list_type_count(
-            [l_mismatch[i]], width = 7, height = 4
-        )
-        savefig(
-            fig,
-            o_files[filelabel] + '.' + seqname
-        )
-        plt.close("all")
+
+    # mismatch: read location hist
+    message = 'Output figures: mismatch_hist_location.'
+    logging.debug(message)
+    filelabel = 'f_mismatch_hist_location'
+    generate_multiple_figs(
+        plot_mismatch_hist_location,
+        data_list = l_mismatch,
+        data_sum = smismatch,
+        filelabel = o_files[filelabel],
+        width = 5, height = 4
+    )
 
     # splice type
-    filelabel = "f_splice_type"
-    fig = plot_splice_list_type_count(l_splice)
-    savefig(fig, o_files[filelabel])
-    ssplice = sum(l_splice)
-    ssplice.label = "Total"
-    fig = plot_splice_list_type_count(
-        [ssplice], width = 7, height = 4
+    message = 'Output figures: splice_type.'
+    logging.debug(message)
+    filelabel = 'f_splice_type'
+    generate_multiple_figs(
+        plot_splice_type_count,
+        data_list = l_splice,
+        data_sum = ssplice,
+        filelabel = o_files[filelabel],
+        width = 5, height = 4
     )
-    savefig(fig, o_files[filelabel] + '.' + "Total")
-    for i in range(len(l_splice)):
-        seqname = l_splice[i].label
-        fig = plot_splice_list_type_count(
-            [l_splice[i]], width = 7, height = 4
-        )
-        savefig(
-            fig,
-            o_files[filelabel] + '.' + seqname
-        )
-        plt.close("all")
+
+    message = 'Output figures finished.'
+    logging.debug(message)
 
     ####################
     # generate report
-    copy_logo(o_dirs["fig"])
+    message = 'Output html report page.'
+    logging.info(message)
+
+    copy_logo(o_dirs['fig'])
 
     html_string = get_html_template()
 
@@ -579,14 +634,11 @@ if __name__ == '__main__':
         html_string, t_readstat
     )
 
-    mismatch_type_counter = Counter(dict(
-        zip(
-            t_mismatch.columns[1:],
-            t_mismatch.loc[t_mismatch['label'] == 'Total',].values[0][1:]
-        )
-    ))
+    mismatch_type_counter = smismatch.get_type_count()
+
     new_html_string = html_add_mismatch_table(
         new_html_string, t_mismatch,
+        smismatch.get_total_count(),
         t_readstat.loc[
             t_readstat['label'] == 'Total',
             'mean_mismatch_per_read'
@@ -618,7 +670,10 @@ if __name__ == '__main__':
         ].values[0]
     )
 
-    with open(o_files['html'], "w") as f:
+    with open(o_files['html'], 'w') as f:
         f.write(new_html_string)
+
+    message = 'All done!'
+    logging.info(message)
 
 ########################################

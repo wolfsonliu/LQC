@@ -68,39 +68,44 @@ def html_add_readstat_table(html_string, readstat_table):
 
 
 def html_add_mismatch_table(html_string, mismatch_table,
+                            total_mismatch_count,
                             mean_mismatch_per_read,
                             mismatch_type_counter):
-    mis_types = ['a=>c', 'a=>g', 'a=>t', 'c=>a', 'c=>g', 'c=>t',
-                 'g=>a', 'g=>c', 'g=>t', 't=>a', 't=>c', 't=>g']
+    bins = ['[0.0,0.1)', '[0.1,0.2)', '[0.2,0.3)',
+            '[0.3,0.4)', '[0.4,0.5)', '[0.5,0.6)',
+            '[0.6,0.7)', '[0.7,0.8)', '[0.8,0.9)',
+            '[0.9,1.0]']
+    mis_types = ['ac', 'ag', 'at', 'ca', 'cg', 'ct',
+                 'ga', 'gc', 'gt', 'ta', 'tc', 'tg']
     rowstring_list = list()
     for ri, row in mismatch_table.iterrows():
-        tmprow_list = [
-            '<th scope="row">{}</th>'.format(row['label'])
-        ]
         for mis in mis_types:
+            tmprow_list = [
+                    '<th scope="row">{}</th>'.format(row['label'])
+            ]
+            tmprow_list.append(
+                '<td>{}</td>'.format(row['bin'])
+            )
+            tmprow_list.append(
+                '<td>{}</td>'.format(mis)
+            )
             if mis in row:
                 tmprow_list.append(
-                    '<td>{}</td>'.format(row[mis]),
+                    '<td>{}</td>'.format(row[mis])
                 )
             else:
                 tmprow_list.append('<td>0</td>')
-        if row['label'] == "Total":
-            rowstring_list.append(
-                '<tr class="table-secondary">' +
-                '\n'.join(tmprow_list) + "</tr>"
+            if row['label'] == "Total":
+                rowstring_list.append(
+                    '<tr class="table-secondary">' +
+                    '\n'.join(tmprow_list) + "</tr>"
 
-            )
-            total_mismatch_count = 0
-            for idx in row.index:
-                if idx != 'label':
-                    total_mismatch_count += row[idx]
-                else:
-                    pass
-        else:
-            rowstring_list.append(
-                "<tr>" +
-                '\n'.join(tmprow_list) + "</tr>"
-            )
+                )
+            else:
+                rowstring_list.append(
+                    "<tr>" +
+                    '\n'.join(tmprow_list) + "</tr>"
+                )
 
     new_html_string = re.sub(
         "\{%mismatch_total_mismatch_number%\}",
@@ -150,10 +155,10 @@ def html_add_insertion_table(html_string, insertion_table,
     for ri, row in insertion_table.iterrows():
         tmprow_list = [
             '<th scope="row">{}</th>'.format(row['label']),
-            '<td>{}</td>'.format(row['insertion_count']),
-            '<td>{}</td>'.format(row['insertion_length']),
-            '<td>{:.4}</td>'.format(row['mean_insertion_length']),
-            '<td>{}</td>'.format(row['median_insertion_length'])
+            '<td>{}</td>'.format(row['total_count']),
+            '<td>{}</td>'.format(row['total_length']),
+            '<td>{:.4}</td>'.format(float(row['mean_length'])),
+            '<td>{:.4}</td>'.format(float(row['median_length']))
         ]
         if row['label'] == "Total":
             rowstring_list.append(
@@ -161,9 +166,10 @@ def html_add_insertion_table(html_string, insertion_table,
                 '\n'.join(tmprow_list) + "</tr>"
 
             )
-            total_insertion_count = row['insertion_count']
-            total_insertion_length = row['insertion_length']
-            mean_insertion_length = row['mean_insertion_length']
+            total_insertion_count = row['total_count']
+            total_insertion_length = row['total_length']
+            mean_insertion_length = float(row['mean_length'])
+            median_insertion_length = float(row['median_length'])
         else:
             rowstring_list.append(
                 "<tr>" +
@@ -181,8 +187,13 @@ def html_add_insertion_table(html_string, insertion_table,
         new_html_string
     )
     new_html_string = re.sub(
-        "\{%insertion_mean_insertion_length%\}",
+        "\{%insertion_mean_length%\}",
         '{:.4}'.format(mean_insertion_length),
+        new_html_string
+    )
+    new_html_string = re.sub(
+        "\{%insertion_median_length%\}",
+        '{:.4}'.format(median_insertion_length),
         new_html_string
     )
     new_html_string = re.sub(
@@ -203,10 +214,10 @@ def html_add_deletion_table(html_string, deletion_table,
     for ri, row in deletion_table.iterrows():
         tmprow_list = [
             '<th scope="row">{}</th>'.format(row['label']),
-            '<td>{}</td>'.format(row['deletion_count']),
-            '<td>{}</td>'.format(row['deletion_length']),
-            '<td>{:.4}</td>'.format(row['mean_deletion_length']),
-            '<td>{}</td>'.format(row['median_deletion_length'])
+            '<td>{}</td>'.format(row['total_count']),
+            '<td>{}</td>'.format(row['total_length']),
+            '<td>{:.4}</td>'.format(float(row['mean_length'])),
+            '<td>{:.4}</td>'.format(float(row['median_length']))
         ]
         if row['label'] == "Total":
             rowstring_list.append(
@@ -214,9 +225,10 @@ def html_add_deletion_table(html_string, deletion_table,
                 '\n'.join(tmprow_list) + "</tr>"
 
             )
-            total_deletion_count = row['deletion_count']
-            total_deletion_length = row['deletion_length']
-            mean_deletion_length = row['mean_deletion_length']
+            total_deletion_count = row['total_count']
+            total_deletion_length = row['total_length']
+            mean_deletion_length = float(row['mean_length'])
+            median_deletion_length = float(row['median_length'])
         else:
             rowstring_list.append(
                 "<tr>" +
@@ -234,8 +246,13 @@ def html_add_deletion_table(html_string, deletion_table,
         new_html_string
     )
     new_html_string = re.sub(
-        "\{%deletion_mean_deletion_length%\}",
+        "\{%deletion_mean_length%\}",
         '{:.4}'.format(mean_deletion_length),
+        new_html_string
+    )
+    new_html_string = re.sub(
+        "\{%deletion_median_length%\}",
+        '{:.4}'.format(median_deletion_length),
         new_html_string
     )
     new_html_string = re.sub(

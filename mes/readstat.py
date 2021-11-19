@@ -1,3 +1,6 @@
+from copy import deepcopy
+
+
 class ReadStat(object):
     """
     A class to store read count and read statistic information.
@@ -168,32 +171,59 @@ class ReadStat(object):
         N50, L50 = self.get_length_NL(50)
         outstring = '\n'.join([
             "ReadStat:",
-            "  read counts: {}".format(self.get_read_count()),
-            "  total bases: {}".format(self.get_total_base()),
-            "  mean of read length: {:.4}".format(float(self.get_mean_length())),
-            "  median of read length: {:.4}".format(float(self.get_median_length())),
+            "  read counts: {}".format(
+                self.get_read_count()
+            ),
+            "  total bases: {}".format(
+                self.get_total_base()
+            ),
+            "  mean of read length: {:.4}".format(
+                float(self.get_mean_length())
+            ),
+            "  median of read length: {:.4}".format(
+                float(self.get_median_length())
+            ),
             "  [min, max] of read length: [{}, {}]".format(
                 self.get_min_length(), self.get_max_length()
             ),
             "  N50 of read length: {}".format(N50),
             "  L50 of read length: {}".format(L50),
-            "  mean of insertions per read: {:.4}".format(float(self.get_mean_insertions())),
-            "  mean of deletions per read: {:.4}".format(float(self.get_mean_deletions())),
-            "  mean of mismatches per read: {:.4}".format(float(self.get_mean_mismatches())),
-            "  mean of introns per read: {:.4}".format(float(self.get_mean_introns()))
+            "  mean of insertions per read: {:.4}".format(
+                float(self.get_mean_insertions())
+            ),
+            "  mean of deletions per read: {:.4}".format(
+                float(self.get_mean_deletions())
+            ),
+            "  mean of mismatches per read: {:.4}".format(
+                float(self.get_mean_mismatches())
+            ),
+            "  mean of introns per read: {:.4}".format(
+                float(self.get_mean_introns())
+            )
         ])
         return outstring
 
     def __str__(self):
-        outstring = "ReadStat: {} reads".format(self.get_read_count())
+        outstring = "ReadStat: {} reads".format(
+            self.get_read_count()
+        )
         return outstring
 
     def __add__(self, other):
-        assert other.__class__ == self.__class__, 'wrong object to add'
-        sumReadStat = type(self)(' '.join([self.label, other.label]))
-        sumReadStat._reads = self._reads + other._reads
-        sumReadStat._read_count = self._read_count + other._read_count
-        sumReadStat._total_base = self._total_base + other._total_base
+        assert type(other) == type(self),\
+            'wrong object to add'
+        sumReadStat = type(self)(
+            ' '.join([self.label, other.label])
+        )
+        sumReadStat._reads = deepcopy(
+            self._reads + other._reads
+        )
+        sumReadStat._read_count = deepcopy(
+            self._read_count + other._read_count
+        )
+        sumReadStat._total_base = deepcopy(
+            self._total_base + other._total_base
+        )
         return sumReadStat
 
     def __radd__(self, other):

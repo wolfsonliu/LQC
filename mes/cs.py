@@ -539,27 +539,65 @@ class CS(object):
     def count_intron_in_read_location_bin(self):
         return self._count_element_in_read_location_bin('~')
 
-    def _get_marks(self, mark):
+    def _get_marks(self, mark, coordinate):
         assert mark in ['~', '*', ':', '+', '-'], \
             "Mark should be in [~, *, :, +, -]."
-        return [
-            a for a in self._cs if a[2] == mark
-        ]
+        assert coordinate in [
+            'contig', 'relative_contig', 'read', 'normalized_read'
+        ], 'coordinate should be in [contig, relative_contig, read, normalized_read]'
+        if coordinate == 'contig':
+            outlist = [
+                a for a in self.get_contig_position()
+                if a[2] == mark
+            ]
+        elif coordinate == 'relative_contig':
+            outlist = [
+                a for a in self.get_relative_position()
+                if a[2] == mark
+            ]
+        elif coordinate == 'read':
+            outlist = [
+                a for a in self.get_read_location()
+                if a[2] == mark
+            ]
+        elif coordinate == 'normalized_read':
+            outlist = [
+                a for a in self.get_normalized_read_location()
+                if a[2] == mark
+            ]
+        else:
+            pass
+        return outlist
 
-    def get_introns(self):
-        return self._get_marks('~')
+    def get_introns(self, coordinate = 'contig'):
+        assert coordinate in [
+            'contig', 'relative_contig', 'read', 'normalized_read'
+        ], 'coordinate should be in [contig, relative_contig, read, normalized_read]'
+        return self._get_marks('~', coordinate = coordinate)
 
-    def get_mismatches(self):
-        return self._get_marks('*')
+    def get_mismatches(self, coordinate = 'contig'):
+        assert coordinate in [
+            'contig', 'relative_contig', 'read', 'normalized_read'
+        ], 'coordinate should be in [contig, relative_contig, read, normalized_read]'
+        return self._get_marks('*', coordinate = coordinate)
 
-    def get_matches(self):
-        return self._get_marks(':')
+    def get_matches(self, coordinate = 'contig'):
+        assert coordinate in [
+            'contig', 'relative_contig', 'read', 'normalized_read'
+        ], 'coordinate should be in [contig, relative_contig, read, normalized_read]'
+        return self._get_marks(':', coordinate = coordinate)
 
-    def get_insertions(self):
-        return self._get_marks('+')
+    def get_insertions(self, coordinate = 'contig'):
+        assert coordinate in [
+            'contig', 'relative_contig', 'read', 'normalized_read'
+        ], 'coordinate should be in [contig, relative_contig, read, normalized_read]'
+        return self._get_marks('+', coordinate = coordinate)
 
-    def get_deletions(self):
-        return self._get_marks('-')
+    def get_deletions(self, coordinate = 'contig'):
+        assert coordinate in [
+            'contig', 'relative_contig', 'read', 'normalized_read'
+        ], 'coordinate should be in [contig, relative_contig, read, normalized_read]'
+        return self._get_marks('-', coordinate = coordinate)
 
     def get_intron_count(self):
         return self._intron_count
@@ -612,7 +650,7 @@ class CS(object):
         mis = self.get_mismatches()
         mis_ctr = Counter()
         for a in [item[3] for item in mis]:
-            mis_ctr['{}=>{}'.format(a[0], a[1])] += 1
+            mis_ctr['{}{}'.format(a[0], a[1])] += 1
         return mis_ctr
 
     def get_insertion_count(self):

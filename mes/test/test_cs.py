@@ -45,7 +45,7 @@ class TestCS(unittest.TestCase):
         cs = CS.from_cs_tag_string(
             cs_tag_string = cs_string,
             contig = 'chr1',
-            start_pos = 0,
+            start_pos = 1000,
             strand = '+'
         )
         mismatch_type_count = cs.get_mismatch_type_count()

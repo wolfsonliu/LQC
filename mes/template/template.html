@@ -133,12 +133,32 @@
                 </div>
                 <img class="card-img-bottom" src="fig/readstat_hist_length.png" />
               </div>
+              <div class="card mb-3">
+                <div class="row g-0">
+                  <div class="col-md-5">
+                    <div class="card-body">
+                      <h3 class="card-title">Cumulative curve of length</h3>
+                      <p class="card-text">N50 is the shortest read length
+                        with reads longer than N50 cover 50% of all the
+                        bases, which can assess the sequencing quality.</p>
+                      <p class="card-text">L50 is the rank of the N50 read
+                        (descendent rank by read length).</p>
+                    </div>
+                  </div>
+                  <div class="col-md-7">
+                    <img class="card-img" src="fig/readstat_line_cumulative_length.Total.png"/>
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">Cumulative curve of length by contig</h3>
+                </div>
+                <img class="card-img-bottom" src="fig/readstat_line_cumulative_length.png" />
+              </div>
               <div class="card">
                 <div class="card-body">
                   <h3 class="card-title">N50 of reads</h3>
-                  <p class="card-text">N50 is the shortest read length
-                  with reads longer than N50 cover 50% of all the
-                  bases, which can assess the sequencing quality.</p>
                   <p class="card-text">Read N50 for all the analyzed
                   contigs is {%readstat_N50%}.</p>
                 </div>
@@ -147,8 +167,6 @@
               <div class="card">
                 <div class="card-body">
                   <h3 class="card-title">L50 of reads</h3>
-                  <p class="card-text">L50 is the rank of the N50 read
-                  (descendent rank by read length).</p>
                   <p class="card-text">Read L50 for all the analyzed
                   contigs is {%readstat_L50%}.</p>
                 </div>
@@ -217,10 +235,8 @@
                   <p class="card-text">The total number of bases
                   inserted found in all the analyzed contigs is
                   {%insertion_total_insertion_length%}.</p>
-                  <p class="card-text">The mean length of insertions
-                  is {%insertion_mean_insertion_length%}.</p>
                 </div>
-                <img class="card-img-bottom" src="fig/insertion_bar.png" />
+                <img class="card-img-bottom" src="fig/insertion_bar_count.png" />
               </div>
               <div class="card">
                 <div class="card-body">
@@ -231,6 +247,41 @@
                   insertions can be found per read.</p>
                 </div>
                 <img class="card-img-bottom" src="fig/readstat_bar_Mean_insertion_number.png" />
+              </div>
+              <div class="card mb-3">
+                <div class="row g-0">
+                  <div class="col-md-5">
+                    <div class="card-body">
+                      <h3 class="card-title">Histogram of length</h3>
+                      <p class="card-text">The histogram shows the
+                      insertion length distribution for all the
+                      analyzed contigs.</p>
+                      <p class="card-text">The median of insertion
+                      length is {%insertion_median_length%}.</p>
+                      <p class="card-text">The mean of insertion
+                      length is {%insertion_mean_length%}.</p>
+                    </div>
+                  </div>
+                  <div class="col-md-7">
+                    <img class="card-img" src="fig/insertion_hist_length.Total.png"/>
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">Histogram of length by contig</h3>
+                  <p class="card-text">The histogram shows the insertion
+                  length distribution for each analyzed contig.</p>
+                </div>
+                <img class="card-img-bottom" src="fig/insertion_hist_length.png" />
+              </div>
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">Histogram of read locations by contig</h3>
+                  <p class="card-text">The histogram shows the
+                    read location of insertion for each analyzed contig.</p>
+                </div>
+                <img class="card-img-bottom" src="fig/insertion_hist_location.png" />
               </div>
               <div class="card">
                 <div class="card-header">Statistic Summary</div>
@@ -267,10 +318,8 @@
                   <p class="card-text">The total number of bases
                   deleted found in all the analyzed contigs is
                   {%deletion_total_deletion_length%}.</p>
-                  <p class="card-text">The mean length of deletions
-                  is {%deletion_mean_deletion_length%}.</p>
                 </div>
-                <img class="card-img-bottom" src="fig/deletion_bar.png" />
+                <img class="card-img-bottom" src="fig/deletion_bar_count.png" />
               </div>
               <div class="card">
                 <div class="card-body">
@@ -281,6 +330,41 @@
                   deletions can be found per read.</p>
                 </div>
                 <img class="card-img-bottom" src="fig/readstat_bar_Mean_deletion_number.png" />
+              </div>
+              <div class="card mb-3">
+                <div class="row g-0">
+                  <div class="col-md-5">
+                    <div class="card-body">
+                      <h3 class="card-title">Histogram of length</h3>
+                      <p class="card-text">The histogram shows the
+                      deletion length distribution for all the
+                      analyzed contigs.</p>
+                      <p class="card-text">The median of deletion
+                      length is {%deletion_median_length%}.</p>
+                      <p class="card-text">The mean of deletion length
+                      is {%deletion_mean_length%}.</p>
+                    </div>
+                  </div>
+                  <div class="col-md-7">
+                    <img class="card-img" src="fig/deletion_hist_length.Total.png"/>
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">Histogram of length by contig</h3>
+                  <p class="card-text">The histogram shows the deletion
+                  length distribution for each analyzed contig.</p>
+                </div>
+                <img class="card-img-bottom" src="fig/deletion_hist_length.png" />
+              </div>
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">Histogram of read locations by contig</h3>
+                  <p class="card-text">The histogram shows the
+                    read location of deletion for each analyzed contig.</p>
+                </div>
+                <img class="card-img-bottom" src="fig/deletion_hist_location.png" />
               </div>
               <div class="card">
                 <div class="card-header">Statistic Summary</div>
@@ -316,7 +400,7 @@
                   found in all the analyzed contigs is
                   {%mismatch_total_mismatch_number%}.</p>
                 </div>
-                <img class="card-img-bottom" src="fig/mismatch_bar.png" />
+                <img class="card-img-bottom" src="fig/mismatch_bar_count.png" />
               </div>
               <div class="card">
                 <div class="card-body">
@@ -355,6 +439,14 @@
                 <img class="card-img-bottom" src="fig/mismatch_type.png" />
               </div>
               <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">Histogram of read locations by contig</h3>
+                  <p class="card-text">The histogram shows the
+                    read location of mismatch for each analyzed contig.</p>
+                </div>
+                <img class="card-img-bottom" src="fig/mismatch_hist_location.png" />
+              </div>
+              <div class="card">
                 <div class="card-header">Statistic Summary</div>
                 <div class="card-body">
                   <h3 class="card-title"></h3>
@@ -362,18 +454,9 @@
                     <thead>
                       <tr>
                         <th scope="col">Contig</th>
-                        <th scope="col">a=>c</th>
-                        <th scope="col">a=>g</th>
-                        <th scope="col">a=>t</th>
-                        <th scope="col">c=>a</th>
-                        <th scope="col">c=>g</th>
-                        <th scope="col">c=>t</th>
-                        <th scope="col">g=>a</th>
-                        <th scope="col">g=>c</th>
-                        <th scope="col">g=>t</th>
-                        <th scope="col">t=>a</th>
-                        <th scope="col">t=>c</th>
-                        <th scope="col">t=>g</th>
+                        <th scope="col">Relative location</th>
+                        <th scope="col">Mismatch type</th>
+                        <th scope="col">Counts</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -396,7 +479,7 @@
                     found in all the analyzed contigs is
                     {%intron_total_intron_number%}.</p>
                 </div>
-                <img class="card-img-bottom" src="fig/intron_bar.png" />
+                <img class="card-img-bottom" src="fig/intron_bar_count.png" />
               </div>
               <div class="card">
                 <div class="card-body">

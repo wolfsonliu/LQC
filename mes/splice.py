@@ -1,4 +1,6 @@
+from copy import deepcopy
 from collections import Counter
+from mes.utils import convert_reverse_complement
 
 
 class Splice(object):
@@ -37,15 +39,10 @@ class Splice(object):
         return sum(self._pair_count_dict.values())
 
     def convert_reverse_complement(self):
-        ntpair = {'a': 't', 'c': 'g',
-                  'g': 'c', 't': 'a',
-                  '-': '-', 'n': 'n'}
         p_dict = self.get_splice_pair_count_dict()
         new_dict = dict()
         for a, b in p_dict.items():
-            new_string = ''.join([
-                ntpair[c] for c in a[::-1]
-            ])
+            new_string = convert_reverse_complement(a)
             new_dict[new_string] = b
         new_splice = type(self)(self.label)
         new_splice.add_splice_pair_count_dict(
@@ -86,12 +83,17 @@ class Splice(object):
         return outstring
 
     def __add__(self, other):
-        assert other.__class__ == self.__class__, 'wrong object to add'
-        new_dict = self.get_splice_pair_count_dict() + \
+        assert type(other) == type(self),\
+            'wrong object to add'
+        new_dict = deepcopy(
+            self.get_splice_pair_count_dict() +
             other.get_splice_pair_count_dict()
-        sumSplice = type(self)(' '.join([self.label, other.label]))
-        sumSplice.add_splice_pair_count_dict(new_dict)
-        return sumSplice
+        )
+        newSp = type(self)(
+            ' '.join([self.label, other.label])
+        )
+        newSp.add_splice_pair_count_dict(new_dict)
+        return newSp
 
     def __radd__(self, other):
         if other == 0:

@@ -1,10 +1,7 @@
 import pandas as pd
 
 
-def create_readstat_table(readstat_list):
-    rssum = sum(readstat_list)
-    rssum.label = 'Total'
-
+def create_readstat_table(readstat_list, readstat_sum):
     colnames = [
         'label', 'read_count', 'total_base',
         'read_length_mean',
@@ -34,18 +31,18 @@ def create_readstat_table(readstat_list):
             a.get_mean_introns()
         ])
     # add Total
-    N50, L50 = rssum.get_length_NL(50)
+    N50, L50 = readstat_sum.get_length_NL(50)
     row_list.append([
-        rssum.label,
-        rssum.get_read_count(),
-        rssum.get_total_base(),
-        rssum.get_mean_length(),
-        rssum.get_median_length(),
+        readstat_sum.label,
+        readstat_sum.get_read_count(),
+        readstat_sum.get_total_base(),
+        readstat_sum.get_mean_length(),
+        readstat_sum.get_median_length(),
         N50, L50,
-        rssum.get_mean_insertions(),
-        rssum.get_mean_deletions(),
-        rssum.get_mean_mismatches(),
-        rssum.get_mean_introns()
+        readstat_sum.get_mean_insertions(),
+        readstat_sum.get_mean_deletions(),
+        readstat_sum.get_mean_mismatches(),
+        readstat_sum.get_mean_introns()
     ])
     rstable = pd.DataFrame(
         row_list, columns = colnames
@@ -53,89 +50,69 @@ def create_readstat_table(readstat_list):
     return rstable
 
 
-def create_mismatch_table(mismatch_list):
-    missum = sum(mismatch_list)
-    missum.label = 'Total'
-
-    mistypes = list(
-        missum.get_count_dict().keys()
+def create_mismatch_normalized_read_location_table(mismatch_list,
+                                                   mismatch_sum):
+    cuts = [0, 0.1, 0.2, 0.3, 0.4, 0.5,
+            0.6, 0.7, 0.8, 0.9, 1]
+    mis_type_bin_counts = [
+        mismatch_list[i].get_location_bin_count_by_type(cuts = cuts)
+        for i in range(len(mismatch_list))
+    ]
+    sum_type_bin_count = mismatch_sum.get_location_bin_count_by_type(cuts = cuts)
+    mistypes = list(sum_type_bin_count.keys())
+    bins = list(
+        sum_type_bin_count[mistypes[0]].keys()
     )
 
+    data_list = list()
+    for i in range(len(mismatch_list)):
+        for ibin in bins:
+            data_list.append(
+                [mismatch_list[i].label, ibin] +
+                [mis_type_bin_counts[i][c][ibin]
+                 for c in mistypes]
+            )
+    for ibin in bins:
+        data_list.append(
+            [mismatch_sum.label, ibin] +
+            [sum_type_bin_count[c][ibin]
+             for c in mistypes]
+        )
     mistable = pd.DataFrame(
-        [
-            [mismatch_list[i].label] +
-            [mismatch_list[i].get_count_dict()[a]
-             for a in mistypes]
-            for i in range(len(mismatch_list))
-        ] + [
-            ['Total'] +
-            [missum.get_count_dict()[a]
-             for a in mistypes]
-        ],
-        columns = ['label'] + mistypes
+        data_list,
+        columns = ['label', 'bin'] + mistypes
     )
-
     return mistable
 
 
-def create_insertion_table(insertion_list):
-    insum = sum(insertion_list)
-    insum.label = 'Total'
-    intable = pd.DataFrame(
+def create_indel_summary_table(indel_list, indel_sum):
+    table = pd.DataFrame(
         [
-            [insertion_list[i].label,
-             insertion_list[i].get_total_count(),
-             insertion_list[i].get_total_insertion_length(),
-             insertion_list[i].get_mean_insertion_length(),
-             insertion_list[i].get_median_insertion_length()]
-            for i in range(len(insertion_list))
+            [indel_list[i].label,
+             indel_list[i].get_total_count(),
+             indel_list[i].get_total_length(),
+             indel_list[i].get_mean_length(),
+             indel_list[i].get_median_length()]
+            for i in range(len(indel_list))
         ] + [
-            [insum.label,
-             insum.get_total_count(),
-             insum.get_total_insertion_length(),
-             insum.get_mean_insertion_length(),
-             insum.get_median_insertion_length()]
+            [indel_sum.label,
+             indel_sum.get_total_count(),
+             indel_sum.get_total_length(),
+             indel_sum.get_mean_length(),
+             indel_sum.get_median_length()]
         ],
-        columns = ['label', 'insertion_count',
-                   'insertion_length',
-                   'mean_insertion_length',
-                   'median_insertion_length']
+        columns = ['label', 'total_count',
+                   'total_length',
+                   'mean_length',
+                   'median_length']
     )
-    return intable
+    return table
 
 
-def create_deletion_table(deletion_list):
-    desum = sum(deletion_list)
-    desum.label = 'Total'
-    detable = pd.DataFrame(
-        [
-            [deletion_list[i].label,
-             deletion_list[i].get_total_count(),
-             deletion_list[i].get_total_deletion_length(),
-             deletion_list[i].get_mean_deletion_length(),
-             deletion_list[i].get_median_deletion_length()]
-            for i in range(len(deletion_list))
-        ] + [
-            [desum.label,
-             desum.get_total_count(),
-             desum.get_total_deletion_length(),
-             desum.get_mean_deletion_length(),
-             desum.get_median_deletion_length()]
-        ],
-        columns = ['label', 'deletion_count',
-                   'deletion_length',
-                   'mean_deletion_length',
-                   'median_deletion_length']
-    )
-    return detable
-
-
-def create_splice_table(splice_list):
-    spsum = sum(splice_list)
-    spsum.label = 'Total'
+def create_splice_table(splice_list, splice_sum):
 
     sptypes = list(
-        spsum.get_splice_pair_count_dict().keys()
+        splice_sum.get_splice_pair_count_dict().keys()
     )
 
     sptable = pd.DataFrame(
@@ -146,7 +123,7 @@ def create_splice_table(splice_list):
             for i in range(len(splice_list))
         ] + [
             ['Total'] +
-            [spsum.get_splice_pair_count_dict()[a]
+            [splice_sum.get_splice_pair_count_dict()[a]
              for a in sptypes]
         ],
         columns = ['label'] + sptypes

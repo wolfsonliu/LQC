@@ -1,4 +1,6 @@
 *~
+*.err
+*.out
 tmp*
 __pycache__/
 
