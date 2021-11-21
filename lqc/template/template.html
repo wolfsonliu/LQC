@@ -8,7 +8,7 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
 <!-- JavaScript Bundle with Popper -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
-<title>MES report</title>
+<title>LQC report</title>
 
 </head>
 
@@ -59,33 +59,49 @@
       <div class="col col-10" style="padding-left:20%;">
         <div class="accordion" id="toggleGroup">
           <div class="accordion-collapse collapse p-3 show" id="collapseAbout" data-bs-parent="#toggleGroup">
-            <h1 id="h_about">MES: Mapping Element Statistic</h1>
+            <h1 id="h_about">LQC: Long-read RNA-seq Quality Control</h1>
             <div class="p-2">
+              <p>
+                <a href="https://pypi.org/project/lqc/">
+                  <img src="https://img.shields.io/badge/version-v0.0.3-7a0177"/>
+                </a>
+                <a href="https://github.com/gxiaolab/LQC">
+                  <img src="https://img.shields.io/github/stars/gxiaolab/LQC?style=social"/>
+                </a>
+              </p>
               <p>
                 Please cite:
               </p>
               <p>
-                Lorem ipsum dolor sit amet, consectetur adipiscing
-                elit, sed do eiusmod tempor incididunt ut labore et dolore
-                magna aliqua. Ut enim ad minim veniam, quis nostrud
-                exercitation ullamco laboris nisi ut aliquip ex ea commodo
-                consequat. Duis aute irure dolor in reprehenderit in
-                voluptate velit esse cillum dolore eu fugiat nulla
-                pariatur. Excepteur sint occaecat cupidatat non proident,
-                sunt in culpa qui officia deserunt mollit anim id est
-                laborum.
+               LQC is used to generate quality control summary report
+               for mapped SAM/BAM files of long-read RNA-seq data
+               (PacBio, Oxford Nanopore). LQC provides detailed
+               information about the indels, mismatches and splicing
+               sites in the BAM files, which provides a good reference
+               for evaluation for the sequencing quality of the
+               long-read sequencing data.
               </p>
-              <p>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit,
-                sed do eiusmod tempor incididunt ut labore et dolore magna
-                aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-                ullamco laboris nisi ut aliquip ex ea commodo
-                consequat. Duis aute irure dolor in reprehenderit in
-                voluptate velit esse cillum dolore eu fugiat nulla
-                pariatur. Excepteur sint occaecat cupidatat non proident,
-                sunt in culpa qui officia deserunt mollit anim id est
-                laborum.
-            </p>
+              <h3>Guidance</h3>
+              <ul>
+                <li>
+                  Click the contents on the left side of the page to
+                  switch to different sections.
+                </li>
+                <li>
+                  The correct view of this page requires network
+                  connection to bootstrap
+                  (<a href="https://getbootstrap.com/">
+                    <img src="https://img.shields.io/badge/bootstrap-v5.1.3-blueviolet"/>
+                  </a>).
+                </li>
+                <li>
+                  More figures for each chromosome are stored in the
+                  fig subdirectory under the output directory.
+                </li>
+              </ul>
+              <p class="text-center">
+                <img src="fig/card.svg" height="240"  width="480"/>
+              </p>
             </div>
           </div>
 

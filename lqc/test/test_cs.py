@@ -1,7 +1,6 @@
 import os
-import sys
 import unittest
-from mes import CS
+from lqc import CS
 
 file_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(file_dir)
@@ -37,7 +36,6 @@ class TestCS(unittest.TestCase):
                     strand = '+'
                 )
                 self.assertEqual(bycs._cs, bycigar._cs)
-
 
     def test_element_count(self):
         cs_string = ':29*ga:19*at:61*ag:8*ga:19*ag:31*ag:15*ga:8*ta:4*ag:5*tc:42*ct:45*gc:130~ct140ac:45*gc:23~ct757ac:48*tc:104~ct659ac:24*tc:56*ga:11*gc:5+cccc:3*gc*at*gc:3+a:4*ta:23+tggtggtgc:23~ct88ac:2*ag:43*tc:48*ac:27*ag:18*tc:59~ct177ac:36+g:96*cg:3~ct239ac:110*ga:13*ca:12~ct172ac:47+g:5*ga:61*ct:30*ct~ct206ac:100*tc:11~ct6360ac:154~ct4420ac:29'

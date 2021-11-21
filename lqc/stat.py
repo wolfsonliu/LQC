@@ -1,12 +1,13 @@
 import pysam
-from mes.cs import CS
-from mes.readstat import ReadStat
-from mes.indel import Indel
-from mes.mismatch import Mismatch
-from mes.splice import Splice
-from mes.utils import bam_or_sam
-from mes.utils import convert_reverse_complement
-from mes.utils import convert_complement
+from lqc.cs import CS
+from lqc.readstat import ReadStat
+from lqc.indel import Indel
+from lqc.mismatch import Mismatch
+from lqc.splice import Splice
+from lqc.utils import bam_or_sam
+from lqc.utils import convert_reverse_complement
+from lqc.utils import convert_complement
+
 
 def stat_element_from_bam_by_contig(bam_file,
                                     genome_file,

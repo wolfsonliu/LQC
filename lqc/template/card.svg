@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1280"
+   height="640"
+   viewBox="0 0 338.66669 169.33331"
+   version="1.1"
+   id="svg8"
+   inkscape:version="1.1 (c68e22c387, 2021-05-23)"
+   sodipodi:docname="lqc_card.svg"
+   inkscape:export-filename="/home/zhiheng/Documents/Project/zfc/doc/zfc_card.png"
+   inkscape:export-xdpi="300"
+   inkscape:export-ydpi="300"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="2.8"
+     inkscape:cx="5.1142109"
+     inkscape:cy="54.315771"
+     inkscape:document-units="mm"
+     inkscape:current-layer="g860"
+     showgrid="true"
+     inkscape:window-width="1920"
+     inkscape:window-height="1016"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     inkscape:document-rotation="0"
+     lock-margins="true"
+     units="px"
+     inkscape:pagecheckerboard="0">
+    <inkscape:grid
+       type="xygrid"
+       id="grid815"
+       originx="-32.64801"
+       originy="-143.9389" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-32.648006,-123.43891)">
+    <text
+       xml:space="preserve"
+       style="font-size:2.11667px;line-height:1.25;font-family:Arial;-inkscape-font-specification:Arial;letter-spacing:0px;word-spacing:0px;white-space:pre;inline-size:47.502;stroke-width:0.264583"
+       x="66.429443"
+       y="138.75859"
+       id="text847" />
+    <g
+       id="g12968"
+       transform="translate(22.225008)">
+      <path
+         style="fill:none;stroke:#ae017e;stroke-width:3.80958;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         d="M 164.30252,159.41668 V 254.6561"
+         id="path14"
+         sodipodi:nodetypes="cc" />
+      <g
+         id="g860"
+         transform="matrix(3.8095766,0,0,3.8095766,-69.223474,-310.77505)">
+        <text
+           xml:space="preserve"
+           style="font-size:8.46667px;line-height:1.25;font-family:Arial;-inkscape-font-specification:Arial;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+           x="64.399612"
+           y="133.57297"
+           id="text843"><tspan
+             sodipodi:role="line"
+             id="tspan841"
+             x="64.399612"
+             y="133.57297"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8.46667px;font-family:Comfortaa;-inkscape-font-specification:Comfortaa;fill:#dd3497;fill-opacity:1;stroke-width:0.264583">LQC</tspan></text>
+        <text
+           xml:space="preserve"
+           style="font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:Arial;letter-spacing:0px;word-spacing:0px;stroke-width:0.264583"
+           x="64.620804"
+           y="140.21405"
+           id="text851"><tspan
+             sodipodi:role="line"
+             x="64.620804"
+             y="141.32291"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;font-family:Comfortaa;-inkscape-font-specification:Comfortaa;stroke-width:0.264583"
+             id="tspan853"><tspan
+   style="fill:#dd3497;fill-opacity:1"
+   id="tspan3380">L</tspan>ong-read RNA-seq</tspan><tspan
+             sodipodi:role="line"
+             x="64.620804"
+             y="145.33731"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;font-family:Comfortaa;-inkscape-font-specification:Comfortaa;stroke-width:0.264583"
+             id="tspan11699"><tspan
+   style="fill:#dd3497;fill-opacity:1"
+   id="tspan5280">Q</tspan>uality <tspan
+   style="fill:#dd3497;fill-opacity:1"
+   id="tspan7126">C</tspan>ontrol</tspan></text>
+      </g>
+      <g
+         id="g33"
+         style="fill:#ffffbd;fill-opacity:1"
+         transform="matrix(2.0070454,2.0017382,-2.0017382,2.0070454,284.52594,-168.31604)">
+        <path
+           id="rect1064"
+           style="opacity:0.999;fill:#dd3497;fill-opacity:1;stroke-width:0.787797;stop-color:#000000"
+           d="m 26.444357,138.22196 c 0,0 8.415263,2.81751 11.225309,0.0149 l 11.21045,11.24017 11.240171,-11.21045 c 2.802608,2.81004 11.225313,0.0149 11.225313,0.0149 l -16.86026,16.81568 c -0.934206,-0.93669 -10.288635,-0.94915 -11.22531,-0.0149 z"
+           sodipodi:nodetypes="cccccccc" />
+        <path
+           id="rect1064-6"
+           style="opacity:0.999;fill:#ae017e;fill-opacity:1;stroke-width:0.787797;stop-color:#000000"
+           d="m 48.880116,149.47703 11.240171,-11.21045 c 2.802608,2.81004 11.225313,0.0149 11.225313,0.0149 l -16.86026,16.81568 z"
+           sodipodi:nodetypes="ccccc" />
+        <path
+           id="rect1064-6-7"
+           style="opacity:0.999;fill:#7a0177;fill-opacity:1;stroke-width:0.787797;stop-color:#000000"
+           d="m 48.880116,149.47703 0.468274,-0.46721 5.13695,6.08734 z"
+           sodipodi:nodetypes="cccc" />
+      </g>
+    </g>
+  </g>
+</svg>

@@ -1,6 +1,6 @@
 from copy import deepcopy
 from collections import Counter
-from mes.utils import convert_reverse_complement
+from lqc.utils import convert_reverse_complement
 
 
 class Splice(object):

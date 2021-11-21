@@ -4,37 +4,33 @@ import os
 import argparse
 import logging
 import multiprocessing as mp
-import pysam
 import pickle
 from functools import partial
-from collections import Counter
-from mes import CS
-from mes import stat_element_from_bam_by_contig
-from mes import check_bam_with_cs_or_md
-from mes import bam_or_sam
-from mes import create_readstat_table
-from mes import create_indel_summary_table
-from mes import create_mismatch_normalized_read_location_table
-from mes import create_splice_table
-from mes import plot_readstat_bar
-from mes import plot_readstat_bar_mean_element_per_read
-from mes import plot_readstat_cumulative_length
-from mes import plot_readstat_bar_ratio_with_element
-from mes import plot_readstat_length_hist
-from mes import plot_element_total_count
-from mes import plot_indel_hist_length
-from mes import plot_indel_hist_location
-from mes import plot_mismatch_type_count
-from mes import plot_mismatch_hist_location
-from mes import plot_splice_type_count
-from mes import copy_logo
-from mes import get_html_template
-from mes import html_add_readstat_table
-from mes import html_add_mismatch_table
-from mes import html_add_insertion_table
-from mes import html_add_deletion_table
-from mes import html_add_splice_table
-from mes import write_readcs
+from lqc import stat_element_from_bam_by_contig
+from lqc import check_bam_with_cs_or_md
+from lqc import create_readstat_table
+from lqc import create_indel_summary_table
+from lqc import create_mismatch_normalized_read_location_table
+from lqc import create_splice_table
+from lqc import plot_readstat_bar
+from lqc import plot_readstat_bar_mean_element_per_read
+from lqc import plot_readstat_cumulative_length
+from lqc import plot_readstat_bar_ratio_with_element
+from lqc import plot_readstat_length_hist
+from lqc import plot_element_total_count
+from lqc import plot_indel_hist_length
+from lqc import plot_indel_hist_location
+from lqc import plot_mismatch_type_count
+from lqc import plot_mismatch_hist_location
+from lqc import plot_splice_type_count
+from lqc import copy_logo
+from lqc import get_html_template
+from lqc import html_add_readstat_table
+from lqc import html_add_mismatch_table
+from lqc import html_add_insertion_table
+from lqc import html_add_deletion_table
+from lqc import html_add_splice_table
+from lqc import write_readcs
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use('Agg')
@@ -108,7 +104,7 @@ def generate_multiple_figs(plot_func,
 
 
 if __name__ == '__main__':
-    VMAJOR, VMINOR, VMICRO = 0, 0, 2
+    VMAJOR, VMINOR, VMICRO = 0, 0, 3
     VERSION = '{}.{}.{}'.format(VMAJOR, VMINOR, VMICRO)
 
     chromosomes = [
@@ -120,7 +116,7 @@ if __name__ == '__main__':
         'chr21', 'chr22', 'chrX', 'chrY'
     ]
     parser = argparse.ArgumentParser(
-        description=''
+        description='The Long-read RNA-seq quality control software.'
     )
     parser.add_argument(
         '-b', '--bam-file',
@@ -323,13 +319,12 @@ if __name__ == '__main__':
             o_dirs['fig'], 'splice_type'
         ),
         'html': os.path.join(
-            o_dirs['base'], 'mes_report.html'
+            o_dirs['base'], 'LQC_report.html'
         )
     }
 
     # build output directory structure
     build_directories(o_dirs)
-
 
     # run jobs by contigs
     message = 'Element statistic process starts.'
