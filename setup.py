@@ -7,7 +7,7 @@ except ImportError:
     from distutils.core import setup, find_packages
 
 PACKAGE = 'lqc'
-VMAJOR, VMINOR, VMICRO = 0, 0, 3
+VMAJOR, VMINOR, VMICRO = 0, 0, 4
 VERSION = '{}.{}.{}'.format(VMAJOR, VMINOR, VMICRO)
 
 

@@ -104,7 +104,7 @@ def generate_multiple_figs(plot_func,
 
 
 if __name__ == '__main__':
-    VMAJOR, VMINOR, VMICRO = 0, 0, 3
+    VMAJOR, VMINOR, VMICRO = 0, 0, 4
     VERSION = '{}.{}.{}'.format(VMAJOR, VMINOR, VMICRO)
 
     chromosomes = [
@@ -141,6 +141,11 @@ if __name__ == '__main__':
     parser.add_argument(
         '--output-cs',
         help = 'output processed cs tags',
+        action = 'store_true'
+    )
+    parser.add_argument(
+        '--output-pickle',
+        help = 'output pickle file of results',
         action = 'store_true'
     )
     parser.add_argument(
@@ -376,25 +381,28 @@ if __name__ == '__main__':
     # output
 
     # write a pickle for results
-    message = 'Output pickle file.'
-    logging.info(message)
-    outdict = {
-        'readstat_contig': l_readstat,
-        'readstat_sum': sreadstat,
-        'insertion_contig': l_insertion,
-        'insertion_sum': sinsertion,
-        'deletion_contig': l_deletion,
-        'deletio_sum': sdeletion,
-        'mismatch_list': l_mismatch,
-        'mismatch_sum': smismatch,
-        'splice_list': l_splice,
-        'splice_sum': ssplice
-    }
-    with open(o_files['pickle'], 'wb') as f:
-        pickle.dump(outdict, f)
+    if args['output_pickle']:
+        message = 'Output pickle file.'
+        logging.info(message)
+        outdict = {
+            'readstat_contig': l_readstat,
+            'readstat_sum': sreadstat,
+            'insertion_contig': l_insertion,
+            'insertion_sum': sinsertion,
+            'deletion_contig': l_deletion,
+            'deletion_sum': sdeletion,
+            'mismatch_contig': l_mismatch,
+            'mismatch_sum': smismatch,
+            'splice_contig': l_splice,
+            'splice_sum': ssplice
+        }
+        with open(o_files['pickle'], 'wb') as f:
+            pickle.dump(outdict, f)
 
-    message = 'Output pickle file finished.'
-    logging.debug(message)
+        message = 'Output pickle file finished.'
+        logging.debug(message)
+    else:
+        pass
 
     if args['output_cs']:
         message = 'Output processed cs tags.'

@@ -237,12 +237,13 @@ def plot_readstat_bar_ratio_with_element(readstat_list,
                     fill = True,
                     label = names[ti]
                 )
+                ylimit = fig.axes[ai].get_ylim()
                 fig.axes[ai].annotate(
                     '{:.2}'.format(
                         read_feature[ai][ti]
                     ),
                     ((ti - 1) * binw,
-                     read_feature[ai][ti] - 0.05),
+                     read_feature[ai][ti] - 0.1 * ylimit[1]),
                     color = 'white',
                     ha = "center", va = "top"
                 )

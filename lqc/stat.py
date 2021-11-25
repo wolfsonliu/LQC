@@ -83,7 +83,7 @@ def stat_element_from_bam_by_contig(bam_file,
                 indel_string = convert_reverse_complement(d)
             insertion.add_indel(
                 indel = indel_string,
-                normalized_read_location=a
+                normalized_read_location = a
             )
         # deletion
         for a, b, c, d in cs.get_insertions(
