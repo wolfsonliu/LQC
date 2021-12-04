@@ -63,7 +63,7 @@
             <div class="p-2">
               <p>
                 <a href="https://pypi.org/project/lqc/">
-                  <img src="https://img.shields.io/badge/version-v0.0.4-7a0177"/>
+                  <img src="https://img.shields.io/badge/version-v0.0.5-7a0177"/>
                 </a>
                 <a href="https://github.com/gxiaolab/LQC">
                   <img src="https://img.shields.io/github/stars/gxiaolab/LQC?style=social"/>
@@ -214,6 +214,35 @@
                 </div>
                 <img class="card-img-bottom" src="fig/readstat_bar_ratio_with_element.png" />
               </div>
+              <div class="card mb-3">
+                <div class="row g-0">
+                  <div class="col-md-5">
+                    <div class="card-body">
+                      <h3 class="card-title">Elements per read per kb</h3>
+                      <p class="card-text">The count of elements per
+                      read normalized by the read length. There are
+                      {%readstat_insertion_per_read_per_kb%}
+                      insertions,
+                      {%readstat_deletion_per_read_per_kb%}
+                      deletions,
+                      {%readstat_mismatch_per_read_per_kb%}
+                      mismatches per read per kb.</p>
+                    </div>
+                  </div>
+                  <div class="col-md-7">
+                    <img class="card-img" src="fig/readstat_bar_mean_element_per_read_per_kb.Total.png"/>
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">Elements per read per kb by contig</h3>
+                  <p class="card-text">The count of elements per read
+                      normalized by the read length for each analyzed
+                      contig.</p>
+                </div>
+                <img class="card-img-bottom" src="fig/readstat_bar_mean_element_per_read_per_kb.png" />
+              </div>
               <div class="card">
                 <div class="card-header">Statistic Summary</div>
                 <div class="card-body">
@@ -259,10 +288,10 @@
                   <h3 class="card-title">Average number of insertions per read</h3>
                   <p class="card-text">The mean numbers of insertions
                   found in reads are presented in the barplot.In
-                  average, {%insertion_mean_insertion_per_read%}
-                  insertions can be found per read.</p>
+                  average, {%insertion_mean_insertion_per_read_per_kb%}
+                  insertions can be found per read per kb.</p>
                 </div>
-                <img class="card-img-bottom" src="fig/readstat_bar_Mean_insertion_number.png" />
+                <img class="card-img-bottom" src="fig/readstat_bar_insertions_per_read_per_kb.png" />
               </div>
               <div class="card mb-3">
                 <div class="row g-0">
@@ -342,10 +371,10 @@
                   <h3 class="card-title">Average number of deletions per read</h3>
                   <p class="card-text">The mean numbers of deletions
                   found in reads are presented in the barplot. In
-                  average, {%deletion_mean_deletion_per_read%}
-                  deletions can be found per read.</p>
+                  average, {%deletion_mean_deletion_per_read_per_kb%}
+                  deletions can be found per read per kb.</p>
                 </div>
-                <img class="card-img-bottom" src="fig/readstat_bar_Mean_deletion_number.png" />
+                <img class="card-img-bottom" src="fig/readstat_bar_deletions_per_read_per_kb.png" />
               </div>
               <div class="card mb-3">
                 <div class="row g-0">
@@ -423,10 +452,10 @@
                   <h3 class="card-title">Average number of mismatchs per read</h3>
                   <p class="card-text">The mean numbers of mismatches
                   found in reads are presented in the barplot. In
-                  average, {%mismatch_mean_mismatch_per_read%}
-                  mismatches can be found per read.</p>
+                  average, {%mismatch_mean_mismatch_per_read_per_kb%}
+                  mismatches can be found per read per kb.</p>
                 </div>
-                <img class="card-img-bottom" src="fig/readstat_bar_Mean_mismatch_number.png" />
+                <img class="card-img-bottom" src="fig/readstat_bar_mismatches_per_read_per_kb.png" />
               </div>
               <div class="card mb-3">
                 <div class="row g-0">

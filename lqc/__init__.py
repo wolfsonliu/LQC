@@ -12,6 +12,7 @@ from lqc.report_table import create_mismatch_normalized_read_location_table
 from lqc.report_table import create_splice_table
 from lqc.report_figure import plot_readstat_bar
 from lqc.report_figure import plot_readstat_bar_mean_element_per_read
+from lqc.report_figure import plot_readstat_bar_mean_element_per_read_per_kb
 from lqc.report_figure import plot_readstat_cumulative_length
 from lqc.report_figure import plot_readstat_bar_ratio_with_element
 from lqc.report_figure import plot_readstat_length_hist
@@ -45,6 +46,7 @@ __all__ = [
     'create_splice_table',
     'plot_readstat_bar',
     'plot_readstat_bar_mean_element_per_read',
+    'plot_readstat_bar_mean_element_per_read_per_kb',
     'plot_readstat_cumulative_length',
     'plot_readstat_bar_ratio_with_element',
     'plot_readstat_length_hist',

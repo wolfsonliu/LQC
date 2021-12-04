@@ -74,6 +74,18 @@ class ReadStat(object):
     def get_introns(self):
         return [a[4] for a in self._reads]
 
+    def get_length_normalized_insertions(self):
+        return [a[1] / a[0] for a in self._reads]
+
+    def get_length_normalized_deletions(self):
+        return [a[2] / a[0] for a in self._reads]
+
+    def get_length_normalized_mismatches(self):
+        return [a[3] / a[0] for a in self._reads]
+
+    def get_length_normalized_introns(self):
+        return [a[4] / a[0] for a in self._reads]
+
     def get_length_NL(self, percent):
         assert percent >= 0 and percent <= 100,\
             "percent value should be between 0 and 100."
@@ -86,8 +98,8 @@ class ReadStat(object):
             length = lengths[i]
             previous_basesum = basesum
             basesum += length
-            if (previous_basesum <= percentbase
-                ) and (basesum >= percentbase):
+            if (previous_basesum <= percentbase) \
+               and (basesum >= percentbase):
                 N = length
                 L = i + 1
                 break
@@ -104,8 +116,20 @@ class ReadStat(object):
     def get_max_length(self):
         return max(self.get_lengths())
 
+    def insertions_per_base(self):
+        return sum(
+            self.get_insertions()
+        ) / self.get_total_base()
+
     def get_mean_insertions(self):
-        return sum(self.get_insertions()) / self._read_count
+        return sum(
+            self.get_insertions()
+        ) / self._read_count
+
+    def get_mean_length_normalized_insertions(self):
+        return sum(
+            self.get_length_normalized_insertions()
+        ) / self._read_count
 
     def get_min_insertions(self):
         return min(self.get_insertions())
@@ -113,8 +137,20 @@ class ReadStat(object):
     def get_max_insertions(self):
         return max(self.get_insertions())
 
+    def deletions_per_base(self):
+        return sum(
+            self.get_deletions()
+        ) / self.get_total_base()
+
     def get_mean_deletions(self):
-        return sum(self.get_deletions()) / self._read_count
+        return sum(
+            self.get_deletions()
+        ) / self._read_count
+
+    def get_mean_length_normalized_deletions(self):
+        return sum(
+            self.get_length_normalized_deletions()
+        ) / self._read_count
 
     def get_min_deletions(self):
         return min(self.get_deletions())
@@ -122,8 +158,20 @@ class ReadStat(object):
     def get_max_deletions(self):
         return max(self.get_deletions())
 
+    def mismatches_per_base(self):
+        return sum(
+            self.get_mismatches()
+        ) / self.get_total_base()
+
     def get_mean_mismatches(self):
-        return sum(self.get_mismatches()) / self._read_count
+        return sum(
+            self.get_mismatches()
+        ) / self._read_count
+
+    def get_mean_length_normalized_mismatches(self):
+        return sum(
+            self.get_length_normalized_mismatches()
+        ) / self._read_count
 
     def get_min_mismatches(self):
         return min(self.get_mismatches())
@@ -132,7 +180,14 @@ class ReadStat(object):
         return max(self.get_mismatches())
 
     def get_mean_introns(self):
-        return sum(self.get_introns()) / self._read_count
+        return sum(
+            self.get_introns()
+        ) / self._read_count
+
+    def get_mean_length_normalized_introns(self):
+        return sum(
+            self.get_length_normalized_introns()
+        ) / self._read_count
 
     def get_min_introns(self):
         return min(self.get_introns())

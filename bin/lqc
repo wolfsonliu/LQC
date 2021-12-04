@@ -14,6 +14,7 @@ from lqc import create_mismatch_normalized_read_location_table
 from lqc import create_splice_table
 from lqc import plot_readstat_bar
 from lqc import plot_readstat_bar_mean_element_per_read
+from lqc import plot_readstat_bar_mean_element_per_read_per_kb
 from lqc import plot_readstat_cumulative_length
 from lqc import plot_readstat_bar_ratio_with_element
 from lqc import plot_readstat_length_hist
@@ -104,7 +105,7 @@ def generate_multiple_figs(plot_func,
 
 
 if __name__ == '__main__':
-    VMAJOR, VMINOR, VMICRO = 0, 0, 4
+    VMAJOR, VMINOR, VMICRO = 0, 0, 5
     VERSION = '{}.{}.{}'.format(VMAJOR, VMINOR, VMICRO)
 
     chromosomes = [
@@ -260,14 +261,23 @@ if __name__ == '__main__':
         'f_readstat_bar_Mean read length': os.path.join(
             o_dirs['fig'], 'readstat_bar_Mean_read_length'
         ),
-        'f_readstat_bar_Mean insertion number': os.path.join(
-            o_dirs['fig'], 'readstat_bar_Mean_insertion_number'
+        'f_readstat_bar_Insertions per read': os.path.join(
+            o_dirs['fig'], 'readstat_bar_insertions_per_read'
         ),
-        'f_readstat_bar_Mean deletion number': os.path.join(
-            o_dirs['fig'], 'readstat_bar_Mean_deletion_number'
+        'f_readstat_bar_Insertions per read per kb': os.path.join(
+            o_dirs['fig'], 'readstat_bar_insertions_per_read_per_kb'
         ),
-        'f_readstat_bar_Mean mismatch number': os.path.join(
-            o_dirs['fig'], 'readstat_bar_Mean_mismatch_number'
+        'f_readstat_bar_Deletions per read': os.path.join(
+            o_dirs['fig'], 'readstat_bar_deletions_per_read'
+        ),
+        'f_readstat_bar_Deletions per read per kb': os.path.join(
+            o_dirs['fig'], 'readstat_bar_deletions_per_read_per_kb'
+        ),
+        'f_readstat_bar_Mismatches per read': os.path.join(
+            o_dirs['fig'], 'readstat_bar_mismatches_per_read'
+        ),
+        'f_readstat_bar_Mismatches per read per kb': os.path.join(
+            o_dirs['fig'], 'readstat_bar_mismatches_per_read_per_kb'
         ),
         'f_readstat_bar_Mean intron number': os.path.join(
             o_dirs['fig'], 'readstat_bar_Mean_intron_number'
@@ -280,6 +290,9 @@ if __name__ == '__main__':
         ),
         'f_readstat_bar_mean_element_per_read': os.path.join(
             o_dirs['fig'], 'readstat_bar_mean_element_per_read'
+        ),
+        'f_readstat_bar_mean_element_per_read_per_kb': os.path.join(
+            o_dirs['fig'], 'readstat_bar_mean_element_per_read_per_kb'
         ),
         'f_readstat_line_cumulative_length': os.path.join(
             o_dirs['fig'], 'readstat_line_cumulative_length'
@@ -454,8 +467,10 @@ if __name__ == '__main__':
     logging.debug(message)
     for feature in [
             'Read count', 'Median read length',
-            'Mean read length', 'Mean insertion number',
-            'Mean deletion number', 'Mean mismatch number',
+            'Mean read length',
+            'Insertions per read', 'Insertions per read per kb',
+            'Deletions per read', 'Deletions per read per kb',
+            'Mismatches per read', 'Mismatches per read per kb',
             'Mean intron number', 'N50', 'L50'
     ]:
         filelabel = 'f_readstat_bar_' + feature
@@ -469,6 +484,16 @@ if __name__ == '__main__':
     filelabel = 'f_readstat_bar_mean_element_per_read'
     generate_multiple_figs(
         plot_readstat_bar_mean_element_per_read,
+        data_list = l_readstat,
+        data_sum = sreadstat,
+        filelabel = o_files[filelabel],
+        width = 5, height = 4
+    )
+    message = 'Output figures: readstat_bar_mean_element_per_read_per_kb.'
+    logging.debug(message)
+    filelabel = 'f_readstat_bar_mean_element_per_read_per_kb'
+    generate_multiple_figs(
+        plot_readstat_bar_mean_element_per_read_per_kb,
         data_list = l_readstat,
         data_sum = sreadstat,
         filelabel = o_files[filelabel],
@@ -644,7 +669,7 @@ if __name__ == '__main__':
         smismatch.get_total_count(),
         t_readstat.loc[
             t_readstat['label'] == 'Total',
-            'mean_mismatch_per_read'
+            'mean_mismatch_per_read_per_kb'
         ].values[0],
         mismatch_type_counter
     )
@@ -653,7 +678,7 @@ if __name__ == '__main__':
         new_html_string, t_insertion,
         t_readstat.loc[
             t_readstat['label'] == 'Total',
-            'mean_insertion_per_read'
+            'mean_insertion_per_read_per_kb'
         ].values[0]
     )
 
@@ -661,7 +686,7 @@ if __name__ == '__main__':
         new_html_string, t_deletion,
         t_readstat.loc[
             t_readstat['label'] == 'Total',
-            'mean_deletion_per_read'
+            'mean_deletion_per_read_per_kb'
         ].values[0]
     )
 

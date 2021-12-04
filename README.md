@@ -2,7 +2,7 @@
 
 # LQC: Long-read RNA-seq Quality Control
 
-[![](https://img.shields.io/badge/version-v0.0.4-7a0177)](https://pypi.org/project/lqc/)
+[![](https://img.shields.io/badge/version-v0.0.5-7a0177)](https://pypi.org/project/lqc/)
 [![](https://img.shields.io/badge/license-GPLv3-green)](https://img.shields.io/badge/license-GPLv3%2B-green)
 
 The Long-read RNA-seq quality control software.

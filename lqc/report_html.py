@@ -25,6 +25,9 @@ def html_add_readstat_table(html_string, readstat_table):
             total_mean_read_length = row['read_length_mean']
             total_N50 = row['read_length_N50']
             total_L50 = row['read_length_L50']
+            total_insertion_per_read_per_kb = row['mean_insertion_per_read_per_kb']
+            total_deletion_per_read_per_kb = row['mean_deletion_per_read_per_kb']
+            total_mismatch_per_read_per_kb = row['mean_mismatch_per_read_per_kb']
         else:
             rowstring_list.append(
                 "<tr>" +
@@ -59,6 +62,21 @@ def html_add_readstat_table(html_string, readstat_table):
         '{}'.format(total_L50),
         new_html_string
     )
+    new_html_string = re.sub(
+        '\{%readstat_insertion_per_read_per_kb%\}',
+        '{:.4}'.format(total_insertion_per_read_per_kb),
+        new_html_string
+    )
+    new_html_string = re.sub(
+        '\{%readstat_deletion_per_read_per_kb%\}',
+        '{:.4}'.format(total_deletion_per_read_per_kb),
+        new_html_string
+    )
+    new_html_string = re.sub(
+        '\{%readstat_mismatch_per_read_per_kb%\}',
+        '{:.4}'.format(total_mismatch_per_read_per_kb),
+        new_html_string
+    )
 
     new_html_string = re.sub(
         "\{%readstat_table%\}",
@@ -69,7 +87,7 @@ def html_add_readstat_table(html_string, readstat_table):
 
 def html_add_mismatch_table(html_string, mismatch_table,
                             total_mismatch_count,
-                            mean_mismatch_per_read,
+                            mean_mismatch_per_read_per_kb,
                             mismatch_type_counter):
     bins = ['[0.0,0.1)', '[0.1,0.2)', '[0.2,0.3)',
             '[0.3,0.4)', '[0.4,0.5)', '[0.5,0.6)',
@@ -113,8 +131,8 @@ def html_add_mismatch_table(html_string, mismatch_table,
         html_string
     )
     new_html_string = re.sub(
-        "\{%mismatch_mean_mismatch_per_read%\}",
-        '{:.4}'.format(mean_mismatch_per_read),
+        "\{%mismatch_mean_mismatch_per_read_per_kb%\}",
+        '{:.4}'.format(mean_mismatch_per_read_per_kb),
         new_html_string
     )
     mistype_list1 = list()
@@ -150,7 +168,7 @@ def html_add_mismatch_table(html_string, mismatch_table,
 
 
 def html_add_insertion_table(html_string, insertion_table,
-                             mean_insertion_per_read):
+                             mean_insertion_per_read_per_kb):
     rowstring_list = list()
     for ri, row in insertion_table.iterrows():
         tmprow_list = [
@@ -197,8 +215,8 @@ def html_add_insertion_table(html_string, insertion_table,
         new_html_string
     )
     new_html_string = re.sub(
-        "\{%insertion_mean_insertion_per_read%\}",
-        '{:.4}'.format(mean_insertion_per_read),
+        "\{%insertion_mean_insertion_per_read_per_kb%\}",
+        '{:.4}'.format(mean_insertion_per_read_per_kb),
         new_html_string
     )
     new_html_string = re.sub(
@@ -209,7 +227,7 @@ def html_add_insertion_table(html_string, insertion_table,
 
 
 def html_add_deletion_table(html_string, deletion_table,
-                            mean_deletion_per_read):
+                            mean_deletion_per_read_per_kb):
     rowstring_list = list()
     for ri, row in deletion_table.iterrows():
         tmprow_list = [
@@ -256,8 +274,8 @@ def html_add_deletion_table(html_string, deletion_table,
         new_html_string
     )
     new_html_string = re.sub(
-        "\{%deletion_mean_deletion_per_read%\}",
-        '{:.4}'.format(mean_deletion_per_read),
+        "\{%deletion_mean_deletion_per_read_per_kb%\}",
+        '{:.4}'.format(mean_deletion_per_read_per_kb),
         new_html_string
     )
     new_html_string = re.sub(

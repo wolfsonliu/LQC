@@ -31,9 +31,12 @@ def plot_readstat_bar(readstat_list,
         "Read count",
         "Median read length",
         "Mean read length",
-        "Mean insertion number",
-        "Mean deletion number",
-        "Mean mismatch number",
+        "Insertions per read",
+        "Insertions per read per kb",
+        "Deletions per read",
+        "Deletions per read per kb",
+        "Mismatches per read",
+        "Mismatches per read per kb",
         "Mean intron number",
         "N50", "L50"
     ]
@@ -52,19 +55,34 @@ def plot_readstat_bar(readstat_list,
             [i, a.label, a.get_mean_length()]
             for i, a in enumerate(readstat_list)
         ]
-    elif feature == "Mean insertion number":
+    elif feature == "Insertions per read":
         read_feature = [
             [i, a.label, a.get_mean_insertions()]
             for i, a in enumerate(readstat_list)
         ]
-    elif feature == "Mean deletion number":
+    elif feature == "Insertions per read per kb":
+        read_feature = [
+            [i, a.label, a.get_mean_length_normalized_insertions()]
+            for i, a in enumerate(readstat_list)
+        ]
+    elif feature == "Deletions per read":
         read_feature = [
             [i, a.label, a.get_mean_deletions()]
             for i, a in enumerate(readstat_list)
         ]
-    elif feature == "Mean mismatch number":
+    elif feature == "Deletions per read per kb":
+        read_feature = [
+            [i, a.label, a.get_mean_length_normalized_deletions()]
+            for i, a in enumerate(readstat_list)
+        ]
+    elif feature == "Mismatches per read":
         read_feature = [
             [i, a.label, a.get_mean_mismatches()]
+            for i, a in enumerate(readstat_list)
+        ]
+    elif feature == "Mismatches per read per kb":
+        read_feature = [
+            [i, a.label, a.get_mean_length_normalized_mismatches()]
             for i, a in enumerate(readstat_list)
         ]
     elif feature == "Mean intron number":
@@ -180,6 +198,74 @@ def plot_readstat_bar_mean_element_per_read(readstat_list,
         bbox_to_anchor = (0.5, 0)
     )
     fig.supylabel("Mean count per read")
+    plt.tight_layout(rect = [0, 0.05, 1, 1])
+    return fig
+
+
+def plot_readstat_bar_mean_element_per_read_per_kb(
+        readstat_list, width = None, height = None
+):
+    read_feature = [
+        [a.get_mean_length_normalized_insertions() * 1000,
+         a.get_mean_length_normalized_deletions() * 1000,
+         a.get_mean_length_normalized_mismatches() * 1000,
+         a.get_mean_length_normalized_introns() * 1000,
+         i,
+         a.label]
+        for i, a in enumerate(readstat_list)
+    ]
+
+    row, col = get_facet_row_col(
+        len(read_feature)
+    )
+
+    if width is None or height is None:
+        width, height = determine_figure_size(
+            row, col,
+            base_width = 2, base_height = 2
+        )
+        width = max(width, 5)
+        height = max(height, 5)
+    else:
+        pass
+
+    colors = ["#ef3b2c", "#f16913",
+              "#4292c6", "#41ab5d"]
+    names = ["Insertion", "Deletion",
+             "Mismatch", "Intron"]
+    binw = 0.22
+    fig, axes = plt.subplots(
+        row, col,
+        sharex = True, sharey = True,
+        figsize = (width, height)
+    )
+    for ai in range(row * col):
+        if ai in list(range(len(read_feature))):
+            for ti in [0, 1, 2, 3]:
+                fig.axes[ai].bar(
+                    [(ti * 2 - 3) * 0.5 * binw],
+                    [read_feature[ai][ti]],
+                    width = binw - 0.01,
+                    color = colors[ti],
+                    fill = True,
+                    label = names[ti]
+                )
+                fig.axes[ai].set_xticks([])
+                fig.axes[ai].set_title(
+                    read_feature[ai][5]
+                )
+        else:
+            fig.axes[ai].set_frame_on(False)
+            fig.axes[ai].set_axis_off()
+
+    Bar, Label = fig.axes[0].get_legend_handles_labels()
+    fig.legend(
+        Bar, Label,
+        ncol = len(names),
+        loc = 'lower center',
+        bbox_to_anchor = (0.5, 0)
+    )
+    fig.supylabel("Mean count per read per kb")
     plt.tight_layout(rect = [0, 0.05, 1, 1])
     return fig
 

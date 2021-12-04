@@ -9,9 +9,16 @@ def create_readstat_table(readstat_list, readstat_sum):
         'read_length_N50',
         'read_length_L50',
         'mean_insertion_per_read',
+        'mean_insertion_per_read_per_kb',
+        'insertion_per_kb',
         'mean_deletion_per_read',
+        'mean_deletion_per_read_per_kb',
+        'deletion_per_kb',
         'mean_mismatch_per_read',
-        'mean_intron_per_read'
+        'mean_mismatch_per_read_per_kb',
+        'mismatch_per_kb',
+        'mean_intron_per_read',
+        'mean_intron_per_read_per_kb'
     ]
 
     row_list = list()
@@ -26,9 +33,16 @@ def create_readstat_table(readstat_list, readstat_sum):
             a.get_median_length(),
             N50, L50,
             a.get_mean_insertions(),
+            a.get_mean_length_normalized_insertions() * 1000,
+            a.insertions_per_base() * 1000,
             a.get_mean_deletions(),
+            a.get_mean_length_normalized_deletions() * 1000,
+            a.deletions_per_base() * 1000,
             a.get_mean_mismatches(),
-            a.get_mean_introns()
+            a.get_mean_length_normalized_mismatches() * 1000,
+            a.mismatches_per_base() * 1000,
+            a.get_mean_introns(),
+            a.get_mean_length_normalized_introns() * 1000
         ])
     # add Total
     N50, L50 = readstat_sum.get_length_NL(50)
@@ -40,9 +54,16 @@ def create_readstat_table(readstat_list, readstat_sum):
         readstat_sum.get_median_length(),
         N50, L50,
         readstat_sum.get_mean_insertions(),
+        readstat_sum.get_mean_length_normalized_insertions() * 1000,
+        readstat_sum.insertions_per_base() * 1000,
         readstat_sum.get_mean_deletions(),
+        readstat_sum.get_mean_length_normalized_deletions() * 1000,
+        readstat_sum.deletions_per_base() * 1000,
         readstat_sum.get_mean_mismatches(),
-        readstat_sum.get_mean_introns()
+        readstat_sum.get_mean_length_normalized_mismatches() * 1000,
+        readstat_sum.mismatches_per_base() * 1000,
+        readstat_sum.get_mean_introns(),
+        readstat_sum.get_mean_length_normalized_introns() * 1000
     ])
     rstable = pd.DataFrame(
         row_list, columns = colnames
