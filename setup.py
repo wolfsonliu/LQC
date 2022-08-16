@@ -7,7 +7,7 @@ except ImportError:
     from distutils.core import setup, find_packages
 
 PACKAGE = 'lqc'
-VMAJOR, VMINOR, VMICRO = 0, 0, 5
+VMAJOR, VMINOR, VMICRO = 0, 0, 6
 VERSION = '{}.{}.{}'.format(VMAJOR, VMINOR, VMICRO)
 
 
@@ -35,7 +35,7 @@ setup(
         'Operating System :: OS Independent',
         'Topic :: Scientific/Engineering :: Bio-Informatics'
     ],
-    url = 'https://github.com/xiaolab/LQC',
+    url = 'https://github.com/wolfsonliu/LQC',
     author = 'Zhiheng Liu',
     author_email = 'wolfsonliu@live.com',
     license = 'GPL',

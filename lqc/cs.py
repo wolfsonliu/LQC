@@ -231,6 +231,29 @@ def merge_cigar_md(cigar_string,
     return new_cigar
 
 
+def cigar_md_to_read_coordinate(cigar_md, reference_start = 0):
+    read_coord = list()
+    read_pos = 0
+    for ref_low, ref_high, cigar_mark, cigar_value in cigar_md:
+        ref_len = ref_high - ref_low
+        if cigar_mark in ['M', 'X']:
+            read_coord.append(
+                [read_pos, read_pos + ref_len, cigar_mark, cigar_value]
+            )
+            read_pos += ref_len
+        elif cigar_mark == 'I':
+            seq_len = int(cigar_value)
+            read_coord.append(
+                [read_pos, read_pos + seq_len, cigar_mark, cigar_value]
+            )
+            read_pos += seq_len
+        elif cigar_mark in ['D', 'N']:
+            read_coord.append(
+                [read_pos, read_pos, cigar_mark, cigar_value]
+            )
+    return read_coord
+
+
 def convert_cigar_md_to_cs_list(cigar_string,
                                 md_string,
                                 read_seq,

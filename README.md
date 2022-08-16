@@ -1,8 +1,8 @@
-![LQC](https://github.com/gxiaolab/LQC/blob/main/lqc_card.png)
+![LQC](https://github.com/wolfsonliu/LQC/blob/main/lqc_card.png)
 
 # LQC: Long-read RNA-seq Quality Control
 
-[![](https://img.shields.io/badge/version-v0.0.5-7a0177)](https://pypi.org/project/lqc/)
+[![](https://img.shields.io/badge/version-v0.0.6-7a0177)](https://pypi.org/project/lqc/)
 [![](https://img.shields.io/badge/license-GPLv3-green)](https://img.shields.io/badge/license-GPLv3%2B-green)
 
 The Long-read RNA-seq quality control software.
@@ -63,7 +63,7 @@ source ~/.env/lqc/bin/activate
 Download from github:
 
 ```{bash}
-git clone https://github.com/gxiaolab/LQC
+git clone https://github.com/wolfsonliu/LQC
 cd LQC
 ```
 
