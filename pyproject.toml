@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "lqc"
+description = "The Long-read RNA-seq quality control software."
+readme = "README.md"
+license = "GPL-3.0-or-later"
+requires-python = ">=3.11"
+authors = [
+    { name = "Zhiheng Liu", email = "wolfsonliu@live.com" },
+]
+dependencies = [
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "pysam",
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/gxiaolab/LQC"
+
+[project.scripts]
+lqc = "lqc.cli:main"
+
+[tool.hatch.version]
+path = "lqc/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["lqc"]
+
+[tool.ruff]
+target-version = "py311"

@@ -1,8 +1,9 @@
 *~
 *.err
 *.out
-tmp*
+tmp/*
 __pycache__/
+.venv/
 
 
 # Distribution / packaging
