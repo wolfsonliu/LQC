@@ -43,7 +43,7 @@ introns consume reference but not read). See `_get_read_length` in `lqc/cs.py`.
 
 When only `MD` is present, `convert_cigar_md_to_cs_list` rebuilds an equivalent cs list
 from the CIGAR string, MD string, query sequence, and reference sequence. It is expected
-to produce output **identical** to the cs path — asserted in `lqc/test/test_cs.py`.
+to produce output **identical** to the cs path — asserted in `tests/test_cs.py`.
 
 ## Strand & complement handling
 
@@ -69,6 +69,6 @@ deliberately versioned/renamed.*
 
 ## How to verify a parsing change
 
-`lqc/test/test_cs.py` compares the cs path against the CIGAR+MD path over the committed
-`lqc/test/cs_test.test_data` fixture, and checks element counts on one long read. Extend
-that fixture (`lqc/test/generate_cs_test_data.py`) rather than hand-rolling asserts.
+`tests/test_cs.py` compares the cs path against the CIGAR+MD path over the committed
+`tests/data/cs_test.test_data` fixture, and checks element counts on one long read. Extend
+that fixture (`scripts/generate_cs_test_data.py`) rather than hand-rolling asserts.

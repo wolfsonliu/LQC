@@ -11,8 +11,8 @@ these commands are the canonical equivalents:
 ```bash
 uv sync                                    # create .venv, install deps + package + lqc CLI
 uvx ruff check                             # lint (add --fix to auto-fix)
-uv run python -m unittest lqc.test.test_cs lqc.test.test_cli -v
-uv run lqc -b tests/data/ENCFF417VHJ.chr22.sorted.bam -o out   # smoke run
+uv run pytest
+uv run lqc -b tmp/data/ENCFF417VHJ.chr22.sorted.bam -o out   # smoke run
 ```
 
 Dependencies are all runtime: `numpy`, `pandas`, `matplotlib`, `pysam` (from `pyproject.toml`).
@@ -21,13 +21,13 @@ the package · expire: if the dependency set changes.*
 
 ## Running & testing without a full BAM
 
-- The unit test needs only `lqc/test/cs_test.test_data` (committed) — no reference FASTA,
-  no BAM, no network. It asserts the cs path and the CIGAR+MD path produce identical
-  results.
-- `tests/data/` holds one real indexed BAM (≈200 MB) for manual smoke runs. It is **not**
-  part of automated testing. *why: too large and slow for CI · expire: if CI re-uses it via
-  an artifact cache.*
-- Regenerate the CS fixture with `lqc/test/generate_cs_test_data.py <genome.fa>
+- The unit tests need only `tests/data/cs_test.test_data` (committed) — no reference
+  FASTA, no BAM, no network. They assert the cs path and the CIGAR+MD path produce
+  identical results (see `tests/test_cs.py`).
+- `tmp/data/` (gitignored) holds one real indexed BAM (≈200 MB) for manual smoke runs. It
+  is **not** part of automated testing. *why: too large and slow for CI · expire: if CI
+  re-uses it via an artifact cache.*
+- Regenerate the CS fixture with `scripts/generate_cs_test_data.py <genome.fa>
   <cs.bam> <md.bam> <out_prefix>`; the committed `.test_data` is generated, not handwritten.
 
 ## Packaging & versioning
@@ -38,10 +38,9 @@ the package · expire: if the dependency set changes.*
   *why: removes the old `setup.py` + `bin/lqc` duplication · when: releasing · expire: if
   versioning moves to a VCS tag/SCM provider.*
 - Packaging lives in `pyproject.toml` (hatchling). Non-Python assets under `lqc/`
-  (`template/*.html`, `template/*.svg`, `test/*.test_data`) ship automatically; no
-  `package_data` config is needed. *why: hatchling includes everything under the package by
-  default · when: adding assets · expire: if a build backend with different data-file rules
-  is adopted.*
+  (`template/*.html`, `template/*.svg`) ship automatically; no `package_data` config is
+  needed. *why: hatchling includes everything under the package by default · when: adding
+  assets · expire: if a build backend with different data-file rules is adopted.*
 
 ## Style
 

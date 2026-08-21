@@ -13,7 +13,7 @@ Development uses [uv](https://docs.astral.sh/uv/). There is no `Makefile` or CI 
 
 - Environment + deps + CLI entry point: `uv sync`
 - Lint: `uvx ruff check`  (append `--fix` to auto-fix what it can)
-- Tests: `uv run python -m unittest lqc.test.test_cs lqc.test.test_cli -v`
+- Tests: `uv run pytest`
 - Smoke-run the CLI: `uv run lqc -b <cs-tagged.sorted.indexed.bam> -o out`
 
 ## Hard Constraints
