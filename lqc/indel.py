@@ -1,15 +1,17 @@
-import numpy as np
-from copy import deepcopy
 from collections import Counter
+from copy import deepcopy
+
+import numpy as np
+
 from lqc.utils import convert_reverse_complement
 
 
-class Indel(object):
+class Indel:
     """
     A class to store insertion or deletion count information.
     """
     def __init__(self, label = ''):
-        super(Indel, self).__init__()
+        super().__init__()
         if isinstance(label, str):
             pass
         else:
@@ -18,20 +20,16 @@ class Indel(object):
             )
         self.label = label
         self._indel_strings = list()
+        self._indel_index = dict()
         self._indels = list()
 
     def add_indel(self, indel,
                   normalized_read_location):
-        iidx = -1
-        if indel in self._indel_strings:
-            iidx, = np.where([
-                a == indel
-                for a in self._indel_strings
-            ])
-            iidx = iidx[0]
-        else:
+        iidx = self._indel_index.get(indel)
+        if iidx is None:
+            iidx = len(self._indel_strings)
             self._indel_strings.append(indel)
-            iidx = len(self._indel_strings) - 1
+            self._indel_index[indel] = iidx
         self._indels.append([
             iidx, len(indel),
             normalized_read_location
@@ -64,6 +62,8 @@ class Indel(object):
     def get_median_length(self):
         len_list = sorted(self.get_lengths())
         total_count = len(len_list)
+        if total_count == 0:
+            return 0
         median = 0
         if total_count % 2 == 0:
             median_idx1 = int(total_count / 2) - 1
@@ -79,6 +79,8 @@ class Indel(object):
 
     def get_longest_indel(self):
         indel_count = self.get_indel_count()
+        if not indel_count:
+            return []
         len_list = [
             len(indel)
             for indel in indel_count
@@ -93,6 +95,8 @@ class Indel(object):
 
     def get_most_abundant_indel(self):
         indel_count = self.get_indel_count()
+        if not indel_count:
+            return []
         max_count = max(indel_count.values())
         aims = [
             indel
@@ -116,34 +120,42 @@ class Indel(object):
     def convert_reverse_complement(self):
         newIndel = type(self)(self.label)
         newIndel._indels = deepcopy(self._indels)
-        new_strings = list()
-        for indel in self._indel_strings:
-            new_strings.append(
-                convert_reverse_complement(indel)
-            )
-
+        new_strings = [
+            convert_reverse_complement(indel)
+            for indel in self._indel_strings
+        ]
         newIndel._indel_strings = new_strings
+        newIndel._indel_index = {
+            indel: i for i, indel in enumerate(new_strings)
+        }
         return newIndel
 
     def get_location_bin_count(self,
                                cuts = [0, 0.25, 0.5, 0.75, 1]):
-        hist, edges = np.histogram(
-            self.get_locations(),
-            bins = cuts,
-            density = False
-        )
+        edges, hist = self.get_location_histogram(cuts = cuts)
         bin_count = Counter()
         for i in range(len(hist)):
             if i < (len(hist) - 1):
-                label = '[{},{})'.format(
-                    edges[i], edges[i+1]
-                )
+                label = f'[{edges[i]},{edges[i+1]})'
             else:
-                label = '[{},{}]'.format(
-                    edges[i], edges[i+1]
-                )
+                label = f'[{edges[i]},{edges[i+1]}]'
             bin_count[label] = hist[i]
         return bin_count
+
+    def get_location_histogram(self, cuts = None):
+        """Return (edges, counts) for the normalized-location histogram
+        without materializing the raw locations as a Python list."""
+        if cuts is None:
+            cuts = [i / 10 for i in range(11)]
+        locs = np.fromiter(
+            (loc for iidx, ilen, loc in self._indels),
+            dtype = float,
+            count = len(self._indels)
+        )
+        hist, edges = np.histogram(
+            locs, bins = cuts, density = False
+        )
+        return edges, hist
 
     def __add__(self, other):
         assert type(other) == type(self), 'wrong object to add'
@@ -151,20 +163,17 @@ class Indel(object):
             ' '.join([self.label, other.label])
         )
         new_strings = deepcopy(self._indel_strings)
+        string_index = {
+            indel: i for i, indel in enumerate(new_strings)
+        }
         other_new_idx = list()
         for indel in other._indel_strings:
-            if indel not in new_strings:
-                new_strings.append(indel)
-                other_new_idx.append(
-                    len(new_strings) - 1
-                )
+            if indel in string_index:
+                other_new_idx.append(string_index[indel])
             else:
-                iidx, = np.where([
-                    a == indel
-                    for a in new_strings
-                ])
-                iidx = iidx[0]
-                other_new_idx.append(iidx)
+                string_index[indel] = len(new_strings)
+                new_strings.append(indel)
+                other_new_idx.append(len(new_strings) - 1)
         new_indels = deepcopy(self._indels)
         for iidx, ilen, loc in other._indels:
             new_iidx = other_new_idx[iidx]
@@ -173,6 +182,7 @@ class Indel(object):
             ])
         newIndel._indel_strings = new_strings
         newIndel._indels = new_indels
+        newIndel._indel_index = string_index
         return newIndel
 
     def __radd__(self, other):
@@ -182,28 +192,16 @@ class Indel(object):
             return self.__add__(other)
 
     def __str__(self):
-        outstring = "Indel {}: {} indels with total length {}".format(
-            self.label,
-            self.get_total_count(),
-            self.get_total_length()
-        )
+        outstring = f"Indel {self.label}: {self.get_total_count()} indels with total length {self.get_total_length()}"
         return outstring
 
     def __repr__(self):
         outstring = '\n'.join([
-            "Indel {}:".format(self.label),
-            "  {} indels".format(
-                self.get_total_count()
-            ),
-            "  {} bp length in total".format(
-                self.get_total_length()
-            ),
-            "  the mean indel length: {}".format(
-                self.get_mean_length()
-            ),
-            "  the median indel length: {}".format(
-                self.get_median_length()
-            )
+            f"Indel {self.label}:",
+            f"  {self.get_total_count()} indels",
+            f"  {self.get_total_length()} bp length in total",
+            f"  the mean indel length: {self.get_mean_length()}",
+            f"  the median indel length: {self.get_median_length()}"
         ])
         return outstring
 

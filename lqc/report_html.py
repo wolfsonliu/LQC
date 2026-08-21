@@ -35,51 +35,51 @@ def html_add_readstat_table(html_string, readstat_table):
             )
 
     new_html_string = re.sub(
-        "\{%readstat_total_read_count%\}",
-        '{}'.format(total_read_count), html_string
+        r"\{%readstat_total_read_count%\}",
+        f'{total_read_count}', html_string
     )
     new_html_string = re.sub(
-        "\{%readstat_total_base%\}",
-        '{}'.format(total_base), new_html_string
+        r"\{%readstat_total_base%\}",
+        f'{total_base}', new_html_string
     )
     new_html_string = re.sub(
-        "\{%readstat_median_read_length%\}",
-        '{}'.format(total_median_read_length),
+        r"\{%readstat_median_read_length%\}",
+        f'{total_median_read_length}',
         new_html_string
     )
     new_html_string = re.sub(
-        "\{%readstat_mean_read_length%\}",
-        '{:.4}'.format(total_mean_read_length),
+        r"\{%readstat_mean_read_length%\}",
+        f'{total_mean_read_length:.4}',
         new_html_string
     )
     new_html_string = re.sub(
-        "\{%readstat_N50%\}",
-        '{}'.format(total_N50),
+        r"\{%readstat_N50%\}",
+        f'{total_N50}',
         new_html_string
     )
     new_html_string = re.sub(
-        "\{%readstat_L50%\}",
-        '{}'.format(total_L50),
+        r"\{%readstat_L50%\}",
+        f'{total_L50}',
         new_html_string
     )
     new_html_string = re.sub(
-        '\{%readstat_insertion_per_read_per_kb%\}',
-        '{:.4}'.format(total_insertion_per_read_per_kb),
+        r'\{%readstat_insertion_per_read_per_kb%\}',
+        f'{total_insertion_per_read_per_kb:.4}',
         new_html_string
     )
     new_html_string = re.sub(
-        '\{%readstat_deletion_per_read_per_kb%\}',
-        '{:.4}'.format(total_deletion_per_read_per_kb),
+        r'\{%readstat_deletion_per_read_per_kb%\}',
+        f'{total_deletion_per_read_per_kb:.4}',
         new_html_string
     )
     new_html_string = re.sub(
-        '\{%readstat_mismatch_per_read_per_kb%\}',
-        '{:.4}'.format(total_mismatch_per_read_per_kb),
+        r'\{%readstat_mismatch_per_read_per_kb%\}',
+        f'{total_mismatch_per_read_per_kb:.4}',
         new_html_string
     )
 
     new_html_string = re.sub(
-        "\{%readstat_table%\}",
+        r"\{%readstat_table%\}",
         '\n'.join(rowstring_list), new_html_string
     )
     return new_html_string
@@ -105,11 +105,11 @@ def html_add_mismatch_table(html_string, mismatch_table,
                 '<td>{}</td>'.format(row['bin'])
             )
             tmprow_list.append(
-                '<td>{}</td>'.format(mis)
+                f'<td>{mis}</td>'
             )
             if mis in row:
                 tmprow_list.append(
-                    '<td>{}</td>'.format(row[mis])
+                    f'<td>{row[mis]}</td>'
                 )
             else:
                 tmprow_list.append('<td>0</td>')
@@ -126,41 +126,37 @@ def html_add_mismatch_table(html_string, mismatch_table,
                 )
 
     new_html_string = re.sub(
-        "\{%mismatch_total_mismatch_number%\}",
-        '{}'.format(total_mismatch_count),
+        r"\{%mismatch_total_mismatch_number%\}",
+        f'{total_mismatch_count}',
         html_string
     )
     new_html_string = re.sub(
-        "\{%mismatch_mean_mismatch_per_read_per_kb%\}",
-        '{:.4}'.format(mean_mismatch_per_read_per_kb),
+        r"\{%mismatch_mean_mismatch_per_read_per_kb%\}",
+        f'{mean_mismatch_per_read_per_kb:.4}',
         new_html_string
     )
     mistype_list1 = list()
     for mis in mis_types[0:6]:
         mistype_list1.append(
-            "<li>{}: {}</li>".format(
-                mis, mismatch_type_counter[mis]
-            )
+            f"<li>{mis}: {mismatch_type_counter[mis]}</li>"
         )
     mistype_list2 = list()
     for mis in mis_types[6:]:
         mistype_list2.append(
-            "<li>{}: {}</li>".format(
-                mis, mismatch_type_counter[mis]
-            )
+            f"<li>{mis}: {mismatch_type_counter[mis]}</li>"
         )
     new_html_string = re.sub(
-        "\{%mismatch_type_list1%\}",
+        r"\{%mismatch_type_list1%\}",
         "<ul>" + '\n'.join(mistype_list1) + "</ul>",
         new_html_string
     )
     new_html_string = re.sub(
-        "\{%mismatch_type_list2%\}",
+        r"\{%mismatch_type_list2%\}",
         "<ul>" + '\n'.join(mistype_list2) + "</ul>",
         new_html_string
     )
     new_html_string = re.sub(
-        "\{%mismatch_table%\}",
+        r"\{%mismatch_table%\}",
         '\n'.join(rowstring_list),
         new_html_string
     )
@@ -195,32 +191,32 @@ def html_add_insertion_table(html_string, insertion_table,
             )
 
     new_html_string = re.sub(
-        "\{%insertion_total_insertion_number%\}",
-        '{}'.format(total_insertion_count),
+        r"\{%insertion_total_insertion_number%\}",
+        f'{total_insertion_count}',
         html_string
     )
     new_html_string = re.sub(
-        "\{%insertion_total_insertion_length%\}",
-        '{}'.format(total_insertion_length),
+        r"\{%insertion_total_insertion_length%\}",
+        f'{total_insertion_length}',
         new_html_string
     )
     new_html_string = re.sub(
-        "\{%insertion_mean_length%\}",
-        '{:.4}'.format(mean_insertion_length),
+        r"\{%insertion_mean_length%\}",
+        f'{mean_insertion_length:.4}',
         new_html_string
     )
     new_html_string = re.sub(
-        "\{%insertion_median_length%\}",
-        '{:.4}'.format(median_insertion_length),
+        r"\{%insertion_median_length%\}",
+        f'{median_insertion_length:.4}',
         new_html_string
     )
     new_html_string = re.sub(
-        "\{%insertion_mean_insertion_per_read_per_kb%\}",
-        '{:.4}'.format(mean_insertion_per_read_per_kb),
+        r"\{%insertion_mean_insertion_per_read_per_kb%\}",
+        f'{mean_insertion_per_read_per_kb:.4}',
         new_html_string
     )
     new_html_string = re.sub(
-        "\{%insertion_table%\}",
+        r"\{%insertion_table%\}",
         '\n'.join(rowstring_list), new_html_string
     )
     return new_html_string
@@ -254,32 +250,32 @@ def html_add_deletion_table(html_string, deletion_table,
             )
 
     new_html_string = re.sub(
-        "\{%deletion_total_deletion_number%\}",
-        '{}'.format(total_deletion_count),
+        r"\{%deletion_total_deletion_number%\}",
+        f'{total_deletion_count}',
         html_string
     )
     new_html_string = re.sub(
-        "\{%deletion_total_deletion_length%\}",
-        '{}'.format(total_deletion_length),
+        r"\{%deletion_total_deletion_length%\}",
+        f'{total_deletion_length}',
         new_html_string
     )
     new_html_string = re.sub(
-        "\{%deletion_mean_length%\}",
-        '{:.4}'.format(mean_deletion_length),
+        r"\{%deletion_mean_length%\}",
+        f'{mean_deletion_length:.4}',
         new_html_string
     )
     new_html_string = re.sub(
-        "\{%deletion_median_length%\}",
-        '{:.4}'.format(median_deletion_length),
+        r"\{%deletion_median_length%\}",
+        f'{median_deletion_length:.4}',
         new_html_string
     )
     new_html_string = re.sub(
-        "\{%deletion_mean_deletion_per_read_per_kb%\}",
-        '{:.4}'.format(mean_deletion_per_read_per_kb),
+        r"\{%deletion_mean_deletion_per_read_per_kb%\}",
+        f'{mean_deletion_per_read_per_kb:.4}',
         new_html_string
     )
     new_html_string = re.sub(
-        "\{%deletion_table%\}",
+        r"\{%deletion_table%\}",
         '\n'.join(rowstring_list),
         new_html_string
     )
@@ -290,6 +286,14 @@ def html_add_splice_table(html_string, splice_table,
                           mean_intron_per_read):
 
     rowstring_list = list()
+    total_gtag = 0
+    total_gtagp = 0.0
+    total_gcag = 0
+    total_gcagp = 0.0
+    total_atac = 0
+    total_atacp = 0.0
+    total_other = 0
+    total_otherp = 0.0
     for ri, row in splice_table.iterrows():
         label = ""
         gtag = 0
@@ -307,20 +311,24 @@ def html_add_splice_table(html_string, splice_table,
                 atac = row[rn]
             else:
                 other += row[rn]
-        gtagp = gtag / sum([gtag, gcag, atac, other]) * 100
-        gcagp = gcag / sum([gtag, gcag, atac, other]) * 100
-        atacp = atac / sum([gtag, gcag, atac, other]) * 100
-        otherp = other / sum([gtag, gcag, atac, other]) * 100
+        total = gtag + gcag + atac + other
+        if total == 0:
+            gtagp = gcagp = atacp = otherp = 0.0
+        else:
+            gtagp = gtag / total * 100
+            gcagp = gcag / total * 100
+            atacp = atac / total * 100
+            otherp = other / total * 100
         tmprow_list = [
-            '<th scope="row">{}</th>'.format(label),
-            '<td>{}</td>'.format(gtag),
-            '<td>{:.4}</td>'.format(gtagp),
-            '<td>{}</td>'.format(gcag),
-            '<td>{:.4}</td>'.format(gcagp),
-            '<td>{}</td>'.format(atac),
-            '<td>{:.4}</td>'.format(atacp),
-            '<td>{}</td>'.format(other),
-            '<td>{:.4}</td>'.format(otherp)
+            f'<th scope="row">{label}</th>',
+            f'<td>{gtag}</td>',
+            f'<td>{gtagp:.4}</td>',
+            f'<td>{gcag}</td>',
+            f'<td>{gcagp:.4}</td>',
+            f'<td>{atac}</td>',
+            f'<td>{atacp:.4}</td>',
+            f'<td>{other}</td>',
+            f'<td>{otherp:.4}</td>'
         ]
         if row['label'] == "Total":
             rowstring_list.append(
@@ -343,26 +351,18 @@ def html_add_splice_table(html_string, splice_table,
             )
 
     splice_list = [
-        "<li>gt-ag: {} ({:.4}%)</li>".format(
-            total_gtag, total_gtagp
-        ),
-        "<li>gc-ag: {} ({:.4}%)</li>".format(
-            total_gcag, total_gcagp
-        ),
-        "<li>at-ac: {} ({:.4}%)</li>".format(
-            total_atac, total_atacp
-        ),
-        "<li>other: {} ({:.4}%)</li>".format(
-            total_other, total_otherp
-        )
+        f"<li>gt-ag: {total_gtag} ({total_gtagp:.4}%)</li>",
+        f"<li>gc-ag: {total_gcag} ({total_gcagp:.4}%)</li>",
+        f"<li>at-ac: {total_atac} ({total_atacp:.4}%)</li>",
+        f"<li>other: {total_other} ({total_otherp:.4}%)</li>"
     ]
     new_html_string = re.sub(
-        "\{%splice_type_list%\}",
+        r"\{%splice_type_list%\}",
         "<ul>" + '\n'.join(splice_list) + "</ul>",
         html_string
     )
     new_html_string = re.sub(
-        "\{%intron_total_intron_number%\}",
+        r"\{%intron_total_intron_number%\}",
         '{}'.format(
             total_gtag + total_gcag +
             total_atac + total_other
@@ -370,12 +370,12 @@ def html_add_splice_table(html_string, splice_table,
         new_html_string
     )
     new_html_string = re.sub(
-        "\{%intron_mean_intron_per_read%\}",
-        '{:.4}'.format(mean_intron_per_read),
+        r"\{%intron_mean_intron_per_read%\}",
+        f'{mean_intron_per_read:.4}',
         new_html_string
     )
     new_html_string = re.sub(
-        "\{%splice_table%\}",
+        r"\{%splice_table%\}",
         '\n'.join(rowstring_list),
         new_html_string
     )

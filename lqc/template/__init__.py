@@ -22,6 +22,5 @@ def copy_logo(aim_dir):
     shutil.copy(logo_path, aim_dir)
     card_path = os.path.join(file_dir, "card.svg")
     shutil.copy(card_path, aim_dir)
-    return
 
 ########################################

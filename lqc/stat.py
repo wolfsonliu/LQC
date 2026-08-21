@@ -1,12 +1,11 @@
 import pysam
+
 from lqc.cs import CS
-from lqc.readstat import ReadStat
 from lqc.indel import Indel
 from lqc.mismatch import Mismatch
+from lqc.readstat import ReadStat
 from lqc.splice import Splice
-from lqc.utils import bam_or_sam
-from lqc.utils import convert_reverse_complement
-from lqc.utils import convert_complement
+from lqc.utils import bam_or_sam, convert_complement, convert_reverse_complement
 
 
 def stat_element_from_bam_by_contig(bam_file,

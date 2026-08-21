@@ -3,42 +3,49 @@
 All orchestration lives in main(). See README.md for usage.
 """
 
-import os
-import sys
 import argparse
 import logging
 import multiprocessing as mp
+import os
 import pickle
+import sys
+from copy import copy
 from functools import partial
-from lqc import stat_element_from_bam_by_contig
-from lqc import check_bam_with_cs_or_md
-from lqc import create_readstat_table
-from lqc import create_indel_summary_table
-from lqc import create_mismatch_normalized_read_location_table
-from lqc import create_splice_table
-from lqc import plot_readstat_bar
-from lqc import plot_readstat_bar_mean_element_per_read
-from lqc import plot_readstat_bar_mean_element_per_read_per_kb
-from lqc import plot_readstat_cumulative_length
-from lqc import plot_readstat_bar_ratio_with_element
-from lqc import plot_readstat_length_hist
-from lqc import plot_element_total_count
-from lqc import plot_indel_hist_length
-from lqc import plot_indel_hist_location
-from lqc import plot_mismatch_type_count
-from lqc import plot_mismatch_hist_location
-from lqc import plot_splice_type_count
-from lqc import copy_logo
-from lqc import get_html_template
-from lqc import html_add_readstat_table
-from lqc import html_add_mismatch_table
-from lqc import html_add_insertion_table
-from lqc import html_add_deletion_table
-from lqc import html_add_splice_table
-from lqc import write_readcs
-from lqc import __version__ as VERSION
+
 import matplotlib
 import matplotlib.pyplot as plt
+
+from lqc import __version__ as VERSION
+from lqc import (
+    check_bam_with_cs_or_md,
+    copy_logo,
+    create_indel_summary_table,
+    create_mismatch_normalized_read_location_table,
+    create_readstat_table,
+    create_splice_table,
+    get_html_template,
+    html_add_deletion_table,
+    html_add_insertion_table,
+    html_add_mismatch_table,
+    html_add_readstat_table,
+    html_add_splice_table,
+    list_bam_contigs,
+    plot_element_total_count,
+    plot_indel_hist_length,
+    plot_indel_hist_location,
+    plot_mismatch_hist_location,
+    plot_mismatch_type_count,
+    plot_readstat_bar,
+    plot_readstat_bar_mean_element_per_read,
+    plot_readstat_bar_mean_element_per_read_per_kb,
+    plot_readstat_bar_ratio_with_element,
+    plot_readstat_cumulative_length,
+    plot_readstat_length_hist,
+    plot_splice_type_count,
+    stat_element_from_bam_by_contig,
+    write_readcs,
+)
+
 matplotlib.use('Agg')
 
 
@@ -77,7 +84,6 @@ def get_stat_list(result, stat_type):
 def build_directories(dir_dict):
     for a, b in dir_dict.items():
         os.makedirs(b, exist_ok = True)
-    return
 
 
 def savefig(fig, prefix):
@@ -106,7 +112,6 @@ def generate_multiple_figs(plot_func,
             fig, filelabel + '.' + seqname
         )
         plt.close('all')
-    return
 
 
 def main(argv = None) -> int:
@@ -175,7 +180,7 @@ def main(argv = None) -> int:
     parser.add_argument(
         '--version',
         action='version',
-        version='%(prog)s {0}'.format(VERSION)
+        version=f'%(prog)s {VERSION}'
     )
     args = vars(parser.parse_args(argv))
 
@@ -348,6 +353,24 @@ def main(argv = None) -> int:
     # build output directory structure
     build_directories(o_dirs)
 
+    # keep only requested contigs that actually exist in the input; fetching a
+    # contig absent from the BAM header raises ValueError in pysam.
+    bam_contigs = set(list_bam_contigs(args['bam_file']))
+    contigs = []
+    seen = set()
+    for contig in args['contig']:
+        if contig in seen:
+            continue
+        seen.add(contig)
+        if contig in bam_contigs:
+            contigs.append(contig)
+        else:
+            logging.warning('Contig %s is not in the BAM; skipped.', contig)
+    if not contigs:
+        message = 'None of the requested contigs are present in the BAM.'
+        logging.error(message)
+        raise ValueError(message)
+
     # run jobs by contigs
     message = 'Element statistic process starts.'
     logging.info(message)
@@ -361,11 +384,22 @@ def main(argv = None) -> int:
                     'bam_type': bam_type
                 }
             ),
-            args['contig']
+            contigs
         )
 
     message = 'Element statistic process finished.'
     logging.info(message)
+
+    # drop contigs that are in the header but have no mapped reads; an empty
+    # ReadStat has undefined mean/median/N50 and would break table/plots.
+    result = [
+        r for r in result
+        if r[0].get_read_count() > 0
+    ]
+    if not result:
+        message = 'No reads were found for the requested contigs.'
+        logging.error(message)
+        raise ValueError(message)
 
     l_readstat = get_stat_list(result, 'readstat')
     l_insertion = get_stat_list(result, 'insertion')
@@ -375,16 +409,19 @@ def main(argv = None) -> int:
 
     message = 'Sum of statistics from each contig.'
     logging.debug(message)
-    sreadstat = sum(l_readstat)
-    sreadstat.label = 'Total'
-    sinsertion = sum(l_insertion)
-    sinsertion.label = 'Total'
-    sdeletion = sum(l_deletion)
-    sdeletion.label = 'Total'
-    smismatch = sum(l_mismatch)
-    smismatch.label = 'Total'
-    ssplice = sum(l_splice)
-    ssplice.label = 'Total'
+    # The summed object is a shallow relabeled copy: ``sum([x])`` returns ``x``
+    # itself, so relabeling in place would rename the per-contig row too. A
+    # shallow copy shares the (read-only after this point) data while carrying
+    # its own ``label``, which also avoids duplicating multi-GB event lists.
+    def relabel(obj):
+        new_obj = copy(obj)
+        new_obj.label = 'Total'
+        return new_obj
+    sreadstat = relabel(sum(l_readstat))
+    sinsertion = relabel(sum(l_insertion))
+    sdeletion = relabel(sum(l_deletion))
+    smismatch = relabel(sum(l_mismatch))
+    ssplice = relabel(sum(l_splice))
 
     message = 'Generate summary tables.'
     logging.info(message)

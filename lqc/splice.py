@@ -1,14 +1,15 @@
-from copy import deepcopy
 from collections import Counter
+from copy import deepcopy
+
 from lqc.utils import convert_reverse_complement
 
 
-class Splice(object):
+class Splice:
     """
     A class to store splice pair counts.
     """
     def __init__(self, label = ''):
-        super(Splice, self).__init__()
+        super().__init__()
         if isinstance(label, str):
             pass
         else:
@@ -62,13 +63,11 @@ class Splice(object):
 
     def __repr__(self):
         outstring = '\n'.join([
-            "Splice {}:".format(self.label),
-            "  {} splice site pairs".format(
-                self.get_total_splice_pair_count()
-            ),
+            f"Splice {self.label}:",
+            f"  {self.get_total_splice_pair_count()} splice site pairs",
             "  the most abundant splice pair: {}".format(
                 ', '.join([
-                    '{} (count: {})'.format(a, b)
+                    f'{a} (count: {b})'
                     for a, b in self.get_most_abundant_splice_pair()
                 ])
             )
@@ -76,10 +75,7 @@ class Splice(object):
         return outstring
 
     def __str__(self):
-        outstring = "Splice {}: {} splice site pairs".format(
-            self.label,
-            self.get_total_splice_pair_count()
-        )
+        outstring = f"Splice {self.label}: {self.get_total_splice_pair_count()} splice site pairs"
         return outstring
 
     def __add__(self, other):

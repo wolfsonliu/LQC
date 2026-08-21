@@ -1,12 +1,12 @@
 from copy import deepcopy
 
 
-class ReadStat(object):
+class ReadStat:
     """
     A class to store read count and read statistic information.
     """
     def __init__(self, label = ''):
-        super(ReadStat, self).__init__()
+        super().__init__()
         if isinstance(label, str):
             pass
         else:
@@ -226,42 +226,22 @@ class ReadStat(object):
         N50, L50 = self.get_length_NL(50)
         outstring = '\n'.join([
             "ReadStat:",
-            "  read counts: {}".format(
-                self.get_read_count()
-            ),
-            "  total bases: {}".format(
-                self.get_total_base()
-            ),
-            "  mean of read length: {:.4}".format(
-                float(self.get_mean_length())
-            ),
-            "  median of read length: {:.4}".format(
-                float(self.get_median_length())
-            ),
-            "  [min, max] of read length: [{}, {}]".format(
-                self.get_min_length(), self.get_max_length()
-            ),
-            "  N50 of read length: {}".format(N50),
-            "  L50 of read length: {}".format(L50),
-            "  mean of insertions per read: {:.4}".format(
-                float(self.get_mean_insertions())
-            ),
-            "  mean of deletions per read: {:.4}".format(
-                float(self.get_mean_deletions())
-            ),
-            "  mean of mismatches per read: {:.4}".format(
-                float(self.get_mean_mismatches())
-            ),
-            "  mean of introns per read: {:.4}".format(
-                float(self.get_mean_introns())
-            )
+            f"  read counts: {self.get_read_count()}",
+            f"  total bases: {self.get_total_base()}",
+            f"  mean of read length: {float(self.get_mean_length()):.4}",
+            f"  median of read length: {float(self.get_median_length()):.4}",
+            f"  [min, max] of read length: [{self.get_min_length()}, {self.get_max_length()}]",
+            f"  N50 of read length: {N50}",
+            f"  L50 of read length: {L50}",
+            f"  mean of insertions per read: {float(self.get_mean_insertions()):.4}",
+            f"  mean of deletions per read: {float(self.get_mean_deletions()):.4}",
+            f"  mean of mismatches per read: {float(self.get_mean_mismatches()):.4}",
+            f"  mean of introns per read: {float(self.get_mean_introns()):.4}"
         ])
         return outstring
 
     def __str__(self):
-        outstring = "ReadStat: {} reads".format(
-            self.get_read_count()
-        )
+        outstring = f"ReadStat: {self.get_read_count()} reads"
         return outstring
 
     def __add__(self, other):

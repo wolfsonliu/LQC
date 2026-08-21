@@ -1,7 +1,10 @@
 import math
 from itertools import accumulate
+
 import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
+
 matplotlib.use("Agg")
 
 magentas = ["#7a0177", "#ae017e", "#dd3497",
@@ -325,9 +328,7 @@ def plot_readstat_bar_ratio_with_element(readstat_list,
                 )
                 ylimit = fig.axes[ai].get_ylim()
                 fig.axes[ai].annotate(
-                    '{:.2}'.format(
-                        read_feature[ai][ti]
-                    ),
+                    f'{read_feature[ai][ti]:.2}',
                     ((ti - 1) * binw,
                      read_feature[ai][ti] - 0.1 * ylimit[1]),
                     color = 'white',
@@ -408,8 +409,8 @@ def plot_readstat_cumulative_length(readstat_list,
             )
             fig.axes[ai].annotate(
                 "\n".join(
-                    ["N50: {}".format(N50),
-                     "L50: {}".format(L50)]
+                    [f"N50: {N50}",
+                     f"L50: {L50}"]
                 ),
                 (cross_x, cross_y),
                 (cross_x + 0.02 * xspan,
@@ -596,10 +597,14 @@ def plot_indel_hist_location(indel_list,
     fig, axes = plt.subplots(
         row, col, figsize = (width, height)
     )
+    cuts = [i / 10 for i in range(11)]
     for ai in range(row * col):
         if ai in list(range(len(indel_list))):
-            fig.axes[ai].hist(
-                indel_list[ai].get_locations(),
+            edges, hist = indel_list[ai].get_location_histogram(cuts)
+            fig.axes[ai].bar(
+                edges[:-1], hist,
+                width = np.diff(edges),
+                align = 'edge',
                 color = "#7a0177",
                 label = indel_list[ai].label
             )
@@ -663,10 +668,7 @@ def plot_mismatch_type_count(mismatch_list,
                 fig.axes[ai].bar(
                     j, mislist[ai][j],
                     color = miscolors[mistypes[j]],
-                    label = '{}=>{}'.format(
-                        mistypes[j][0],
-                        mistypes[j][1]
-                    )
+                    label = f'{mistypes[j][0]}=>{mistypes[j][1]}'
                 )
             fig.axes[ai].set_xticks([])
             fig.axes[ai].set_title(
@@ -709,10 +711,14 @@ def plot_mismatch_hist_location(mismatch_list,
     fig, axes = plt.subplots(
         row, col, figsize = (width, height)
     )
+    cuts = [i / 10 for i in range(11)]
     for ai in range(row * col):
         if ai in list(range(len(mismatch_list))):
-            fig.axes[ai].hist(
-                mismatch_list[ai].get_locations(),
+            edges, hist = mismatch_list[ai].get_location_histogram(cuts)
+            fig.axes[ai].bar(
+                edges[:-1], hist,
+                width = np.diff(edges),
+                align = 'edge',
                 color = "#7a0177",
                 label = mismatch_list[ai].label
             )
@@ -782,11 +788,14 @@ def plot_splice_type_count(splice_list,
                 )
                 if st == 'other':
                     stidx = len(splicetypes) - 1
-                    ratio = splist[ai][stidx] / \
-                        sum(splist[ai][0:stidx])
+                    canonical = sum(splist[ai][0:stidx])
+                    if canonical == 0:
+                        ratio = 0.0
+                    else:
+                        ratio = splist[ai][stidx] / canonical
                     fig.axes[ai].text(
                         j, splist[ai][j],
-                        '{:.2}'.format(ratio),
+                        f'{ratio:.2}',
                         ha = "center", va = "bottom"
                     )
             fig.axes[ai].set_xticks(

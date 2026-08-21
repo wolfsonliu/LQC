@@ -1,5 +1,7 @@
 import pysam
 
+from lqc.cs import CS
+
 
 def convert_complement(string):
     ntpair = {'a': 't', 'c': 'g',
@@ -24,6 +26,16 @@ def bam_or_sam(file_path):
     expansion = file_path.split('.')[-1].upper()
     assert expansion in ['BAM', 'SAM'], 'Not a bam or sam file expansion.'
     return expansion
+
+
+def list_bam_contigs(bam_file):
+    """Return the reference names present in the BAM/SAM header."""
+    file_type = bam_or_sam(bam_file)
+    file_read = "rb" if file_type == "BAM" else "r"
+    bam = pysam.AlignmentFile(bam_file, file_read)
+    contigs = list(bam.references)
+    bam.close()
+    return contigs
 
 
 def check_bam_with_cs_or_md(bam_file):
@@ -124,20 +136,16 @@ def write_readcs(bam_file,
             )
         # read cs
         cs_list = cs.get_contig_position()
-        for line in cs_list:
-            output.write(
-                '\t'.join(
+        output.writelines('\t'.join(
                     [read.query_name,
                      read.reference_name] +
-                    ['{}'.format(a) for a in line]
-                ) + '\n'
-            )
+                    [f'{a}' for a in line]
+                ) + '\n' for line in cs_list)
     output.close()
     bam.close()
     if method not in ['cs', 'both']:
         genome.close()
     else:
         pass
-    return
 
 ########################################

@@ -81,6 +81,8 @@ def create_mismatch_normalized_read_location_table(mismatch_list,
     ]
     sum_type_bin_count = mismatch_sum.get_location_bin_count_by_type(cuts = cuts)
     mistypes = list(sum_type_bin_count.keys())
+    if not mistypes:
+        return pd.DataFrame(columns = ['label', 'bin'])
     bins = list(
         sum_type_bin_count[mistypes[0]].keys()
     )

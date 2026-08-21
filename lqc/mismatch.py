@@ -1,16 +1,16 @@
+from collections import Counter, defaultdict
+
 import numpy as np
-from copy import deepcopy
-from collections import defaultdict
-from collections import Counter
+
 from lqc.utils import convert_complement
 
 
-class Mismatch(object):
+class Mismatch:
     """
     A class to store mismatch count information.
     """
     def __init__(self, label = ''):
-        super(Mismatch, self).__init__()
+        super().__init__()
         if isinstance(label, str):
             pass
         else:
@@ -19,38 +19,45 @@ class Mismatch(object):
             )
         self.label = label
         self._mismatch_types = list()
-        self._mismatches = list()
+        self._mismatch_index = dict()
+        self._type_count = Counter()
+        self._type_locations = defaultdict(list)
 
     def add_mismatch(self, mismatch,
                      normalized_read_location):
-        midx = -1
-        if mismatch in self._mismatch_types:
-            midx, = np.where([
-                a == mismatch
-                for a in self._mismatch_types
-            ])
-            midx = midx[0]
-        else:
+        if mismatch not in self._mismatch_index:
+            self._mismatch_index[mismatch] = len(self._mismatch_types)
             self._mismatch_types.append(mismatch)
-            midx = len(self._mismatch_types) - 1
-        self._mismatches.append([
-            midx, normalized_read_location
-        ])
+        self._type_count[mismatch] += 1
+        self._type_locations[mismatch].append(
+            normalized_read_location
+        )
 
     def get_total_count(self):
-        return len(self._mismatches)
+        return sum(self._type_count.values())
 
     def convert_complement(self):
         newMis = type(self)(self.label)
-        newMis._mismatches = deepcopy(
-            self._mismatches
-        )
-        new_types = list()
-        for a in self._mismatch_types:
-            new_types.append(
-                convert_complement(a)
-            )
+        new_types = [
+            convert_complement(a)
+            for a in self._mismatch_types
+        ]
         newMis._mismatch_types = new_types
+        newMis._mismatch_index = {
+            ty: i for i, ty in enumerate(new_types)
+        }
+        newMis._type_count = Counter({
+            new_ty: self._type_count[old_ty]
+            for old_ty, new_ty in zip(
+                self._mismatch_types, new_types
+            )
+        })
+        newMis._type_locations = defaultdict(list, {
+            new_ty: list(self._type_locations[old_ty])
+            for old_ty, new_ty in zip(
+                self._mismatch_types, new_types
+            )
+        })
         return newMis
 
     def _get_bin_count(self, value_list, cuts):
@@ -62,63 +69,71 @@ class Mismatch(object):
         bin_count = Counter()
         for i in range(len(hist)):
             if i < (len(hist) - 1):
-                label = '[{},{})'.format(
-                    edges[i], edges[i+1]
-                )
+                label = f'[{edges[i]},{edges[i+1]})'
             else:
-                label = '[{},{}]'.format(
-                    edges[i], edges[i+1]
-                )
+                label = f'[{edges[i]},{edges[i+1]}]'
             bin_count[label] = hist[i]
         return bin_count
 
     def get_location_bin_count(self,
                                cuts = [0, 0.25, 0.5, 0.75, 1]):
-        bin_count = self._get_bin_count(
-            value_list = [b for a, b in self._mismatches],
-            cuts = cuts
-        )
+        bin_count = Counter()
+        for ty in self._mismatch_types:
+            bin_count += self._get_bin_count(
+                self._type_locations[ty], cuts = cuts
+            )
         return bin_count
+
+    def get_location_histogram(self, cuts = None):
+        """Return (edges, counts) for the overall normalized-location
+        histogram, summed across mismatch types without materializing the
+        full location list."""
+        if cuts is None:
+            cuts = [i / 10 for i in range(11)]
+        total_hist = None
+        edges = None
+        for ty in self._mismatch_types:
+            hist, edges = np.histogram(
+                self._type_locations[ty],
+                bins = cuts,
+                density = False
+            )
+            if total_hist is None:
+                total_hist = hist.astype(np.float64)
+            else:
+                total_hist += hist
+        if total_hist is None:
+            total_hist, edges = np.histogram(
+                [], bins = cuts, density = False
+            )
+        return edges, total_hist
 
     def get_location_bin_count_by_type(self,
                                        cuts = [0, 0.25, 0.5, 0.75, 1]):
         type_bin_count_dict = defaultdict(
             Counter
         )
-        type_idxs = list(set(
-            [a for a, b in self._mismatches]
-        ))
-        for ty in type_idxs:
-            type_list = [
-                b for a, b in self._mismatches
-                if a == ty
-            ]
-            type_bin_count_dict[
-                self._mismatch_types[ty]
-            ] += self._get_bin_count(
-                type_list, cuts = cuts
+        for ty in self._mismatch_types:
+            type_bin_count_dict[ty] += self._get_bin_count(
+                self._type_locations[ty], cuts = cuts
             )
         return type_bin_count_dict
 
     def get_locations(self):
-        return [
-            loc
-            for iidx, loc in self._mismatches
-        ]
+        locations = list()
+        for ty in self._mismatch_types:
+            locations.extend(self._type_locations[ty])
+        return locations
 
     def get_type_count(self):
-        type_count = Counter()
-        for tidx, loc in self._mismatches:
-            thetype = self._mismatch_types[tidx]
-            type_count[thetype] += 1
-        return type_count
+        return Counter(self._type_count)
 
     def __repr__(self):
         type_count = self.get_type_count()
         outstring = '\n'.join([
-            "Mismatch {}:".format(self.label),
+            f"Mismatch {self.label}:",
             '\n'.join(
-                ['  {}=>{}: {}'.format(a[0], a[1], b)
+                [f'  {a[0]}=>{a[1]}: {b}'
                  for a, b in type_count.items()]
             )
         ])
@@ -126,31 +141,29 @@ class Mismatch(object):
 
     def __str__(self):
         total_count = self.get_total_count()
-        outstring = "Mismatch {}: {} mismatches".format(
-            self.label, total_count
-        )
+        outstring = f"Mismatch {self.label}: {total_count} mismatches"
         return outstring
 
     def __add__(self, other):
         assert type(other) == type(self), 'wrong object to add'
         newMis = type(self)(' '.join([self.label, other.label]))
-        new_types = deepcopy(self._mismatch_types)
+        new_types = list(self._mismatch_types)
+        type_index = {ty: i for i, ty in enumerate(new_types)}
         for ty in other._mismatch_types:
-            if ty not in new_types:
+            if ty not in type_index:
+                type_index[ty] = len(new_types)
                 new_types.append(ty)
-            else:
-                pass
-        new_mismatches = deepcopy(self._mismatches)
-        for tidx, loc in other._mismatches:
-            type_label = other._mismatch_types[tidx]
-            new_tidx, = np.where([
-                a == type_label
-                for a in new_types
-            ])
-            new_tidx = new_tidx[0]
-            new_mismatches.append([new_tidx, loc])
+
+        new_locs = defaultdict(list)
+        for ty in new_types:
+            merged = list(self._type_locations.get(ty, ()))
+            merged.extend(other._type_locations.get(ty, ()))
+            new_locs[ty] = merged
+
         newMis._mismatch_types = new_types
-        newMis._mismatches = new_mismatches
+        newMis._mismatch_index = type_index
+        newMis._type_count = self._type_count + other._type_count
+        newMis._type_locations = new_locs
         return newMis
 
     def __radd__(self, other):
