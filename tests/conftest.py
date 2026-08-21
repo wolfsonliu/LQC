@@ -56,3 +56,27 @@ def cs_bam(tmp_path):
         out.write(b)
     pysam.index(str(bam_path))
     return str(bam_path)
+
+
+@pytest.fixture()
+def cs_bam_with_indel(tmp_path):
+    """Tiny indexed BAM with one read carrying one deletion (-cc) and one insertion (+tt)."""
+    bam_path = tmp_path / 'indel.cs.bam'
+    header = {
+        'HD': {'VN': '1.6', 'SO': 'coordinate'},
+        'SQ': [{'SN': 'chr1', 'LN': 1000000}],
+    }
+    with pysam.AlignmentFile(bam_path, 'wb', header=header) as out:
+        a = pysam.AlignedSegment()
+        a.query_name = 'read1'
+        a.flag = 0
+        a.reference_id = 0
+        a.reference_start = 0
+        a.mapping_quality = 60
+        a.cigar = [(0, 3), (2, 2), (0, 4), (1, 2), (0, 2)]
+        a.query_sequence = 'AAAAABBBBCC'
+        a.query_qualities = pysam.qualitystring_to_array('I' * 11)
+        a.set_tag('cs', ':3-cc:4+tt:2')
+        out.write(a)
+    pysam.index(str(bam_path))
+    return str(bam_path)

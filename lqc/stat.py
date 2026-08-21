@@ -86,7 +86,7 @@ def stat_element_from_bam_by_contig(bam_file,
                 normalized_read_location = a
             )
         # deletion
-        for a, b, c, d in cs.get_insertions(
+        for a, b, c, d in cs.get_deletions(
                 coordinate = 'normalized_read'
         ):
             if strand == '+':
