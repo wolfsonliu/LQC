@@ -39,7 +39,7 @@ seeds with `0`) produces a merged object. That is the only reason `lqc/cli.py` c
 | `lqc/report_figure.py` | matplotlib (Agg) figures. | `plot_*` |
 | `lqc/report_html.py` | Substitute `{%token%}` placeholders in the template with computed tables. | `html_add_*` |
 | `lqc/template/` | `template.html` + SVG logos shipped as package data. | `get_html_template`, `copy_logo` |
-| `lqc/test/` | Unit tests (currently only CS parsing). | `test_cs.py` |
+| `lqc/test/` | Unit tests. | `test_cs.py`, `test_cli.py` |
 | `tests/data/` | Large real BAM + index used as integration input (not covered by CI). | `ENCFF417VHJ.chr22.sorted.bam` |
 | `lqc/cli.py` | CLI entry point; composes the above and defines every output filename. | — |
 

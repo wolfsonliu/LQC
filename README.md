@@ -72,7 +72,7 @@ This creates a `.venv` and installs the `lqc` command. Run the checks and the CL
 
 ```{bash}
 uvx ruff check
-uv run python -m unittest lqc.test.test_cs -v
+uv run python -m unittest lqc.test.test_cs lqc.test.test_cli -v
 uv run lqc -b <cs-tagged.sorted.indexed.bam> -o out
 ```
 

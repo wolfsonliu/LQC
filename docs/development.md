@@ -11,7 +11,7 @@ these commands are the canonical equivalents:
 ```bash
 uv sync                                    # create .venv, install deps + package + lqc CLI
 uvx ruff check                             # lint (add --fix to auto-fix)
-uv run python -m unittest lqc.test.test_cs -v
+uv run python -m unittest lqc.test.test_cs lqc.test.test_cli -v
 uv run lqc -b tests/data/ENCFF417VHJ.chr22.sorted.bam -o out   # smoke run
 ```
 
