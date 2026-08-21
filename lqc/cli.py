@@ -1,6 +1,10 @@
-#! /usr/bin/env python3
+"""Command-line interface for LQC.
+
+All orchestration lives in main(). See README.md for usage.
+"""
 
 import os
+import sys
 import argparse
 import logging
 import multiprocessing as mp
@@ -32,6 +36,7 @@ from lqc import html_add_insertion_table
 from lqc import html_add_deletion_table
 from lqc import html_add_splice_table
 from lqc import write_readcs
+from lqc import __version__ as VERSION
 import matplotlib
 import matplotlib.pyplot as plt
 matplotlib.use('Agg')
@@ -104,9 +109,7 @@ def generate_multiple_figs(plot_func,
     return
 
 
-if __name__ == '__main__':
-    VMAJOR, VMINOR, VMICRO = 0, 0, 5
-    VERSION = '{}.{}.{}'.format(VMAJOR, VMINOR, VMICRO)
+def main(argv = None) -> int:
 
     chromosomes = [
         'chr1', 'chr2', 'chr3', 'chr4',
@@ -117,6 +120,7 @@ if __name__ == '__main__':
         'chr21', 'chr22', 'chrX', 'chrY'
     ]
     parser = argparse.ArgumentParser(
+        prog = 'lqc',
         description='The Long-read RNA-seq quality control software.'
     )
     parser.add_argument(
@@ -173,7 +177,7 @@ if __name__ == '__main__':
         action='version',
         version='%(prog)s {0}'.format(VERSION)
     )
-    args = vars(parser.parse_args())
+    args = vars(parser.parse_args(argv))
 
     loglevel = logging.INFO
     if args['log_level'] == 'DEBUG':
@@ -703,5 +707,11 @@ if __name__ == '__main__':
 
     message = 'All done!'
     logging.info(message)
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
+
 
 ########################################
