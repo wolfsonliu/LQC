@@ -39,3 +39,10 @@ packages = ["lqc"]
 
 [tool.ruff]
 target-version = "py311"
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
