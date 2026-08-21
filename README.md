@@ -21,7 +21,7 @@ Please cite us:
 
 ## Dependencies
 
-[![](https://img.shields.io/badge/python-v3.6%2B-brightgreen)](https://www.python.org/)
+[![](https://img.shields.io/badge/python-v3.11%2B-brightgreen)](https://www.python.org/)
 [![](https://img.shields.io/badge/numpy-v1.10%2B-brightgreen)](https://numpy.org)
 [![](https://img.shields.io/badge/matplotlib-v2.0%2B-brightgreen)](https://matplotlib.org/)
 [![](https://img.shields.io/badge/pysam-v0.16%2B-brightgreen)](https://pysam.readthedocs.io)
@@ -30,7 +30,7 @@ Please cite us:
 The LQC software was developed with python3, which demands several
 python packages.
 
-* [python3.6+](https://www.python.org/): with os, sys, argparse, re,
+* [python3.11+](https://www.python.org/): with os, sys, argparse, re,
   functools, collections, multiprocessing, shutil.
 * [numpy](https://numpy.org): 1.10+
 * [pandas](https://pandas.pydata.org): 1.0+
@@ -58,19 +58,22 @@ virtualenv ~/.env/lqc
 source ~/.env/lqc/bin/activate
 ```
 
-### From github
+### From github (development)
 
-Download from github:
+Clone and install with [uv](https://docs.astral.sh/uv/):
 
 ```{bash}
 git clone https://github.com/gxiaolab/LQC
 cd LQC
+uv sync
 ```
 
-Install the package:
+This creates a `.venv` and installs the `lqc` command. Run the checks and the CLI:
 
 ```{bash}
-python setup.py install
+uvx ruff check
+uv run python -m unittest lqc.test.test_cs -v
+uv run lqc -b <cs-tagged.sorted.indexed.bam> -o out
 ```
 
 ### From pip
