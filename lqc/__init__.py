@@ -1,3 +1,5 @@
+__version__ = "0.0.5"
+
 from lqc.cs import CS
 from lqc.indel import Indel
 from lqc.mismatch import Mismatch
