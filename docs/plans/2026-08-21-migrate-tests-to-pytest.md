@@ -486,7 +486,7 @@ git commit -m "test: add unit tests for lqc.utils helpers"
 ```python
 import pytest
 
-from lqc import ReadStat
+from lqc.readstat import ReadStat
 
 
 @pytest.fixture()
@@ -826,7 +826,7 @@ git commit -m "test: add unit tests for Splice"
 import pytest
 
 from lqc import Indel
-from lqc import ReadStat
+from lqc.readstat import ReadStat
 from lqc import Splice
 from lqc.report_table import create_indel_summary_table
 from lqc.report_table import create_readstat_table
@@ -925,7 +925,7 @@ git commit -m "test: add table-builder tests incl. summary column contract"
 - [ ] **Step 1: Write `tests/test_report_html.py`**
 
 ```python
-from lqc import ReadStat
+from lqc.readstat import ReadStat
 from lqc import get_html_template
 from lqc.report_html import html_add_readstat_table
 from lqc.report_table import create_readstat_table
@@ -988,7 +988,7 @@ from matplotlib.figure import Figure
 
 matplotlib.use('Agg')
 
-from lqc import ReadStat
+from lqc.readstat import ReadStat
 from lqc.report_figure import determine_figure_size
 from lqc.report_figure import get_facet_row_col
 from lqc.report_figure import plot_readstat_bar
