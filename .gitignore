@@ -4,6 +4,7 @@
 tmp/*
 __pycache__/
 .venv/
+.ruff_cache/
 
 
 # Distribution / packaging
