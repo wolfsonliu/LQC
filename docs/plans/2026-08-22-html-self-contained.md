@@ -255,21 +255,25 @@ def html_add_bootstrap(html_string, version):
 
     new_html = re.sub(
         r'\{%bootstrap_css%\}',
-        '<style>' + css + '</style>',
+        lambda _match: '<style>' + css + '</style>',
         html_string
     )
     new_html = re.sub(
         r'\{%bootstrap_js%\}',
-        '<script>' + js + '</script>',
+        lambda _match: '<script>' + js + '</script>',
         new_html
     )
     new_html = re.sub(
         r'\{%version%\}',
-        version,
+        lambda _match: version,
         new_html
     )
     return new_html
 ```
+
+> **Why callable replacements:** the vendored JS/CSS contains backslash sequences
+> (`\s`, `\d`, …). A string `re.sub` replacement interprets those as escapes and raises
+> `re.error: bad escape`. A callable replacement is inserted verbatim, which is the intent.
 
 - [ ] **Step 5: Run the test to verify it passes**
 
@@ -356,7 +360,9 @@ def html_add_data(html_string, tables):
         + raw
         + '</script>'
     )
-    return re.sub(r'\{%lqc_data%\}', script, html_string)
+    # Callable replacement: ``script`` can contain backslashes (the ``<\/``
+    # escaping above), which a string re.sub replacement would mis-parse.
+    return re.sub(r'\{%lqc_data%\}', lambda _match: script, html_string)
 ```
 
 - [ ] **Step 4: Run the tests to verify they pass**
