@@ -26,8 +26,8 @@ def cs_to_list(cs_string):
     cs_value = re.sub(
         r'[:*\-+~]', ' ', cs_string
     ).strip().split()
-    cslist = list()
-    for a, b in zip(cs_mark, cs_value):
+    cslist = []
+    for a, b in zip(cs_mark, cs_value, strict = True):
         low = pos
         pos += cslenfuncs[a](b)
         high = pos
@@ -52,8 +52,8 @@ def cigar_to_list(cigar_string):
     cigar_num = re.sub(
         '[a-zA-Z]', ' ', cigar_string
     ).strip().split()
-    cigarlist = list()
-    for a, b in zip(cigar_mark, cigar_num):
+    cigarlist = []
+    for a, b in zip(cigar_mark, cigar_num, strict = True):
         low = pos
         pos += cigarlenfuncs[a](b)
         high = pos
@@ -75,7 +75,7 @@ def md_to_list(md_string):
     md_split = re.findall(
         r'([0-9]+|[A-Z]|\^[A-Z]+)', md_string
     )
-    mdlist = list()
+    mdlist = []
     for a in md_split:
         if a[0] == '^':
             mdlist.append(
@@ -122,7 +122,7 @@ def merge_cigar_md(cigar_string,
     #   ref_low, ref_high, cigar_mark, cigar_value,
     #   cigar_low, cigar_high, md_low, md_high
     for i, item in enumerate(cigar):
-        low, high, cigar_mark, cigar_value = item
+        _, _, cigar_mark, cigar_value = item
         if cigar_mark == 'M':
             current_cigar_length += int(cigar_value)
             current_md_length += int(cigar_value)
@@ -131,7 +131,8 @@ def merge_cigar_md(cigar_string,
         else:
             pass
         # use 0-base
-        cigar[i] = item + [
+        cigar[i] = [
+            *item,
             current_cigar_start, current_cigar_length,
             current_md_start, current_md_length
         ]
@@ -145,13 +146,13 @@ def merge_cigar_md(cigar_string,
     #   md_value, md_type, length,
     #   md_low, md_high
     for i, item in enumerate(md):
-        md_value, md_type, md_len = item
+        _, md_type, md_len = item
         if md_type in ['M', 'X']:
             current_md_length += md_len
         else:
             pass
         # use 0-base
-        md[i] = item + [current_md_start, current_md_length]
+        md[i] = [*item, current_md_start, current_md_length]
         current_md_start = current_md_length
 
     # find mismatches in md
@@ -165,10 +166,8 @@ def merge_cigar_md(cigar_string,
         if md[i][1] == 'D'
     ]
     # add mismatches into CIGAR
-    new_cigar = list()
+    new_cigar = []
     for i in range(len(cigar)):
-        cigar_start = cigar[i][4]
-        cigar_end = cigar[i][5]
         md_start = cigar[i][6]
         md_end = cigar[i][7]
         # get all the mismatches in the region
@@ -179,13 +178,12 @@ def merge_cigar_md(cigar_string,
         if len(inside_mismatches) == 0:
             if cigar[i][2] == 'D':
                 # process deletions
-                deletion_item = [
+                deletion_item = next(
                     a for a in deletions
                     if a[3] == md_start
-                ][0]
+                )
                 new_cigar.append(
-                    cigar[i][0:3] +
-                    [deletion_item[0].replace('^', '')]
+                    [*cigar[i][0:3], deletion_item[0].replace('^', '')]
                 )
             else:
                 new_cigar.append(cigar[i][0:4])
@@ -200,11 +198,8 @@ def merge_cigar_md(cigar_string,
                 # ref position is 0 based
                 dist_md = item[3] - md_start
                 thepos = dist_md + ref_start
-                inside_mismatches[j] = item + [thepos, thepos + 1]
-            inside_mismatch_ref_pos = sorted(
-                inside_mismatches, key = lambda a: a[3]
-            )
-            new_items = list()
+                inside_mismatches[j] = [*item, thepos, thepos + 1]
+            new_items = []
             the_start = ref_start
             for item in inside_mismatches:
                 item_ref_start = item[5]
@@ -262,9 +257,9 @@ def convert_cigar_md_to_cs_list(cigar_string,
         for a in cm
     ]
     # read_seq position by cigar
-    cigar_pos = list()      # sequence position by cigar
+    cigar_pos = []      # sequence position by cigar
     seq_pos = 0
-    for low, high, cigar_mark, cigar_value in cm:
+    for _, _, cigar_mark, cigar_value in cm:
         if cigar_mark == 'M':
             seq_pos += int(cigar_value)
         elif cigar_mark == 'X':
@@ -485,7 +480,7 @@ class CS:
 
     def _get_read_length(self):
         read_len = 0
-        for a, b, c, d in self.get_relative_position():
+        for _, _, c, d in self.get_relative_position():
             if c == ":":
                 read_len += int(d)
             elif c == "~":
@@ -502,10 +497,10 @@ class CS:
         return self._read_length
 
     def _get_element_read_location(self):
-        read_location = list()
+        read_location = []
         now_len = 0
         previous_len = 0
-        for a, b, c, d in self.get_relative_position():
+        for _, _, c, d in self.get_relative_position():
             if c == ":":
                 now_len += int(d)
                 read_location.append([
@@ -540,14 +535,14 @@ class CS:
             read_loc = self._get_element_read_location()
             relative_pos = self.get_relative_position()
             read_len = self.get_read_length()
-            new_cs = list()
-            for a, b in zip(read_loc, relative_pos):
+            new_cs = []
+            for a, b in zip(read_loc, relative_pos, strict = True):
                 if strand == '+':
                     new_cs.append(a + b[2:])
                 else:
                     new_cs.append(
                         [read_len - a[1],
-                         read_len - a[0]] + b[2:]
+                         read_len - a[0], *b[2:]]
                     )
             self._read_location = new_cs
         return self._read_location

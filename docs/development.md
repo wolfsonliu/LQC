@@ -10,7 +10,7 @@ these commands are the canonical equivalents:
 
 ```bash
 uv sync                                    # create .venv, install deps + package + lqc CLI
-uvx ruff check                             # lint (add --fix to auto-fix)
+uv run ruff check                            # lint
 uv run pytest
 uv run lqc -b tmp/data/ENCFF417VHJ.chr22.sorted.bam -o out   # smoke run
 ```
@@ -44,7 +44,7 @@ the package · expire: if the dependency set changes.*
 
 ## Style
 
-- No linter is currently enforced in-repo; adopt `uvx ruff check` as the gate (see
+- No linter is currently enforced in-repo; adopt `uv run ruff check` as the gate (see
   AGENTS.md hard constraint #11). Keep existing PEP-8-ish spacing, single quotes, and
   `name = value` argument style. *why: consistency with the existing ~3k-line codebase ·
   when: writing new code · expire: once `restructuredtext`/`ruff format` is agreed and

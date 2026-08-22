@@ -41,7 +41,7 @@ class Splice:
 
     def convert_reverse_complement(self):
         p_dict = self.get_splice_pair_count_dict()
-        new_dict = dict()
+        new_dict = {}
         for a, b in p_dict.items():
             new_string = convert_reverse_complement(a)
             new_dict[new_string] = b
@@ -79,14 +79,14 @@ class Splice:
         return outstring
 
     def __add__(self, other):
-        assert type(other) == type(self),\
+        assert isinstance(other, type(self)),\
             'wrong object to add'
         new_dict = deepcopy(
             self.get_splice_pair_count_dict() +
             other.get_splice_pair_count_dict()
         )
         newSp = type(self)(
-            ' '.join([self.label, other.label])
+            f'{self.label} {other.label}'
         )
         newSp.add_splice_pair_count_dict(new_dict)
         return newSp

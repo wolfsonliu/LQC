@@ -6,14 +6,13 @@ parent_dir = os.path.dirname(file_dir)
 
 
 def get_html_template():
-    html = open(
+    with open(
         os.path.join(file_dir, "template.html"),
         "r"
-    )
-    html_string = "\n".join(
-        [read.strip() for read in html]
-    )
-    html.close()
+    ) as html:
+        html_string = "\n".join(
+            [read.strip() for read in html]
+        )
     return html_string
 
 

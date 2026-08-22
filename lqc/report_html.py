@@ -5,8 +5,8 @@ import re
 
 
 def html_add_readstat_table(html_string, readstat_table):
-    rowstring_list = list()
-    for ri, row in readstat_table.iterrows():
+    rowstring_list = []
+    for _, row in readstat_table.iterrows():
         tmprow_list = [
             '<th scope="row">{}</th>'.format(row['label']),
             '<td>{}</td>'.format(row['read_count']),
@@ -92,14 +92,10 @@ def html_add_mismatch_table(html_string, mismatch_table,
                             total_mismatch_count,
                             mean_mismatch_per_read_per_kb,
                             mismatch_type_counter):
-    bins = ['[0.0,0.1)', '[0.1,0.2)', '[0.2,0.3)',
-            '[0.3,0.4)', '[0.4,0.5)', '[0.5,0.6)',
-            '[0.6,0.7)', '[0.7,0.8)', '[0.8,0.9)',
-            '[0.9,1.0]']
     mis_types = ['ac', 'ag', 'at', 'ca', 'cg', 'ct',
                  'ga', 'gc', 'gt', 'ta', 'tc', 'tg']
-    rowstring_list = list()
-    for ri, row in mismatch_table.iterrows():
+    rowstring_list = []
+    for _, row in mismatch_table.iterrows():
         for mis in mis_types:
             tmprow_list = [
                     '<th scope="row">{}</th>'.format(row['label'])
@@ -138,16 +134,14 @@ def html_add_mismatch_table(html_string, mismatch_table,
         f'{mean_mismatch_per_read_per_kb:.4}',
         new_html_string
     )
-    mistype_list1 = list()
-    for mis in mis_types[0:6]:
-        mistype_list1.append(
-            f"<li>{mis}: {mismatch_type_counter[mis]}</li>"
-        )
-    mistype_list2 = list()
-    for mis in mis_types[6:]:
-        mistype_list2.append(
-            f"<li>{mis}: {mismatch_type_counter[mis]}</li>"
-        )
+    mistype_list1 = [
+        f"<li>{mis}: {mismatch_type_counter[mis]}</li>"
+        for mis in mis_types[0:6]
+    ]
+    mistype_list2 = [
+        f"<li>{mis}: {mismatch_type_counter[mis]}</li>"
+        for mis in mis_types[6:]
+    ]
     new_html_string = re.sub(
         r"\{%mismatch_type_list1%\}",
         "<ul>" + '\n'.join(mistype_list1) + "</ul>",
@@ -168,8 +162,8 @@ def html_add_mismatch_table(html_string, mismatch_table,
 
 def html_add_insertion_table(html_string, insertion_table,
                              mean_insertion_per_read_per_kb):
-    rowstring_list = list()
-    for ri, row in insertion_table.iterrows():
+    rowstring_list = []
+    for _, row in insertion_table.iterrows():
         tmprow_list = [
             '<th scope="row">{}</th>'.format(row['label']),
             '<td>{}</td>'.format(row['total_count']),
@@ -227,8 +221,8 @@ def html_add_insertion_table(html_string, insertion_table,
 
 def html_add_deletion_table(html_string, deletion_table,
                             mean_deletion_per_read_per_kb):
-    rowstring_list = list()
-    for ri, row in deletion_table.iterrows():
+    rowstring_list = []
+    for _, row in deletion_table.iterrows():
         tmprow_list = [
             '<th scope="row">{}</th>'.format(row['label']),
             '<td>{}</td>'.format(row['total_count']),
@@ -288,7 +282,7 @@ def html_add_deletion_table(html_string, deletion_table,
 def html_add_splice_table(html_string, splice_table,
                           mean_intron_per_read):
 
-    rowstring_list = list()
+    rowstring_list = []
     total_gtag = 0
     total_gtagp = 0.0
     total_gcag = 0
@@ -297,7 +291,7 @@ def html_add_splice_table(html_string, splice_table,
     total_atacp = 0.0
     total_other = 0
     total_otherp = 0.0
-    for ri, row in splice_table.iterrows():
+    for _, row in splice_table.iterrows():
         label = ""
         gtag = 0
         gcag = 0

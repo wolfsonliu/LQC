@@ -21,7 +21,7 @@ def create_readstat_table(readstat_list, readstat_sum):
         'mean_intron_per_read_per_kb'
     ]
 
-    row_list = list()
+    row_list = []
 
     for a in readstat_list:
         N50, L50 = a.get_length_NL(50)
@@ -87,23 +87,22 @@ def create_mismatch_normalized_read_location_table(mismatch_list,
         sum_type_bin_count[mistypes[0]].keys()
     )
 
-    data_list = list()
-    for i in range(len(mismatch_list)):
-        for ibin in bins:
-            data_list.append(
-                [mismatch_list[i].label, ibin] +
-                [mis_type_bin_counts[i][c][ibin]
-                 for c in mistypes]
-            )
-    for ibin in bins:
-        data_list.append(
-            [mismatch_sum.label, ibin] +
-            [sum_type_bin_count[c][ibin]
-             for c in mistypes]
-        )
+    data_list = [
+        [mismatch_list[i].label, ibin] +
+        [mis_type_bin_counts[i][c][ibin]
+         for c in mistypes]
+        for i in range(len(mismatch_list))
+        for ibin in bins
+    ]
+    data_list.extend(
+        [mismatch_sum.label, ibin] +
+        [sum_type_bin_count[c][ibin]
+         for c in mistypes]
+        for ibin in bins
+    )
     mistable = pd.DataFrame(
         data_list,
-        columns = ['label', 'bin'] + mistypes
+        columns = ['label', 'bin', *mistypes]
     )
     return mistable
 
@@ -149,7 +148,7 @@ def create_splice_table(splice_list, splice_sum):
             [splice_sum.get_splice_pair_count_dict()[a]
              for a in sptypes]
         ],
-        columns = ['label'] + sptypes
+        columns = ['label', *sptypes]
     )
 
     return sptable

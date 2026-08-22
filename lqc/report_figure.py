@@ -169,7 +169,7 @@ def plot_readstat_bar_mean_element_per_read(readstat_list,
     names = ["Insertion", "Deletion",
              "Mismatch", "Intron"]
     binw = 0.22
-    fig, axes = plt.subplots(
+    fig, _ = plt.subplots(
         row, col,
         sharex = True, sharey = True,
         figsize = (width, height)
@@ -237,7 +237,7 @@ def plot_readstat_bar_mean_element_per_read_per_kb(
     names = ["Insertion", "Deletion",
              "Mismatch", "Intron"]
     binw = 0.22
-    fig, axes = plt.subplots(
+    fig, _ = plt.subplots(
         row, col,
         sharex = True, sharey = True,
         figsize = (width, height)
@@ -310,7 +310,7 @@ def plot_readstat_bar_ratio_with_element(readstat_list,
     names = ["Insertion", "Deletion",
              "Mismatch"]
     binw = 0.3
-    fig, axes = plt.subplots(
+    fig, _ = plt.subplots(
         row, col,
         sharex = True, sharey = True,
         figsize = (width, height)
@@ -369,7 +369,7 @@ def plot_readstat_cumulative_length(readstat_list,
     else:
         pass
 
-    fig, axes = plt.subplots(
+    fig, _ = plt.subplots(
         row, col, figsize = (width, height)
     )
     for ai in range(row * col):
@@ -378,7 +378,7 @@ def plot_readstat_cumulative_length(readstat_list,
                 readstat_list[ai].get_lengths()
             )
             length_cumsum = list(
-                accumulate([a for a in lengths])
+                accumulate(lengths)
             )
             N50, L50 = readstat_list[ai].get_length_NL(50)
             # plot
@@ -445,7 +445,7 @@ def plot_readstat_length_hist(readstat_list,
         height = max(height, 5)
     else:
         pass
-    fig, axes = plt.subplots(
+    fig, _ = plt.subplots(
         row, col, figsize = (width, height)
     )
     for ai in range(row * col):
@@ -545,7 +545,7 @@ def plot_indel_hist_length(indel_list,
         height = max(height, 5)
     else:
         pass
-    fig, axes = plt.subplots(
+    fig, _ = plt.subplots(
         row, col, figsize = (width, height)
     )
     for ai in range(row * col):
@@ -594,7 +594,7 @@ def plot_indel_hist_location(indel_list,
         height = max(height, 5)
     else:
         pass
-    fig, axes = plt.subplots(
+    fig, _ = plt.subplots(
         row, col, figsize = (width, height)
     )
     cuts = [i / 10 for i in range(11)]
@@ -650,16 +650,14 @@ def plot_mismatch_type_count(mismatch_list,
     else:
         pass
 
-    mislist = list()
+    mislist = []
 
     for a in mismatch_list:
-        alist = list()
-        for mt in mistypes:
-            alist.append(a.get_type_count()[mt])
+        alist = [a.get_type_count()[mt] for mt in mistypes]
         alist.append(a.label)
         mislist.append(alist)
 
-    fig, axes = plt.subplots(
+    fig, _ = plt.subplots(
         row, col, figsize = (width, height)
     )
     for ai in range(row * col):
@@ -708,7 +706,7 @@ def plot_mismatch_hist_location(mismatch_list,
         height = max(height, 5)
     else:
         pass
-    fig, axes = plt.subplots(
+    fig, _ = plt.subplots(
         row, col, figsize = (width, height)
     )
     cuts = [i / 10 for i in range(11)]
@@ -757,13 +755,11 @@ def plot_splice_type_count(splice_list,
     else:
         pass
 
-    splist = list()
+    splist = []
 
     for a in splice_list:
-        alist = list()
         count_dict = a.get_splice_pair_count_dict()
-        for s in splicetypes[0:3]:
-            alist.append(count_dict[s])
+        alist = [count_dict[s] for s in splicetypes[0:3]]
         other = 0
         for s in count_dict:
             if s not in splicetypes[0:3]:
@@ -774,7 +770,7 @@ def plot_splice_type_count(splice_list,
         alist.append(a.label)
         splist.append(alist)
 
-    fig, axes = plt.subplots(
+    fig, _ = plt.subplots(
         row, col, figsize = (width, height)
     )
     for ai in range(row * col):
@@ -789,10 +785,7 @@ def plot_splice_type_count(splice_list,
                 if st == 'other':
                     stidx = len(splicetypes) - 1
                     canonical = sum(splist[ai][0:stidx])
-                    if canonical == 0:
-                        ratio = 0.0
-                    else:
-                        ratio = splist[ai][stidx] / canonical
+                    ratio = 0.0 if canonical == 0 else splist[ai][stidx] / canonical
                     fig.axes[ai].text(
                         j, splist[ai][j],
                         f'{ratio:.2}',

@@ -12,7 +12,7 @@ statistics, insertions, deletions, mismatches, and splice sites.
 Development uses [uv](https://docs.astral.sh/uv/). There is no `Makefile` or CI yet.
 
 - Environment + deps + CLI entry point: `uv sync`
-- Lint: `uvx ruff check`  (append `--fix` to auto-fix what it can)
+- Lint: `uv run ruff check`
 - Tests: `uv run pytest`
 - Smoke-run the CLI: `uv run lqc -b <cs-tagged.sorted.indexed.bam> -o out`
 
@@ -48,7 +48,7 @@ Development uses [uv](https://docs.astral.sh/uv/). There is no `Makefile` or CI 
 10. **License is GPLv3+** — any vendored or derived code must remain GPL-compatible.
     *(why: `LICENSE` and `pyproject.toml` classifier · when: adding third-party or copied code · expire: if the project is relicensed)*
 
-11. **Code must pass `uvx ruff check`.**
+11. **Code must pass `uv run ruff check`.**
     *(why: lint is the agreed quality gate for the upcoming improvement work · when: before finishing any change · expire: replaced by another agreed lint command)*
 
 ## Topic Docs

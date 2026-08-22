@@ -43,11 +43,8 @@ def check_bam_with_cs_or_md(bam_file):
     file_read = "rb" if file_type == "BAM" else "r"
 
     bam = pysam.AlignmentFile(bam_file, file_read)
-    i = 0
-    read_cs_md = list()
     bam_type = None
-    for read in bam:
-        i += 1
+    for i, read in enumerate(bam, start = 1):
         if i >= 10:
             break
         else:
@@ -91,57 +88,52 @@ def write_readcs(bam_file,
     else:
         pass
 
-    output = open(output_file, 'w')
-    output.write(
-        '\t'.join([
-            'read_name', 'contig',
-            'low', 'high',
-            'cs_mark', 'cs_value'
-        ]) + '\n'
-    )
-    for read in bam:
-        strand = '-' if read.is_reverse else '+'
-        if method == 'cs':
-            # there're cs tags in the bam file
-            cs_string = [
-                a[1] for a in read.tags
-                if a[0] == 'cs'
-            ][0]
-            cs = CS.from_cs_tag_string(
-                cs_tag_string = cs_string,
-                contig = read.reference_name,
-                start_pos = read.reference_start,
-                strand = strand
-            )
-        else:
-            # there's no cs tag in the bam file, and there're MD tags.
-            read_seq = read.query_sequence
-            ref_seq = genome.fetch(
-                read.reference_name,
-                read.reference_start,
-                read.reference_end
-            )
-            md_string = [
-                a[1] for a in read.tags
-                if a[0] == 'MD'
-            ][0]
-            cs = CS.from_cigar_string(
-                cigar_string = read.cigarstring,
-                md_string = md_string,
-                read_seq = read_seq,
-                ref_seq = ref_seq,
-                contig = read.reference_name,
-                start_pos = read.reference_start,
-                strand = strand
-            )
-        # read cs
-        cs_list = cs.get_contig_position()
-        output.writelines('\t'.join(
-                    [read.query_name,
-                     read.reference_name] +
-                    [f'{a}' for a in line]
-                ) + '\n' for line in cs_list)
-    output.close()
+    with open(output_file, 'w') as output:
+        output.write(
+            'read_name\tcontig\tlow\thigh\tcs_mark\tcs_value\n'
+        )
+        for read in bam:
+            strand = '-' if read.is_reverse else '+'
+            if method == 'cs':
+                # there're cs tags in the bam file
+                cs_string = next(
+                    a[1] for a in read.tags
+                    if a[0] == 'cs'
+                )
+                cs = CS.from_cs_tag_string(
+                    cs_tag_string = cs_string,
+                    contig = read.reference_name,
+                    start_pos = read.reference_start,
+                    strand = strand
+                )
+            else:
+                # there's no cs tag in the bam file, and there're MD tags.
+                read_seq = read.query_sequence
+                ref_seq = genome.fetch(
+                    read.reference_name,
+                    read.reference_start,
+                    read.reference_end
+                )
+                md_string = next(
+                    a[1] for a in read.tags
+                    if a[0] == 'MD'
+                )
+                cs = CS.from_cigar_string(
+                    cigar_string = read.cigarstring,
+                    md_string = md_string,
+                    read_seq = read_seq,
+                    ref_seq = ref_seq,
+                    contig = read.reference_name,
+                    start_pos = read.reference_start,
+                    strand = strand
+                )
+            # read cs
+            cs_list = cs.get_contig_position()
+            output.writelines('\t'.join(
+                        [read.query_name,
+                         read.reference_name] +
+                        [f'{a}' for a in line]
+                    ) + '\n' for line in cs_list)
     bam.close()
     if method not in ['cs', 'both']:
         genome.close()

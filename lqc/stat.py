@@ -35,10 +35,10 @@ def stat_element_from_bam_by_contig(bam_file,
         strand = '-' if read.is_reverse else '+'
         if method == 'cs':
             # there're cs tags in the bam file
-            cs_string = [
+            cs_string = next(
                 a[1] for a in read.tags
                 if a[0] == 'cs'
-            ][0]
+            )
             cs = CS.from_cs_tag_string(
                 cs_tag_string = cs_string,
                 contig = contig,
@@ -51,10 +51,10 @@ def stat_element_from_bam_by_contig(bam_file,
             ref_seq = genome.fetch(
                 contig, read.reference_start, read.reference_end
             )
-            md_string = [
+            md_string = next(
                 a[1] for a in read.tags
                 if a[0] == 'MD'
-            ][0]
+            )
             cs = CS.from_cigar_string(
                 cigar_string = read.cigarstring,
                 md_string = md_string,
@@ -73,37 +73,28 @@ def stat_element_from_bam_by_contig(bam_file,
             intron = cs.get_intron_count()
         )
         # insertion
-        for a, b, c, d in cs.get_insertions(
+        for a, _, _, d in cs.get_insertions(
                 coordinate='normalized_read'
         ):
-            if strand == '+':
-                indel_string = d
-            else:
-                indel_string = convert_reverse_complement(d)
+            indel_string = d if strand == '+' else convert_reverse_complement(d)
             insertion.add_indel(
                 indel = indel_string,
                 normalized_read_location = a
             )
         # deletion
-        for a, b, c, d in cs.get_deletions(
+        for a, _, _, d in cs.get_deletions(
                 coordinate = 'normalized_read'
         ):
-            if strand == '+':
-                indel_string = d
-            else:
-                indel_string = convert_reverse_complement(d)
+            indel_string = d if strand == '+' else convert_reverse_complement(d)
             deletion.add_indel(
                 indel = indel_string,
                 normalized_read_location = a
             )
         # mismatch
-        for a, b, c, d in cs.get_mismatches(
+        for a, _, _, d in cs.get_mismatches(
                 coordinate = 'normalized_read'
         ):
-            if strand == '+':
-                mis_string = d
-            else:
-                mis_string = convert_complement(d)
+            mis_string = d if strand == '+' else convert_complement(d)
             mismatch.add_mismatch(
                 mismatch = mis_string,
                 normalized_read_location = a

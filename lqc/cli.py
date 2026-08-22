@@ -51,6 +51,8 @@ from lqc import (
 
 matplotlib.use('Agg')
 
+logger = logging.getLogger(__name__)
+
 
 def stat_bam(contig, variables):
     return stat_element_from_bam_by_contig(
@@ -75,17 +77,13 @@ def get_stat_list(result, stat_type):
                 stat_type_ids.keys()
             )
         )
-    stat_list = list()
-
     idx = stat_type_ids[stat_type]
 
-    for i in range(len(result)):
-        stat_list.append(result[i][idx])
-    return stat_list
+    return [result[i][idx] for i in range(len(result))]
 
 
 def build_directories(dir_dict):
-    for a, b in dir_dict.items():
+    for b in dir_dict.values():
         os.makedirs(b, exist_ok = True)
 
 
@@ -199,31 +197,31 @@ def main(argv = None) -> int:
 
     # check input bam file
     message = 'Determine whether the SAM/BAM file has CS or MD tags.'
-    logging.debug(message)
+    logger.debug(message)
     bam_type = check_bam_with_cs_or_md(args['bam_file'])
 
     if bam_type is None:
         message = 'The SAM/BAM file input should have cs tags or MD tags.'
-        logging.error(message)
+        logger.error(message)
         raise ValueError(message)
     elif bam_type == 'MD':
         message = 'The SAM/BAM has MD tag.'
-        logging.debug(message)
+        logger.debug(message)
         if args['genome_fasta'] is None:
             message = 'The SAM/BAM file has MD tags but no cs tags, ' +\
                 'so the genome fasta file should be provided.'
-            logging.error(message)
+            logger.error(message)
             raise ValueError(message)
         else:
             message = 'Genome fasta provided.'
-            logging.debug(message)
+            logger.debug(message)
     elif bam_type == 'both':
         message = 'The SAM/BAM has both cs tag and MD tag. Use cs tag.'
-        logging.debug(message)
+        logger.debug(message)
         bam_type = 'cs'
     else:
         message = 'The SAM/BAM has cs tag.'
-        logging.debug(message)
+        logger.debug(message)
 
 
     # output path
@@ -368,15 +366,15 @@ def main(argv = None) -> int:
         if contig in bam_contigs:
             contigs.append(contig)
         else:
-            logging.warning('Contig %s is not in the BAM; skipped.', contig)
+            logger.warning('Contig %s is not in the BAM; skipped.', contig)
     if not contigs:
         message = 'None of the requested contigs are present in the BAM.'
-        logging.error(message)
+        logger.error(message)
         raise ValueError(message)
 
     # run jobs by contigs
     message = 'Element statistic process starts.'
-    logging.info(message)
+    logger.info(message)
     with mp.Pool(args['thread']) as p:
         result = p.map(
             partial(
@@ -391,7 +389,7 @@ def main(argv = None) -> int:
         )
 
     message = 'Element statistic process finished.'
-    logging.info(message)
+    logger.info(message)
 
     # drop contigs that are in the header but have no mapped reads; an empty
     # ReadStat has undefined mean/median/N50 and would break table/plots.
@@ -401,7 +399,7 @@ def main(argv = None) -> int:
     ]
     if not result:
         message = 'No reads were found for the requested contigs.'
-        logging.error(message)
+        logger.error(message)
         raise ValueError(message)
 
     l_readstat = get_stat_list(result, 'readstat')
@@ -411,7 +409,7 @@ def main(argv = None) -> int:
     l_splice = get_stat_list(result, 'splice')
 
     message = 'Sum of statistics from each contig.'
-    logging.debug(message)
+    logger.debug(message)
     # The summed object is a shallow relabeled copy: ``sum([x])`` returns ``x``
     # itself, so relabeling in place would rename the per-contig row too. A
     # shallow copy shares the (read-only after this point) data while carrying
@@ -427,7 +425,7 @@ def main(argv = None) -> int:
     ssplice = relabel(sum(l_splice))
 
     message = 'Generate summary tables.'
-    logging.info(message)
+    logger.info(message)
     t_readstat = create_readstat_table(l_readstat, sreadstat)
     t_insertion = create_indel_summary_table(l_insertion, sinsertion)
     t_deletion = create_indel_summary_table(l_deletion, sdeletion)
@@ -440,7 +438,7 @@ def main(argv = None) -> int:
     # write a pickle for results
     if args['output_pickle']:
         message = 'Output pickle file.'
-        logging.info(message)
+        logger.info(message)
         outdict = {
             'readstat_contig': l_readstat,
             'readstat_sum': sreadstat,
@@ -457,13 +455,13 @@ def main(argv = None) -> int:
             pickle.dump(outdict, f)
 
         message = 'Output pickle file finished.'
-        logging.debug(message)
+        logger.debug(message)
     else:
         pass
 
     if args['output_cs']:
         message = 'Output processed cs tags.'
-        logging.info(message)
+        logger.info(message)
         write_readcs(
             bam_file = args['bam_file'],
             genome_file = args['genome_fasta'],
@@ -471,14 +469,14 @@ def main(argv = None) -> int:
             method = bam_type
         )
         message = 'Output processed cs tags finished.'
-        logging.debug(message)
+        logger.debug(message)
     else:
         pass
 
     ####################
     # write output tables
     message = 'Output summary tables.'
-    logging.info(message)
+    logger.info(message)
     t_readstat.to_csv(
         o_files['t_readstat'],
         sep = '\t', index = False
@@ -500,15 +498,15 @@ def main(argv = None) -> int:
         sep = '\t', index = False
     )
     message = 'Output summary tables finished.'
-    logging.debug(message)
+    logger.debug(message)
 
     ####################
     # plot figures
     message = 'Output figures.'
-    logging.info(message)
+    logger.info(message)
     # readstat: feature
     message = 'Output figures: readstat summary features.'
-    logging.debug(message)
+    logger.debug(message)
     for feature in [
             'Read count', 'Median read length',
             'Mean read length',
@@ -524,7 +522,7 @@ def main(argv = None) -> int:
 
     # readstat: mean element per read
     message = 'Output figures: readstat_bar_mean_element_per_read.'
-    logging.debug(message)
+    logger.debug(message)
     filelabel = 'f_readstat_bar_mean_element_per_read'
     generate_multiple_figs(
         plot_readstat_bar_mean_element_per_read,
@@ -534,7 +532,7 @@ def main(argv = None) -> int:
         width = 5, height = 4
     )
     message = 'Output figures: readstat_bar_mean_element_per_read_per_kb.'
-    logging.debug(message)
+    logger.debug(message)
     filelabel = 'f_readstat_bar_mean_element_per_read_per_kb'
     generate_multiple_figs(
         plot_readstat_bar_mean_element_per_read_per_kb,
@@ -546,7 +544,7 @@ def main(argv = None) -> int:
 
     # readstat: cumulative length
     message = 'Output figures: readstat_line_cumulative_length.'
-    logging.debug(message)
+    logger.debug(message)
     filelabel = 'f_readstat_line_cumulative_length'
     generate_multiple_figs(
         plot_readstat_cumulative_length,
@@ -558,7 +556,7 @@ def main(argv = None) -> int:
 
     # readstat: ratio with error element
     message = 'Output figures: readstat_bar_ratio_with_element.'
-    logging.debug(message)
+    logger.debug(message)
     filelabel = 'f_readstat_bar_ratio_with_element'
     generate_multiple_figs(
         plot_readstat_bar_ratio_with_element,
@@ -570,7 +568,7 @@ def main(argv = None) -> int:
 
     # readstat: length hist
     message = 'Output figures: readstat_hist_length.'
-    logging.debug(message)
+    logger.debug(message)
     filelabel = 'f_readstat_hist_length'
     generate_multiple_figs(
         plot_readstat_length_hist,
@@ -582,7 +580,7 @@ def main(argv = None) -> int:
 
     # error element
     message = 'Output figures: error element barplots.'
-    logging.debug(message)
+    logger.debug(message)
     filelabel = 'f_element_Insertion_bar_count'
     fig = plot_element_total_count(
         l_insertion, 'Insertion'
@@ -609,7 +607,7 @@ def main(argv = None) -> int:
     # indel: length hist
     # insertion
     message = 'Output figures: insertion_hist_length.'
-    logging.debug(message)
+    logger.debug(message)
     filelabel = 'f_insertion_hist_length'
     generate_multiple_figs(
         plot_indel_hist_length,
@@ -620,7 +618,7 @@ def main(argv = None) -> int:
     )
     # deletion
     message = 'Output figures: deletion_hist_length.'
-    logging.debug(message)
+    logger.debug(message)
     filelabel = 'f_deletion_hist_length'
     generate_multiple_figs(
         plot_indel_hist_length,
@@ -633,7 +631,7 @@ def main(argv = None) -> int:
     # indel: read location hist
     # insertion
     message = 'Output figures: insertion_hist_location.'
-    logging.debug(message)
+    logger.debug(message)
     filelabel = 'f_insertion_hist_location'
     generate_multiple_figs(
         plot_indel_hist_location,
@@ -644,7 +642,7 @@ def main(argv = None) -> int:
     )
     # deletion
     message = 'Output figures: deletion_hist_location.'
-    logging.debug(message)
+    logger.debug(message)
     filelabel = 'f_deletion_hist_location'
     generate_multiple_figs(
         plot_indel_hist_location,
@@ -656,7 +654,7 @@ def main(argv = None) -> int:
 
     # mismatch type
     message = 'Output figures: mismatch_type.'
-    logging.debug(message)
+    logger.debug(message)
     filelabel = 'f_mismatch_type'
     generate_multiple_figs(
         plot_mismatch_type_count,
@@ -668,7 +666,7 @@ def main(argv = None) -> int:
 
     # mismatch: read location hist
     message = 'Output figures: mismatch_hist_location.'
-    logging.debug(message)
+    logger.debug(message)
     filelabel = 'f_mismatch_hist_location'
     generate_multiple_figs(
         plot_mismatch_hist_location,
@@ -680,7 +678,7 @@ def main(argv = None) -> int:
 
     # splice type
     message = 'Output figures: splice_type.'
-    logging.debug(message)
+    logger.debug(message)
     filelabel = 'f_splice_type'
     generate_multiple_figs(
         plot_splice_type_count,
@@ -691,12 +689,12 @@ def main(argv = None) -> int:
     )
 
     message = 'Output figures finished.'
-    logging.debug(message)
+    logger.debug(message)
 
     ####################
     # generate report
     message = 'Output html report page.'
-    logging.info(message)
+    logger.info(message)
 
     copy_logo(o_dirs['fig'])
 
@@ -761,7 +759,7 @@ def main(argv = None) -> int:
         f.write(new_html_string)
 
     message = 'All done!'
-    logging.info(message)
+    logger.info(message)
     return 0
 
 

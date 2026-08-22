@@ -15,10 +15,8 @@ def data_dir():
 def cs_test_data_records(data_dir):
     """Load the committed fixture: one tuple (qname, strand, cs, cigar, md, read_seq, ref_seq) per read."""
     path = data_dir / 'cs_test.test_data'
-    records = []
     with open(path, 'r') as fh:
-        for line in fh:
-            records.append(tuple(line.strip().split()))
+        records = [tuple(line.strip().split()) for line in fh]
     return records
 
 

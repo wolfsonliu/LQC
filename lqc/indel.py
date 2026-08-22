@@ -19,9 +19,9 @@ class Indel:
                 "label should be string."
             )
         self.label = label
-        self._indel_strings = list()
-        self._indel_index = dict()
-        self._indels = list()
+        self._indel_strings = []
+        self._indel_index = {}
+        self._indels = []
 
     def add_indel(self, indel,
                   normalized_read_location):
@@ -37,7 +37,7 @@ class Indel:
 
     def get_indel_count(self):
         indel_count = Counter()
-        for iidx, ilen, loc in self._indels:
+        for iidx, _, _ in self._indels:
             indel = self._indel_strings[iidx]
             indel_count[indel] += 1
         return indel_count
@@ -130,8 +130,9 @@ class Indel:
         }
         return newIndel
 
-    def get_location_bin_count(self,
-                               cuts = [0, 0.25, 0.5, 0.75, 1]):
+    def get_location_bin_count(self, cuts = None):
+        if cuts is None:
+            cuts = [0, 0.25, 0.5, 0.75, 1]
         edges, hist = self.get_location_histogram(cuts = cuts)
         bin_count = Counter()
         for i in range(len(hist)):
@@ -158,15 +159,15 @@ class Indel:
         return edges, hist
 
     def __add__(self, other):
-        assert type(other) == type(self), 'wrong object to add'
+        assert isinstance(other, type(self)), 'wrong object to add'
         newIndel = type(self)(
-            ' '.join([self.label, other.label])
+            f'{self.label} {other.label}'
         )
         new_strings = deepcopy(self._indel_strings)
         string_index = {
             indel: i for i, indel in enumerate(new_strings)
         }
-        other_new_idx = list()
+        other_new_idx = []
         for indel in other._indel_strings:
             if indel in string_index:
                 other_new_idx.append(string_index[indel])

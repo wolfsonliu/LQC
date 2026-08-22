@@ -245,10 +245,10 @@ class ReadStat:
         return outstring
 
     def __add__(self, other):
-        assert type(other) == type(self),\
+        assert isinstance(other, type(self)),\
             'wrong object to add'
         sumReadStat = type(self)(
-            ' '.join([self.label, other.label])
+            f'{self.label} {other.label}'
         )
         sumReadStat._reads = deepcopy(
             self._reads + other._reads

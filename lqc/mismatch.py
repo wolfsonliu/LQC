@@ -18,8 +18,8 @@ class Mismatch:
                 "label should be string."
             )
         self.label = label
-        self._mismatch_types = list()
-        self._mismatch_index = dict()
+        self._mismatch_types = []
+        self._mismatch_index = {}
         self._type_count = Counter()
         self._type_locations = defaultdict(list)
 
@@ -49,13 +49,13 @@ class Mismatch:
         newMis._type_count = Counter({
             new_ty: self._type_count[old_ty]
             for old_ty, new_ty in zip(
-                self._mismatch_types, new_types
+                self._mismatch_types, new_types, strict = True
             )
         })
         newMis._type_locations = defaultdict(list, {
             new_ty: list(self._type_locations[old_ty])
             for old_ty, new_ty in zip(
-                self._mismatch_types, new_types
+                self._mismatch_types, new_types, strict = True
             )
         })
         return newMis
@@ -75,8 +75,9 @@ class Mismatch:
             bin_count[label] = hist[i]
         return bin_count
 
-    def get_location_bin_count(self,
-                               cuts = [0, 0.25, 0.5, 0.75, 1]):
+    def get_location_bin_count(self, cuts = None):
+        if cuts is None:
+            cuts = [0, 0.25, 0.5, 0.75, 1]
         bin_count = Counter()
         for ty in self._mismatch_types:
             bin_count += self._get_bin_count(
@@ -108,8 +109,9 @@ class Mismatch:
             )
         return edges, total_hist
 
-    def get_location_bin_count_by_type(self,
-                                       cuts = [0, 0.25, 0.5, 0.75, 1]):
+    def get_location_bin_count_by_type(self, cuts = None):
+        if cuts is None:
+            cuts = [0, 0.25, 0.5, 0.75, 1]
         type_bin_count_dict = defaultdict(
             Counter
         )
@@ -120,7 +122,7 @@ class Mismatch:
         return type_bin_count_dict
 
     def get_locations(self):
-        locations = list()
+        locations = []
         for ty in self._mismatch_types:
             locations.extend(self._type_locations[ty])
         return locations
@@ -145,8 +147,8 @@ class Mismatch:
         return outstring
 
     def __add__(self, other):
-        assert type(other) == type(self), 'wrong object to add'
-        newMis = type(self)(' '.join([self.label, other.label]))
+        assert isinstance(other, type(self)), 'wrong object to add'
+        newMis = type(self)(f'{self.label} {other.label}')
         new_types = list(self._mismatch_types)
         type_index = {ty: i for i, ty in enumerate(new_types)}
         for ty in other._mismatch_types:
