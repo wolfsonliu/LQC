@@ -305,6 +305,7 @@ Append to `tests/test_report_html_assets.py`:
 ```python
 def test_html_add_data_injects_parseable_json():
     import json
+
     import pandas as pd
 
     from lqc.report_html import html_add_data
