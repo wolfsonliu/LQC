@@ -46,3 +46,17 @@ def test_main_end_to_end_single_contig(cs_bam, tmp_path):
 def test_main_errors_when_all_contigs_absent(cs_bam, tmp_path):
     with pytest.raises(ValueError):
         main(['-b', cs_bam, '-o', str(tmp_path / 'out'), '-c', 'chrZ', '-t', '1'])
+
+
+def test_main_report_is_self_contained(cs_bam, tmp_path):
+    out = tmp_path / 'out'
+    rc = main(['-b', cs_bam, '-o', str(out), '-c', 'chr1', '-t', '1'])
+    assert rc == 0
+    html = (out / 'LQC_report.html').read_text()
+    assert 'src="fig/' not in html
+    assert 'cdn.jsdelivr.net' not in html
+    assert 'img.shields.io' not in html
+    assert 'id="lqc-data"' in html
+    assert 'data:image/png;base64,' in html
+    assert 'data:image/svg+xml;base64,' in html
+    assert '{%' not in html

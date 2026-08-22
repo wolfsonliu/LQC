@@ -18,11 +18,14 @@ from lqc.report_figure import (
     plot_splice_type_count,
 )
 from lqc.report_html import (
+    html_add_bootstrap,
+    html_add_data,
     html_add_deletion_table,
     html_add_insertion_table,
     html_add_mismatch_table,
     html_add_readstat_table,
     html_add_splice_table,
+    inline_figures,
 )
 from lqc.report_table import (
     create_indel_summary_table,
@@ -53,11 +56,14 @@ __all__ = [
     'create_readstat_table',
     'create_splice_table',
     'get_html_template',
+    'html_add_bootstrap',
+    'html_add_data',
     'html_add_deletion_table',
     'html_add_insertion_table',
     'html_add_mismatch_table',
     'html_add_readstat_table',
     'html_add_splice_table',
+    'inline_figures',
     'list_bam_contigs',
     'plot_element_total_count',
     'plot_indel_hist_length',

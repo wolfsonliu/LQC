@@ -24,11 +24,14 @@ from lqc import (
     create_readstat_table,
     create_splice_table,
     get_html_template,
+    html_add_bootstrap,
+    html_add_data,
     html_add_deletion_table,
     html_add_insertion_table,
     html_add_mismatch_table,
     html_add_readstat_table,
     html_add_splice_table,
+    inline_figures,
     list_bam_contigs,
     plot_element_total_count,
     plot_indel_hist_length,
@@ -739,7 +742,22 @@ def main(argv = None) -> int:
         ].values[0]
     )
 
-    with open(o_files['html'], 'w') as f:
+    new_html_string = html_add_bootstrap(new_html_string, VERSION)
+
+    new_html_string = html_add_data(
+        new_html_string,
+        {
+            'readstat': t_readstat,
+            'insertion': t_insertion,
+            'deletion': t_deletion,
+            'mismatch': t_mismatch,
+            'splice': t_splice,
+        }
+    )
+
+    new_html_string = inline_figures(new_html_string, o_dirs['fig'])
+
+    with open(o_files['html'], 'w', encoding='utf-8') as f:
         f.write(new_html_string)
 
     message = 'All done!'
