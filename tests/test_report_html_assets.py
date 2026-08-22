@@ -54,3 +54,34 @@ def test_html_add_data_escapes_script_terminator():
     inner = html.split('id="lqc-data">')[1].split('</script>')[0]
     assert '</script>' not in inner
     assert '<\\/script>' in inner
+
+
+def test_inline_figures_replaces_png_and_svg(tmp_path):
+    from lqc.report_html import inline_figures
+
+    (tmp_path / 'a.png').write_bytes(b'\x89PNG\r\n\x1a\nfake')
+    (tmp_path / 'b.svg').write_bytes(b'<svg></svg>')
+    html = '<img src="fig/a.png" /><img src="fig/b.svg" />'
+    out = inline_figures(html, str(tmp_path))
+    assert 'src="fig/' not in out
+    assert 'src="data:image/png;base64,' in out
+    assert 'src="data:image/svg+xml;base64,' in out
+
+
+def test_inline_figures_raises_on_missing_file(tmp_path):
+    import pytest
+
+    from lqc.report_html import inline_figures
+
+    with pytest.raises(FileNotFoundError):
+        inline_figures('<img src="fig/missing.png" />', str(tmp_path))
+
+
+def test_inline_figures_raises_on_unknown_type(tmp_path):
+    import pytest
+
+    from lqc.report_html import inline_figures
+
+    (tmp_path / 'x.foo').write_bytes(b'x')
+    with pytest.raises(ValueError):
+        inline_figures('<img src="fig/x.foo" />', str(tmp_path))

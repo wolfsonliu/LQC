@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import re
@@ -438,3 +439,30 @@ def html_add_data(html_string, tables):
     # Callable replacement: ``script`` can contain backslashes (the ``<\/``
     # escaping above), which a string re.sub replacement would mis-parse.
     return re.sub(r'\{%lqc_data%\}', lambda _match: script, html_string)
+
+
+_MIME_BY_EXT = {
+    '.png': 'image/png',
+    '.svg': 'image/svg+xml',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+}
+
+
+def inline_figures(html_string, fig_dir):
+    def _to_data_uri(match):
+        rel = match.group(1)
+        ext = os.path.splitext(rel)[1].lower()
+        if ext not in _MIME_BY_EXT:
+            raise ValueError(f'Unsupported figure type: {rel}')
+        path = os.path.join(fig_dir, rel)
+        if not os.path.exists(path):
+            raise FileNotFoundError(
+                f'Figure referenced by HTML is missing: {path}'
+            )
+        with open(path, 'rb') as fh:
+            b64 = base64.b64encode(fh.read()).decode('ascii')
+        return f'src="data:{_MIME_BY_EXT[ext]};base64,{b64}"'
+
+    return re.sub(r'src="fig/([^"]+)"', _to_data_uri, html_string)
