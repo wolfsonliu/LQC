@@ -1,3 +1,4 @@
+import os
 import re
 
 
@@ -383,3 +384,38 @@ def html_add_splice_table(html_string, splice_table,
 
 
 ########################################
+
+
+_BOOTSTRAP_DIR = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), 'template'
+)
+
+
+def _read_text(path):
+    with open(path, 'r') as fh:
+        return fh.read()
+
+
+def html_add_bootstrap(html_string, version):
+    css = _read_text(os.path.join(_BOOTSTRAP_DIR, 'bootstrap.min.css'))
+    # Escape the sequence that would terminate the inline <script> early.
+    js = _read_text(
+        os.path.join(_BOOTSTRAP_DIR, 'bootstrap.bundle.min.js')
+    ).replace('</script>', '<\\/script>')
+
+    new_html = re.sub(
+        r'\{%bootstrap_css%\}',
+        lambda _match: '<style>' + css + '</style>',
+        html_string
+    )
+    new_html = re.sub(
+        r'\{%bootstrap_js%\}',
+        lambda _match: '<script>' + js + '</script>',
+        new_html
+    )
+    new_html = re.sub(
+        r'\{%version%\}',
+        lambda _match: version,
+        new_html
+    )
+    return new_html
