@@ -1,3 +1,4 @@
+import json
 import os
 import re
 
@@ -419,3 +420,21 @@ def html_add_bootstrap(html_string, version):
         new_html
     )
     return new_html
+
+
+def html_add_data(html_string, tables):
+    # to_json -> json.loads round-trip converts numpy scalars to native JSON
+    # types so json.dumps never hits a non-serializable int64/float64.
+    payload = {
+        name: json.loads(table.to_json(orient='records'))
+        for name, table in tables.items()
+    }
+    raw = json.dumps(payload).replace('</', '<\\/')
+    script = (
+        '<script type="application/json" id="lqc-data">'
+        + raw
+        + '</script>'
+    )
+    # Callable replacement: ``script`` can contain backslashes (the ``<\/``
+    # escaping above), which a string re.sub replacement would mis-parse.
+    return re.sub(r'\{%lqc_data%\}', lambda _match: script, html_string)
