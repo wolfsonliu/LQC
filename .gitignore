@@ -5,6 +5,8 @@ tmp/*
 __pycache__/
 .venv/
 .ruff_cache/
+.uv-cache/
+.uv-tools/
 .worktrees/
 
 

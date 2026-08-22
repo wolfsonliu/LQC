@@ -92,9 +92,10 @@ targets, not resource loads, and do not affect offline rendering.
 
 ### 5. Wiring and code locations
 
-- `lqc/report_html.py`: add `html_add_bootstrap(html_string)` (fills
-  `{%bootstrap_css%}`, `{%bootstrap_js%}`, and `{%version%}` from `lqc.__version__`),
-  `html_add_data(html_string, tables)`, and `inline_figures(html_string, fig_dir)`.
+- `lqc/report_html.py`: add `html_add_bootstrap(html_string, version)` (fills
+  `{%bootstrap_css%}`, `{%bootstrap_js%}`, and `{%version%}` with the passed `version`,
+  which `cli.py` supplies as `lqc.__version__`), `html_add_data(html_string, tables)`, and
+  `inline_figures(html_string, fig_dir)`.
 - `lqc/template/template.html`: token changes in §1 and §3.
 - `lqc/template/bootstrap.min.css`, `lqc/template/bootstrap.bundle.min.js`: new vendor files.
 - `lqc/cli.py`: in the report block, extend the existing `html_add_*` chain with the new
