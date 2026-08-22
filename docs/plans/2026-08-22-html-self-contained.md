@@ -227,8 +227,6 @@ import re
 with:
 
 ```python
-import base64
-import json
 import os
 import re
 ```
@@ -339,9 +337,10 @@ uv run pytest tests/test_report_html_assets.py::test_html_add_data_injects_parse
 
 Expected: FAIL with `ImportError` (the function does not exist yet).
 
-- [ ] **Step 3: Add the `html_add_data` function**
+- [ ] **Step 3: Add `import json`, then the `html_add_data` function**
 
-Append to the end of `lqc/report_html.py`:
+First, in `lqc/report_html.py`, add `import json` before `import os` (the import block
+becomes `import json` / `import os` / `import re`). Then append to the end of `lqc/report_html.py`:
 
 ```python
 def html_add_data(html_string, tables):
@@ -425,9 +424,11 @@ uv run pytest tests/test_report_html_assets.py::test_inline_figures_replaces_png
 
 Expected: FAIL with `ImportError` (the function does not exist yet).
 
-- [ ] **Step 3: Add the `inline_figures` function**
+- [ ] **Step 3: Add `import base64`, then the `inline_figures` function**
 
-Append to the end of `lqc/report_html.py`:
+First, in `lqc/report_html.py`, add `import base64` before `import json` (the import block
+becomes `import base64` / `import json` / `import os` / `import re`). Then append to the end
+of `lqc/report_html.py`:
 
 ```python
 _MIME_BY_EXT = {
