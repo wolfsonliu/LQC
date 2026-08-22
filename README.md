@@ -37,8 +37,9 @@ python packages.
 * [matplotlib](https://matplotlib.org/): 2.0+
 * [pysam](https://pysam.readthedocs.io): 0.16+
 
-[Bootstrap 5.1.3](https://getbootstrap.com/) is used by the final html report. Network access is
-required to load the css file.
+[Bootstrap 5.1.3](https://getbootstrap.com/) is used by the final html report. It is
+vendored (MIT license) and inlined, so the report is a single self-contained file that
+opens offline.
 
 ## Installation
 

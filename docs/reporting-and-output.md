@@ -55,7 +55,8 @@ figure or feature · expire: if plotting is moved behind a config-driven registr
 
 - `lqc/template/template.html` contains `{%token%}` placeholders; `lqc/report_html.py`
   (`html_add_*`) is the **only** code that substitutes them. Token groups: `readstat_*`,
-  `mismatch_*`, `insertion_*`, `deletion_*`, `intron_*`, `splice_*`.
+  `mismatch_*`, `insertion_*`, `deletion_*`, `intron_*`, `splice_*`, plus the self-contained
+  asset tokens `bootstrap_css`, `bootstrap_js`, `lqc_data`, `version`.
 - Every placeholder in the template must be replaced for a given run; the `html_add_*`
   functions are chained in `lqc/cli.py` and must cover the template's full token set. Add a
   new token only together with the `html_add_*` that fills it.
@@ -63,6 +64,12 @@ figure or feature · expire: if plotting is moved behind a config-driven registr
   a report section · expire: if template rendering moves to a real templating engine.*
 - The `'Total'` row is styled specially (`table-secondary`) and also sourced for the
   headline metric values — keep the aggregate row labeled exactly `'Total'`.
+- **Self-contained output:** `lqc/cli.py` finalizes the report with
+  `html_add_bootstrap` (inlines the vendored Bootstrap CSS/JS from `lqc/template/`,
+  MIT-licensed), `html_add_data` (embeds the five summary tables as JSON in
+  `<script type="application/json" id="lqc-data">`), and `inline_figures` (rewrites
+  `src="fig/..."` to base64 `data:` URIs). The rendered `LQC_report.html` therefore
+  references no `fig/` files and no remote resources and opens offline as a single file.
 
 ## Things already documented in code (do not duplicate)
 
