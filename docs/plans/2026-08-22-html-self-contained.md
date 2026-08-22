@@ -242,7 +242,7 @@ _BOOTSTRAP_DIR = os.path.join(
 
 
 def _read_text(path):
-    with open(path, 'r') as fh:
+    with open(path, 'r', encoding='utf-8') as fh:
         return fh.read()
 
 
