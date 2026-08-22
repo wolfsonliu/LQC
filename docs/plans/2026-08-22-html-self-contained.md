@@ -746,13 +746,20 @@ uv run pytest
 
 Expected: all tests PASS (the new `test_report_html_assets.py`, the extended `test_cli.py`, and every pre-existing test).
 
-- [ ] **Step 2: Run the linter**
+- [ ] **Step 2: Lint the changed files (no new violations)**
+
+The repo has **104 pre-existing `ruff check` violations** (LOG015, C408, RUF059, SIM115,
+PERF102, FLY002, RUF015, B006, F841, SIM113 across `lqc/*.py`) that predate this feature;
+whole-repo `uvx ruff check` will NOT be clean until a separate lint-cleanup task lands. Gate
+this feature on introducing **no new** violations in the files it changes.
 
 ```bash
-uvx ruff check
+export UV_CACHE_DIR="$PWD/.uv-cache" UV_TOOL_DIR="$PWD/.uv-tools"
+uvx ruff check lqc/report_html.py lqc/cli.py lqc/__init__.py
 ```
 
-Expected: `All checks passed!` (exit code 0).
+Expected: the reported violation count per file is **≤ the pre-change baseline**
+(`report_html.py` ≤ 8, `cli.py` ≤ 40, `__init__.py` = 0), i.e. this change adds none.
 
 - [ ] **Step 3: Manual offline smoke check**
 
