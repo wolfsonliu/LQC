@@ -28,6 +28,7 @@ def test_html_add_data_injects_parseable_json():
     import json
 
     import pandas as pd
+
     from lqc.report_html import html_add_data
 
     readstat = pd.DataFrame([{'label': 'Total', 'read_count': 2}])
@@ -45,6 +46,7 @@ def test_html_add_data_injects_parseable_json():
 
 def test_html_add_data_escapes_script_terminator():
     import pandas as pd
+
     from lqc.report_html import html_add_data
 
     df = pd.DataFrame([{'label': '</script>'}])
