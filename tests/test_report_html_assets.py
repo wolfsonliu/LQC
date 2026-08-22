@@ -57,15 +57,25 @@ def test_html_add_data_escapes_script_terminator():
 
 
 def test_inline_figures_replaces_png_and_svg(tmp_path):
+    import base64
+
     from lqc.report_html import inline_figures
 
-    (tmp_path / 'a.png').write_bytes(b'\x89PNG\r\n\x1a\nfake')
-    (tmp_path / 'b.svg').write_bytes(b'<svg></svg>')
+    png = b'\x89PNG\r\n\x1a\nfake'
+    svg = b'<svg></svg>'
+    (tmp_path / 'a.png').write_bytes(png)
+    (tmp_path / 'b.svg').write_bytes(svg)
     html = '<img src="fig/a.png" /><img src="fig/b.svg" />'
     out = inline_figures(html, str(tmp_path))
     assert 'src="fig/' not in out
-    assert 'src="data:image/png;base64,' in out
-    assert 'src="data:image/svg+xml;base64,' in out
+    assert (
+        f'src="data:image/png;base64,{base64.b64encode(png).decode("ascii")}"'
+        in out
+    )
+    assert (
+        f'src="data:image/svg+xml;base64,{base64.b64encode(svg).decode("ascii")}"'
+        in out
+    )
 
 
 def test_inline_figures_raises_on_missing_file(tmp_path):
