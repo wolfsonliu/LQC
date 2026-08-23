@@ -45,7 +45,6 @@ from lqc import (
     plot_readstat_cumulative_length,
     plot_readstat_length_hist,
     plot_splice_type_count,
-    write_readcs,
 )
 from lqc.stat import prefetch_records, reduce_blocks_to_contigs, stat_records
 
@@ -390,7 +389,7 @@ def main(argv = None) -> int:
                 stat_records,
                 genome_file = args['genome_fasta'],
                 method = bam_type,
-                cs_dir = None
+                cs_dir = o_dirs['base'] if args['output_cs'] else None
             ),
             tasks
         )
@@ -470,12 +469,14 @@ def main(argv = None) -> int:
     if args['output_cs']:
         message = 'Output processed cs tags.'
         logger.info(message)
-        write_readcs(
-            bam_file = args['bam_file'],
-            genome_file = args['genome_fasta'],
-            output_file = o_files['cs'],
-            method = bam_type
-        )
+        with open(o_files['cs'], 'w') as out:
+            out.write(
+                'read_name\tcontig\tlow\thigh\tcs_mark\tcs_value\n'
+            )
+            for block in block_results:
+                with open(block.cs_path, 'r') as fh:
+                    out.write(fh.read())
+                os.remove(block.cs_path)
         message = 'Output processed cs tags finished.'
         logger.debug(message)
     else:

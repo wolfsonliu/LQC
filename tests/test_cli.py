@@ -73,3 +73,11 @@ def test_tables_identical_across_thread_counts(cs_bam, tmp_path):
     ):
         assert (out1 / 'table' / name).read_bytes() == \
                (out2 / 'table' / name).read_bytes()
+
+
+def test_output_cs_identical_across_thread_counts(cs_bam, tmp_path):
+    out1 = tmp_path / 'o1'
+    out2 = tmp_path / 'o2'
+    main(['-b', cs_bam, '-o', str(out1), '-c', 'chr1', '-t', '1', '--output-cs'])
+    main(['-b', cs_bam, '-o', str(out2), '-c', 'chr1', '-t', '2', '--output-cs'])
+    assert (out1 / 'read.cs').read_bytes() == (out2 / 'read.cs').read_bytes()
