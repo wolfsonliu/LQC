@@ -128,3 +128,25 @@ def test_stat_records_captures_mapping_fields(cs_bam):
     block = stat_records((0, contig, records), None, 'cs')
     assert block.readstat.get_mapping_qualities() == [60, 60]
     assert block.readstat.get_aligned_lengths() == [10, 10]
+
+
+def test_record_from_read_md_captures_mapping_fields():
+    from lqc.stat import record_from_read
+
+    class FakeRead:
+        is_reverse = False
+        reference_start = 5
+        query_sequence = 'ACGTACGTAC'
+        mapping_quality = 42
+        query_alignment_length = 10
+        query_name = 'read1'
+        cigarstring = '10M'
+        reference_end = 15
+
+        def get_tag(self, tag):
+            assert tag == 'MD'
+            return '10'
+
+    record = record_from_read(FakeRead(), 'chr1', 'md')
+    assert record.mapping_quality == 42
+    assert record.aligned_length == 10
