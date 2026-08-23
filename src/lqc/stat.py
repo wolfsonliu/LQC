@@ -32,6 +32,17 @@ class ReadRecord(NamedTuple):
     reference_end: Optional[int] = None
 
 
+class StatBlock(NamedTuple):
+    """Result of one parallel stat chunk (see ``stat_records``)."""
+    contig: str
+    readstat: ReadStat
+    insertion: Indel
+    deletion: Indel
+    mismatch: Mismatch
+    splice: Splice
+    cs_path: Optional[str] = None
+
+
 def record_from_read(read, contig, method):
     """Extract the minimal fields from a pysam read for stat accumulation."""
     strand = '-' if read.is_reverse else '+'
@@ -162,38 +173,52 @@ def stat_records(task, genome_file, method, cs_dir=None):
     if cs_dir is not None:
         cs_path = os.path.join(cs_dir, f'.readcs-{index:08d}.tmp')
 
-    with _open_optional_cs(cs_path) as cs_fh:
-        for record in records:
-            cs = process_record(
-                record, genome,
-                readstat, insertion, deletion, mismatch, splice
-            )
-            if cs_fh is not None:
-                for low, high, mark, value in cs.get_contig_position():
-                    cs_fh.write(
-                        f'{record.query_name}\t{record.contig}\t'
-                        f'{low}\t{high}\t{mark}\t{value}\n'
-                    )
+    try:
+        with _open_optional_cs(cs_path) as cs_fh:
+            for record in records:
+                cs = process_record(
+                    record, genome,
+                    readstat, insertion, deletion, mismatch, splice
+                )
+                if cs_fh is not None:
+                    for low, high, mark, value in cs.get_contig_position():
+                        cs_fh.write(
+                            f'{record.query_name}\t{record.contig}\t'
+                            f'{low}\t{high}\t{mark}\t{value}\n'
+                        )
+    finally:
+        if genome is not None:
+            genome.close()
 
-    if genome is not None:
-        genome.close()
+    return StatBlock(
+        contig, readstat, insertion, deletion, mismatch, splice, cs_path
+    )
 
-    return contig, readstat, insertion, deletion, mismatch, splice, cs_path
 
+def reduce_blocks_to_contigs(blocks, contigs):
+    """Fold ``StatBlock`` chunks into per-contig ``(readstat, insertion,
+    deletion, mismatch, splice)`` tuples.
 
-def reduce_blocks_to_contigs(block_results, contigs):
-    """Fold per-chunk ``(contig, rs, ins, dele, mis, spl)`` into per-contig tuples."""
+    ``sum`` concatenates each object's ``label``, so restore the label to the
+    contig name afterwards — every block in a group shares that contig.
+    """
     by_contig = defaultdict(list)
-    for contig, rs, ins, dele, mis, spl in block_results:
-        by_contig[contig].append((rs, ins, dele, mis, spl))
+    for block in blocks:
+        by_contig[block.contig].append(block)
     result = []
     for contig in contigs:
-        blocks = by_contig.get(contig)
-        if not blocks:
+        contig_blocks = by_contig.get(contig)
+        if not contig_blocks:
             continue
-        rss, inss, deles, miss, spls = zip(*blocks, strict=True)
+        readstat = sum(b.readstat for b in contig_blocks)
+        insertion = sum(b.insertion for b in contig_blocks)
+        deletion = sum(b.deletion for b in contig_blocks)
+        mismatch = sum(b.mismatch for b in contig_blocks)
+        splice = sum(b.splice for b in contig_blocks)
+        for obj in (readstat, insertion, deletion, mismatch, splice):
+            obj.label = contig
         result.append((
-            sum(rss), sum(inss), sum(deles), sum(miss), sum(spls)
+            readstat, insertion, deletion, mismatch, splice
         ))
     return result
 

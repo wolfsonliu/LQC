@@ -74,6 +74,11 @@ def _assert_stat_tuples_equal(a, b):
     rs1, ins1, dele1, mis1, spl1 = a
     rs2, ins2, dele2, mis2, spl2 = b
     assert rs1.get_read_count() == rs2.get_read_count()
+    assert rs1.label == rs2.label
+    assert ins1.label == ins2.label
+    assert dele1.label == dele2.label
+    assert mis1.label == mis2.label
+    assert spl1.label == spl2.label
     assert rs1.get_total_base() == rs2.get_total_base()
     assert rs1.get_lengths() == rs2.get_lengths()
     assert rs1.get_insertions() == rs2.get_insertions()
@@ -94,16 +99,22 @@ def test_prefetch_and_reduce_matches_serial(cs_bam, cs_bam_with_indel):
         contig, records = prefetch_records(bam, ['chr1'], 'cs')[0]
         half = (len(records) + 1) // 2
         chunks = [records[:half], records[half:]]
-        block_results = [
+        blocks = [
             stat_records((i, contig, chunk), None, 'cs')
             for i, chunk in enumerate(chunks)
             if chunk
         ]
-        reduced = reduce_blocks_to_contigs(
-            [
-                (c, rs, ins, dele, mis, spl)
-                for c, rs, ins, dele, mis, spl, _ in block_results
-            ],
-            ['chr1'],
-        )
+        reduced = reduce_blocks_to_contigs(blocks, ['chr1'])
         _assert_stat_tuples_equal(reduced[0], serial)
+
+
+def test_stat_records_writes_cs_lines(cs_bam, tmp_path):
+    contig, records = prefetch_records(cs_bam, ['chr1'], 'cs')[0]
+    block = stat_records((0, contig, records), None, 'cs', cs_dir=str(tmp_path))
+    assert block.cs_path == str(tmp_path / '.readcs-00000000.tmp')
+    assert (tmp_path / '.readcs-00000000.tmp').read_text().splitlines() == [
+        'read1\tchr1\t0\t5\t:\t5',
+        'read1\tchr1\t5\t6\t*\tag',
+        'read1\tchr1\t6\t10\t:\t4',
+        'read2\tchr1\t100\t110\t:\t10',
+    ]
