@@ -118,3 +118,13 @@ def test_stat_records_writes_cs_lines(cs_bam, tmp_path):
         'read1\tchr1\t6\t10\t:\t4',
         'read2\tchr1\t100\t110\t:\t10',
     ]
+
+
+def test_stat_records_captures_mapping_fields(cs_bam):
+    contig, records = prefetch_records(cs_bam, ['chr1'], 'cs')[0]
+    read0 = records[0]
+    assert read0.mapping_quality == 60
+    assert read0.aligned_length == 10
+    block = stat_records((0, contig, records), None, 'cs')
+    assert block.readstat.get_mapping_qualities() == [60, 60]
+    assert block.readstat.get_aligned_lengths() == [10, 10]

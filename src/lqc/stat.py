@@ -24,6 +24,8 @@ class ReadRecord(NamedTuple):
     start_pos: int
     strand: str
     query_length: int
+    mapping_quality: int
+    aligned_length: int
     query_name: str
     cs_string: Optional[str] = None
     cigar: Optional[str] = None
@@ -53,6 +55,8 @@ def record_from_read(read, contig, method):
             start_pos=read.reference_start,
             strand=strand,
             query_length=len(read.query_sequence),
+            mapping_quality=read.mapping_quality,
+            aligned_length=read.query_alignment_length,
             query_name=read.query_name,
             cs_string=read.get_tag('cs'),
         )
@@ -62,6 +66,8 @@ def record_from_read(read, contig, method):
         start_pos=read.reference_start,
         strand=strand,
         query_length=len(read.query_sequence),
+        mapping_quality=read.mapping_quality,
+        aligned_length=read.query_alignment_length,
         query_name=read.query_name,
         cigar=read.cigarstring,
         md_string=read.get_tag('MD'),
@@ -103,6 +109,8 @@ def process_record(record, genome,
         deletion=cs.get_deletion_count(),
         mismatch=cs.get_mismatch_count(),
         intron=cs.get_intron_count(),
+        mapping_quality=record.mapping_quality,
+        aligned_length=record.aligned_length,
     )
     insertions, deletions, mismatches = cs.get_indel_mismatches(
         coordinate='normalized_read'
