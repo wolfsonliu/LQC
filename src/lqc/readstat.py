@@ -16,6 +16,7 @@ class ReadStat:
         self.label = label
         self._read_count = 0
         self._total_base = 0
+        self._total_aligned_base = 0
         self._reads = []
 
     def add_read(self,
@@ -23,14 +24,18 @@ class ReadStat:
                  insertion,
                  deletion,
                  mismatch,
-                 intron):
+                 intron,
+                 mapping_quality = 0,
+                 aligned_length = 0):
         self._read_count += 1
         self._reads.append([
             length,
             insertion, deletion,
-            mismatch, intron
+            mismatch, intron,
+            mapping_quality, aligned_length
         ])
         self._total_base += length
+        self._total_aligned_base += aligned_length
 
     def get_read_count(self):
         return self._read_count
@@ -195,6 +200,66 @@ class ReadStat:
     def get_max_introns(self):
         return max(self.get_introns())
 
+    def get_mapping_qualities(self):
+        return [a[5] for a in self._reads]
+
+    def get_aligned_lengths(self):
+        return [a[6] for a in self._reads]
+
+    def get_aligned_fractions(self):
+        return [
+            a[6] / a[0] if a[0] > 0 else 0.0
+            for a in self._reads
+        ]
+
+    def get_total_aligned_base(self):
+        return self._total_aligned_base
+
+    def get_mean_mapping_quality(self):
+        qualities = self.get_mapping_qualities()
+        if not qualities:
+            return 0.0
+        return sum(qualities) / len(qualities)
+
+    def get_median_mapping_quality(self):
+        return self._get_median(self.get_mapping_qualities())
+
+    def get_mean_aligned_fraction(self):
+        fractions = self.get_aligned_fractions()
+        if not fractions:
+            return 0.0
+        return sum(fractions) / len(fractions)
+
+    def get_median_aligned_fraction(self):
+        return self._get_median(self.get_aligned_fractions())
+
+    def get_read_count_with_aligned_fraction_below(self, threshold = 0.9):
+        return sum(
+            1 for a in self._reads
+            if (a[6] / a[0] if a[0] > 0 else 0.0) < threshold
+        )
+
+    def get_read_count_fully_aligned(self):
+        return sum(
+            1 for a in self._reads
+            if a[6] == a[0]
+        )
+
+    def insertions_per_aligned_base(self):
+        if self._total_aligned_base == 0:
+            return 0.0
+        return sum(self.get_insertions()) / self._total_aligned_base
+
+    def deletions_per_aligned_base(self):
+        if self._total_aligned_base == 0:
+            return 0.0
+        return sum(self.get_deletions()) / self._total_aligned_base
+
+    def mismatches_per_aligned_base(self):
+        if self._total_aligned_base == 0:
+            return 0.0
+        return sum(self.get_mismatches()) / self._total_aligned_base
+
     def _get_median(self, item_list):
         sorted_item_list = sorted(item_list)
         median = 0
@@ -236,7 +301,9 @@ class ReadStat:
             f"  mean of insertions per read: {float(self.get_mean_insertions()):.4}",
             f"  mean of deletions per read: {float(self.get_mean_deletions()):.4}",
             f"  mean of mismatches per read: {float(self.get_mean_mismatches()):.4}",
-            f"  mean of introns per read: {float(self.get_mean_introns()):.4}"
+            f"  mean of introns per read: {float(self.get_mean_introns()):.4}",
+            f"  mean of aligned fraction: {float(self.get_mean_aligned_fraction()):.4}",
+            f"  median of mapping quality: {float(self.get_median_mapping_quality()):.4}"
         ])
         return outstring
 
@@ -258,6 +325,9 @@ class ReadStat:
         )
         sumReadStat._total_base = deepcopy(
             self._total_base + other._total_base
+        )
+        sumReadStat._total_aligned_base = deepcopy(
+            self._total_aligned_base + other._total_aligned_base
         )
         return sumReadStat
 

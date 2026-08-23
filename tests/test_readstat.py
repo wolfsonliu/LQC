@@ -89,3 +89,60 @@ def test_sum_readstats():
     total = sum([a, b])
     assert total.get_read_count() == 2
     assert total.get_total_base() == 300
+
+
+def test_mapping_fields_default_to_zero(rs):
+    assert rs.get_mapping_qualities() == [0, 0]
+    assert rs.get_aligned_lengths() == [0, 0]
+    assert rs.get_aligned_fractions() == [0.0, 0.0]
+    assert rs.get_total_aligned_base() == 0
+
+
+def test_mapping_getters():
+    r = ReadStat('chr1')
+    r.add_read(200, insertion=2, deletion=4, mismatch=6, intron=8,
+               mapping_quality=60, aligned_length=180)
+    r.add_read(100, insertion=0, deletion=0, mismatch=0, intron=0,
+               mapping_quality=30, aligned_length=100)
+    assert r.get_mapping_qualities() == [60, 30]
+    assert r.get_aligned_lengths() == [180, 100]
+    assert r.get_aligned_fractions() == [0.9, 1.0]
+    assert r.get_total_aligned_base() == 280
+    assert r.get_mean_mapping_quality() == 45
+    assert r.get_median_mapping_quality() == 45
+    assert r.get_mean_aligned_fraction() == pytest.approx(0.95)
+    assert r.get_median_aligned_fraction() == pytest.approx(0.95)
+    assert r.get_read_count_with_aligned_fraction_below(0.9) == 0
+    assert r.get_read_count_with_aligned_fraction_below(0.95) == 1
+    assert r.get_read_count_fully_aligned() == 1
+
+
+def test_aligned_base_rates():
+    r = ReadStat('chr1')
+    r.add_read(200, insertion=2, deletion=4, mismatch=6, intron=0,
+               mapping_quality=60, aligned_length=100)
+    r.add_read(200, insertion=2, deletion=4, mismatch=6, intron=0,
+               mapping_quality=60, aligned_length=100)
+    assert r.get_total_aligned_base() == 200
+    assert r.insertions_per_aligned_base() == pytest.approx(4 / 200)
+    assert r.deletions_per_aligned_base() == pytest.approx(8 / 200)
+    assert r.mismatches_per_aligned_base() == pytest.approx(12 / 200)
+
+
+def test_aligned_base_rate_zero_when_no_aligned():
+    r = ReadStat('chr1')
+    r.add_read(200, insertion=2, deletion=4, mismatch=6, intron=0)
+    assert r.insertions_per_aligned_base() == 0
+    assert r.deletions_per_aligned_base() == 0
+    assert r.mismatches_per_aligned_base() == 0
+
+
+def test_add_two_readstats_sums_aligned_base():
+    a = ReadStat('a')
+    a.add_read(100, insertion=1, deletion=0, mismatch=1, intron=0,
+               mapping_quality=60, aligned_length=90)
+    b = ReadStat('b')
+    b.add_read(200, insertion=0, deletion=1, mismatch=0, intron=1,
+               mapping_quality=30, aligned_length=200)
+    c = a + b
+    assert c.get_total_aligned_base() == 290
