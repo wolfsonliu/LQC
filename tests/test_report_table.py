@@ -4,6 +4,7 @@ from lqc import Indel, Splice
 from lqc.readstat import ReadStat
 from lqc.report_table import (
     create_indel_summary_table,
+    create_mapping_table,
     create_readstat_table,
     create_splice_table,
 )
@@ -75,3 +76,32 @@ def test_splice_table():
     df = create_splice_table([s1, s2], total)
     assert list(df.columns) == ['label', 'gt-ag']
     assert df[df['label'] == 'Total']['gt-ag'].values[0] == 2
+
+
+def test_mapping_table_columns_and_values():
+    r1 = ReadStat('chr1')
+    r1.add_read(200, insertion=2, deletion=4, mismatch=6, intron=8,
+                mapping_quality=60, aligned_length=180)
+    r2 = ReadStat('chr2')
+    r2.add_read(100, insertion=0, deletion=0, mismatch=0, intron=0,
+                mapping_quality=30, aligned_length=100)
+    total = sum([r1, r2])
+    total.label = 'Total'
+    df = create_mapping_table([r1, r2], total)
+
+    assert list(df.columns) == [
+        'label', 'read_count', 'query_base', 'aligned_base',
+        'aligned_fraction_mean', 'aligned_fraction_median',
+        'mapq_mean', 'mapq_median',
+        'reads_aligned_fraction_lt_0.9', 'reads_fully_aligned'
+    ]
+    assert list(df['label']) == ['chr1', 'chr2', 'Total']
+    t = df[df['label'] == 'Total'].iloc[0]
+    assert t['read_count'] == 2
+    assert t['query_base'] == 300
+    assert t['aligned_base'] == 280
+    assert t['aligned_fraction_mean'] == pytest.approx(0.95)
+    assert t['aligned_fraction_median'] == pytest.approx(0.95)
+    assert t['mapq_mean'] == pytest.approx(45)
+    assert t['reads_aligned_fraction_lt_0.9'] == 0
+    assert t['reads_fully_aligned'] == 1

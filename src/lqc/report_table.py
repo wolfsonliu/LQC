@@ -71,6 +71,32 @@ def create_readstat_table(readstat_list, readstat_sum):
     return rstable
 
 
+def create_mapping_table(readstat_list, readstat_sum):
+    colnames = [
+        'label', 'read_count', 'query_base', 'aligned_base',
+        'aligned_fraction_mean', 'aligned_fraction_median',
+        'mapq_mean', 'mapq_median',
+        'reads_aligned_fraction_lt_0.9', 'reads_fully_aligned'
+    ]
+
+    def _row(a):
+        return [
+            a.label,
+            a.get_read_count(),
+            a.get_total_base(),
+            a.get_total_aligned_base(),
+            float(a.get_mean_aligned_fraction()),
+            float(a.get_median_aligned_fraction()),
+            float(a.get_mean_mapping_quality()),
+            float(a.get_median_mapping_quality()),
+            a.get_read_count_with_aligned_fraction_below(0.9),
+            a.get_read_count_fully_aligned()
+        ]
+
+    rows = [_row(a) for a in readstat_list] + [_row(readstat_sum)]
+    return pd.DataFrame(rows, columns = colnames)
+
+
 def create_mismatch_normalized_read_location_table(mismatch_list,
                                                    mismatch_sum):
     cuts = [0, 0.1, 0.2, 0.3, 0.4, 0.5,

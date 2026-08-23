@@ -29,6 +29,7 @@ from lqc.report_html import (
 )
 from lqc.report_table import (
     create_indel_summary_table,
+    create_mapping_table,
     create_mismatch_normalized_read_location_table,
     create_readstat_table,
     create_splice_table,
@@ -52,6 +53,7 @@ __all__ = [
     'check_bam_with_cs_or_md',
     'copy_logo',
     'create_indel_summary_table',
+    'create_mapping_table',
     'create_mismatch_normalized_read_location_table',
     'create_readstat_table',
     'create_splice_table',
