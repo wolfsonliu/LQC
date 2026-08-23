@@ -372,14 +372,11 @@ class CS:
                 read_len += int(value)
             elif mark == '~':
                 intron_count += 1
-                splice_pair_count[
-                    re.sub('[0-9]+', '-', value)
-                ] += 1
-                splice_sites = re.sub(
-                    '[0-9]+', ' ', value
-                ).strip().split()
-                splice_l_count[splice_sites[0]] += 1
-                splice_r_count[splice_sites[-1]] += 1
+                donor = value[:2]
+                acceptor = value[-2:]
+                splice_pair_count[f'{donor}-{acceptor}'] += 1
+                splice_l_count[donor] += 1
+                splice_r_count[acceptor] += 1
             elif mark == '+':
                 read_len += len(value)
                 insertion_count += 1
@@ -478,21 +475,6 @@ class CS:
     def get_strand(self):
         return self._strand
 
-    def _get_read_length(self):
-        read_len = 0
-        for _, _, c, d in self.get_relative_position():
-            if c == ":":
-                read_len += int(d)
-            elif c == "~":
-                pass
-            elif c == "+":
-                read_len += len(d)
-            elif c == "-":
-                pass
-            elif c == "*":
-                read_len += 1
-        return read_len
-
     def get_read_length(self):
         return self._read_length
 
@@ -588,35 +570,42 @@ class CS:
     def count_intron_in_read_location_bin(self):
         return self._count_element_in_read_location_bin('~')
 
-    def _get_marks(self, mark, coordinate):
-        assert mark in ['~', '*', ':', '+', '-'], \
-            "Mark should be in [~, *, :, +, -]."
+    def _get_coordinate_list(self, coordinate):
         assert coordinate in [
             'contig', 'relative_contig', 'read', 'normalized_read'
         ], 'coordinate should be in [contig, relative_contig, read, normalized_read]'
         if coordinate == 'contig':
-            outlist = [
-                a for a in self.get_contig_position()
-                if a[2] == mark
-            ]
+            return self.get_contig_position()
         elif coordinate == 'relative_contig':
-            outlist = [
-                a for a in self.get_relative_position()
-                if a[2] == mark
-            ]
+            return self.get_relative_position()
         elif coordinate == 'read':
-            outlist = [
-                a for a in self.get_read_location()
-                if a[2] == mark
-            ]
-        elif coordinate == 'normalized_read':
-            outlist = [
-                a for a in self.get_normalized_read_location()
-                if a[2] == mark
-            ]
+            return self.get_read_location()
         else:
-            pass
-        return outlist
+            return self.get_normalized_read_location()
+
+    def _get_marks(self, mark, coordinate):
+        assert mark in ['~', '*', ':', '+', '-'], \
+            "Mark should be in [~, *, :, +, -]."
+        return [
+            a for a in self._get_coordinate_list(coordinate)
+            if a[2] == mark
+        ]
+
+    def get_indel_mismatches(self, coordinate='normalized_read'):
+        """Return (insertions, deletions, mismatches) in one pass over the
+        coordinate list, avoiding three separate full-list scans."""
+        insertions = []
+        deletions = []
+        mismatches = []
+        for a in self._get_coordinate_list(coordinate):
+            mark = a[2]
+            if mark == '+':
+                insertions.append(a)
+            elif mark == '-':
+                deletions.append(a)
+            elif mark == '*':
+                mismatches.append(a)
+        return insertions, deletions, mismatches
 
     def get_introns(self, coordinate = 'contig'):
         assert coordinate in [

@@ -85,6 +85,18 @@ def test_deletion_counts(cs_obj):
     assert cs_obj.get_deletion_length() == 3
 
 
+def test_get_indel_mismatches_groups(cs_obj):
+    insertions, deletions, mismatches = cs_obj.get_indel_mismatches(
+        coordinate='normalized_read'
+    )
+    assert [a[2] for a in insertions] == ['+']
+    assert [a[2] for a in deletions] == ['-']
+    assert [a[2] for a in mismatches] == ['*']
+    assert insertions[0][3] == 'tt'
+    assert deletions[0][3] == 'ccc'
+    assert mismatches[0][3] == 'ag'
+
+
 def test_intron_and_splice_counts(cs_obj):
     assert cs_obj.get_intron_count() == 1
     assert cs_obj.get_splice_pair_count() == {'gt-ag': 1}

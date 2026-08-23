@@ -2,12 +2,13 @@ import pysam
 
 from lqc.cs import CS
 
+_COMPLEMENT_TABLE = str.maketrans(
+    {'a': 't', 'c': 'g', 'g': 'c', 't': 'a', 'n': 'n', '-': '-'}
+)
+
 
 def convert_complement(string):
-    ntpair = {'a': 't', 'c': 'g',
-              'g': 'c', 't': 'a',
-              'n': 'n', '-': '-'}
-    return ''.join([ntpair[c] for c in string])
+    return string.translate(_COMPLEMENT_TABLE)
 
 
 def convert_reverse_complement(string):
