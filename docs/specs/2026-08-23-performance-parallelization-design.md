@@ -48,7 +48,7 @@ Replace the per-contig pool with per-read-chunk parallelism:
 
 **Behavior change.** `-t/--thread` default becomes `min(os.cpu_count(), 4)` (from `1`). The flag keeps the same meaning; documented in `README.md` usage and `src/lqc/cli.py` help.
 
-**Memory note.** The prefetch list is ≈355k × a small tuple (~tens of MB) for the baseline and is a bounded trade for true parallelism; it is released before the reduce phase returns.
+**Memory note.** The prefetch list is ≈355k × a small tuple (~tens of MB) for the cs-path baseline, and it lives until `main()` returns. For the MD path each record additionally carries the full `query_sequence`, so whole-genome MD input needs proportionally more memory.
 
 ### Stage 3 — Single-pass `--output-cs`
 

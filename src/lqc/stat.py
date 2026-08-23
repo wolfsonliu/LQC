@@ -127,7 +127,12 @@ def process_record(record, genome,
 
 
 def prefetch_records(bam_file, contigs, method):
-    """Return ``[(contig, [ReadRecord, ...]), ...]`` in BAM traversal order."""
+    """Return ``[(contig, [ReadRecord, ...]), ...]`` in BAM traversal order.
+
+    Materializes every read's ``ReadRecord`` in memory before pooling. For the
+    cs path this is small (a cs string plus a few ints); for the MD path each
+    record additionally carries the full ``query_sequence``.
+    """
     file_type = bam_or_sam(bam_file)
     file_read = "rb" if file_type == "BAM" else "r"
     bam = pysam.AlignmentFile(bam_file, file_read)

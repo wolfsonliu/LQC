@@ -10,8 +10,10 @@ stat classes and report renderers that `src/lqc/cli.py` composes.
 
 1. Parse CLI args, set up logging (`src/lqc/cli.py`).
 2. `check_bam_with_cs_or_md()` decides the parse method (`cs`, `MD`, or `both`→`cs`).
-3. `mp.Pool` maps `stat_element_from_bam_by_contig()` over the requested contigs.
-4. Each worker returns a 5-tuple `(ReadStat, Indel, Indel, Mismatch, Splice)`.
+3. `prefetch_records()` reads the BAM once into per-read `ReadRecord`s; the CLI
+   `_chunk`s them and `mp.Pool` maps `stat_records()` over the read chunks.
+4. Each worker returns a `StatBlock`; `reduce_blocks_to_contigs()` folds chunks
+   back into per-contig 5-tuples `(ReadStat, Indel, Indel, Mismatch, Splice)`.
 5. `sum()` combines per-contig objects into one `'Total'` object per type.
 6. `report_table` turns objects into pandas DataFrames; `report_figure` renders PNG/PDF;
    `report_html` injects tables into the HTML template.
@@ -33,7 +35,7 @@ seeds with `0`) produces a merged object. That is the only reason `src/lqc/cli.p
 | `src/lqc/indel.py` | Insertion/deletion counts, length distribution, normalized location. | `Indel` |
 | `src/lqc/mismatch.py` | Mismatch type counts and binned normalized location. | `Mismatch` |
 | `src/lqc/splice.py` | Splice (intron) pair/site counts. | `Splice` |
-| `src/lqc/stat.py` | Open BAM/FASTA, iterate one contig, build the five objects above. The multiprocessing worker. | `stat_element_from_bam_by_contig` |
+| `src/lqc/stat.py` | Per-read record extraction and stat accumulation; prefetch/chunk/worker/reduce primitives for the parallel pass. | `ReadRecord`, `stat_records`, `reduce_blocks_to_contigs`, `stat_element_from_bam_by_contig` |
 | `src/lqc/utils.py` | Small helpers: file-type detection, tag detection, complement conversion, `write_readcs`. | `bam_or_sam`, `check_bam_with_cs_or_md`, `write_readcs` |
 | `src/lqc/report_table.py` | Build pandas DataFrames for the `.txt` summary tables. | `create_*_table` |
 | `src/lqc/report_figure.py` | matplotlib (Agg) figures. | `plot_*` |
