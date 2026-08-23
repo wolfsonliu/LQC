@@ -45,22 +45,13 @@ from lqc import (
     plot_readstat_cumulative_length,
     plot_readstat_length_hist,
     plot_splice_type_count,
-    stat_element_from_bam_by_contig,
     write_readcs,
 )
+from lqc.stat import prefetch_records, reduce_blocks_to_contigs, stat_records
 
 matplotlib.use('Agg')
 
 logger = logging.getLogger(__name__)
-
-
-def stat_bam(contig, variables):
-    return stat_element_from_bam_by_contig(
-        bam_file = variables['bam_file'],
-        genome_file = variables['genome_file'],
-        contig = contig,
-        method = variables['bam_type']
-    )
 
 
 def get_stat_list(result, stat_type):
@@ -80,6 +71,14 @@ def get_stat_list(result, stat_type):
     idx = stat_type_ids[stat_type]
 
     return [result[i][idx] for i in range(len(result))]
+
+
+def _chunk(records, n):
+    n = max(1, int(n))
+    if not records:
+        return []
+    size = (len(records) + n - 1) // n
+    return [records[i:i + size] for i in range(0, len(records), size)]
 
 
 def build_directories(dir_dict):
@@ -170,7 +169,7 @@ def main(argv = None) -> int:
         '-t', '--thread',
         help = 'threads to be used in calculation',
         type = int,
-        default = 1
+        default = min(os.cpu_count() or 1, 4)
     )
     parser.add_argument(
         '--log-level',
@@ -372,22 +371,31 @@ def main(argv = None) -> int:
         logger.error(message)
         raise ValueError(message)
 
-    # run jobs by contigs
+    # run jobs by chunked reads (data-parallel, independent of contig count)
     message = 'Element statistic process starts.'
     logger.info(message)
+    per_contig = prefetch_records(
+        args['bam_file'], contigs, bam_type
+    )
+    tasks = []
+    for contig, records in per_contig:
+        if not records:
+            continue
+        for chunk in _chunk(records, args['thread']):
+            tasks.append((len(tasks), contig, chunk))
+
     with mp.Pool(args['thread']) as p:
-        result = p.map(
+        block_results = p.map(
             partial(
-                stat_bam,
-                variables = {
-                    'bam_file': args['bam_file'],
-                    'genome_file': args['genome_fasta'],
-                    'bam_type': bam_type
-                }
+                stat_records,
+                genome_file = args['genome_fasta'],
+                method = bam_type,
+                cs_dir = None
             ),
-            contigs
+            tasks
         )
 
+    result = reduce_blocks_to_contigs(block_results, contigs)
     message = 'Element statistic process finished.'
     logger.info(message)
 

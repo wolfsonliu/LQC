@@ -60,3 +60,16 @@ def test_main_report_is_self_contained(cs_bam, tmp_path):
     assert 'data:image/png;base64,' in html
     assert 'data:image/svg+xml;base64,' in html
     assert '{%' not in html
+
+
+def test_tables_identical_across_thread_counts(cs_bam, tmp_path):
+    out1 = tmp_path / 'o1'
+    out2 = tmp_path / 'o2'
+    assert main(['-b', cs_bam, '-o', str(out1), '-c', 'chr1', '-t', '1']) == 0
+    assert main(['-b', cs_bam, '-o', str(out2), '-c', 'chr1', '-t', '2']) == 0
+    for name in (
+        'read_stat.txt', 'insertion.txt', 'deletion.txt',
+        'mismatch.txt', 'splice.txt',
+    ):
+        assert (out1 / 'table' / name).read_bytes() == \
+               (out2 / 'table' / name).read_bytes()
