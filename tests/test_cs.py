@@ -89,6 +89,10 @@ def test_get_indel_mismatches_groups(cs_obj):
     insertions, deletions, mismatches = cs_obj.get_indel_mismatches(
         coordinate='normalized_read'
     )
+    # the grouped getter must be exactly equivalent to the three single-mark getters
+    assert insertions == cs_obj.get_insertions(coordinate='normalized_read')
+    assert deletions == cs_obj.get_deletions(coordinate='normalized_read')
+    assert mismatches == cs_obj.get_mismatches(coordinate='normalized_read')
     assert [a[2] for a in insertions] == ['+']
     assert [a[2] for a in deletions] == ['-']
     assert [a[2] for a in mismatches] == ['*']
@@ -145,6 +149,7 @@ def test_element_count():
     assert sum(mismatch_type_count.values()) == cs_obj.get_mismatch_count()
     splice_p = cs_obj.get_splice_pair_count()
     assert sum(splice_p.values()) == 10
+    assert splice_p == {'ct-ac': 10}
     assert sum(splice_p.values()) == len(cs_obj.get_introns())
     assert cs_obj.get_insertion_count() == 5
     assert cs_obj.get_insertion_length() == 16
