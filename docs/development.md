@@ -32,12 +32,12 @@ the package · expire: if the dependency set changes.*
 
 ## Packaging & versioning
 
-- **Version is single-sourced** in `lqc/__init__.py` (`__version__`). Bump only that file;
-  hatchling reads it for the build (`[tool.hatch.version] path = "lqc/__init__.py"`) and
-  `lqc/cli.py` reads it for `--version`.
+- **Version is single-sourced** in `src/lqc/__init__.py` (`__version__`). Bump only that file;
+  hatchling reads it for the build (`[tool.hatch.version] path = "src/lqc/__init__.py"`) and
+  `src/lqc/cli.py` reads it for `--version`.
   *why: removes the old `setup.py` + `bin/lqc` duplication · when: releasing · expire: if
   versioning moves to a VCS tag/SCM provider.*
-- Packaging lives in `pyproject.toml` (hatchling). Non-Python assets under `lqc/`
+- Packaging lives in `pyproject.toml` (hatchling). Non-Python assets under `src/lqc/`
   (`template/*.html`, `template/*.svg`) ship automatically; no `package_data` config is
   needed. *why: hatchling includes everything under the package by default · when: adding
   assets · expire: if a build backend with different data-file rules is adopted.*

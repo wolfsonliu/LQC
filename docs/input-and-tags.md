@@ -1,6 +1,6 @@
 # Input & Tag Conventions
 
-> **When to read:** before touching `lqc/cs.py`, `lqc/stat.py`, or `lqc/utils.py`, or when
+> **When to read:** before touching `src/lqc/cs.py`, `src/lqc/stat.py`, or `src/lqc/utils.py`, or when
 > diagnosing a parsing bug. Full per-method formulas stay in code; this doc records the
 > conventions that are easy to get wrong.
 
@@ -33,7 +33,7 @@ items where positions are **0-based half-open on the reference**.
 | `~` | intron/splice | numeric prefix | `~ct140ac` → 140 bp, `ct` donor, `ac` acceptor |
 
 Read length is reconstructed as the sum of `:` + `*` + `+` contributions (deletions and
-introns consume reference but not read). See `_get_read_length` in `lqc/cs.py`.
+introns consume reference but not read). See `_get_read_length` in `src/lqc/cs.py`.
 
 > **Why** this table is a hard constraint: every downstream count (insertions, deletions,
 > mismatches, splice pairs) derives from these five tokens. **When:** any change to `cs.py`
@@ -48,7 +48,7 @@ to produce output **identical** to the cs path — asserted in `tests/test_cs.py
 ## Strand & complement handling
 
 - Reverse-strand reads are corrected by `convert_reverse_complement` (and
-  `convert_complement`), defined in `lqc/utils.py`.
+  `convert_complement`), defined in `src/lqc/utils.py`.
 - The `CS` object stores a `strand` (`'+'`/`'-'`) and uses `_start_pos`/`_contig` to
   translate relative → contig coordinates (`get_contig_position`).
 

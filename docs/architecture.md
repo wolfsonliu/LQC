@@ -5,10 +5,10 @@
 
 ## Pipeline (who calls whom)
 
-`lqc/cli.py` orchestrates the whole run in one linear sequence; the package is a library of
-stat classes and report renderers that `lqc/cli.py` composes.
+`src/lqc/cli.py` orchestrates the whole run in one linear sequence; the package is a library of
+stat classes and report renderers that `src/lqc/cli.py` composes.
 
-1. Parse CLI args, set up logging (`lqc/cli.py`).
+1. Parse CLI args, set up logging (`src/lqc/cli.py`).
 2. `check_bam_with_cs_or_md()` decides the parse method (`cs`, `MD`, or `both`→`cs`).
 3. `mp.Pool` maps `stat_element_from_bam_by_contig()` over the requested contigs.
 4. Each worker returns a 5-tuple `(ReadStat, Indel, Indel, Mismatch, Splice)`.
@@ -17,7 +17,7 @@ stat classes and report renderers that `lqc/cli.py` composes.
    `report_html` injects tables into the HTML template.
 
 Each of the four stat classes implements `__add__`/`__radd__`, so Python's `sum()` (which
-seeds with `0`) produces a merged object. That is the only reason `lqc/cli.py` can do
+seeds with `0`) produces a merged object. That is the only reason `src/lqc/cli.py` can do
 `sum(l_readstat)`.
 
 > **Why** this layering exists: the element classes hold no I/O, `stat.py` is the only
@@ -28,22 +28,22 @@ seeds with `0`) produces a merged object. That is the only reason `lqc/cli.py` c
 
 | Module | Role | Key symbols |
 | --- | --- | --- |
-| `lqc/cs.py` | Parse a `cs` tag (or CIGAR+MD+seqs) into an element list; `CS` object. Single source of truth for tag parsing. | `cs_to_list`, `cigar_to_list`, `convert_cigar_md_to_cs_list`, `CS` |
-| `lqc/readstat.py` | Per-contig read metrics (count, lengths, N50/L50, per-read element means). | `ReadStat` |
-| `lqc/indel.py` | Insertion/deletion counts, length distribution, normalized location. | `Indel` |
-| `lqc/mismatch.py` | Mismatch type counts and binned normalized location. | `Mismatch` |
-| `lqc/splice.py` | Splice (intron) pair/site counts. | `Splice` |
-| `lqc/stat.py` | Open BAM/FASTA, iterate one contig, build the five objects above. The multiprocessing worker. | `stat_element_from_bam_by_contig` |
-| `lqc/utils.py` | Small helpers: file-type detection, tag detection, complement conversion, `write_readcs`. | `bam_or_sam`, `check_bam_with_cs_or_md`, `write_readcs` |
-| `lqc/report_table.py` | Build pandas DataFrames for the `.txt` summary tables. | `create_*_table` |
-| `lqc/report_figure.py` | matplotlib (Agg) figures. | `plot_*` |
-| `lqc/report_html.py` | Substitute `{%token%}` placeholders in the template with computed tables. | `html_add_*` |
-| `lqc/template/` | `template.html` + SVG logos shipped as package data. | `get_html_template`, `copy_logo` |
+| `src/lqc/cs.py` | Parse a `cs` tag (or CIGAR+MD+seqs) into an element list; `CS` object. Single source of truth for tag parsing. | `cs_to_list`, `cigar_to_list`, `convert_cigar_md_to_cs_list`, `CS` |
+| `src/lqc/readstat.py` | Per-contig read metrics (count, lengths, N50/L50, per-read element means). | `ReadStat` |
+| `src/lqc/indel.py` | Insertion/deletion counts, length distribution, normalized location. | `Indel` |
+| `src/lqc/mismatch.py` | Mismatch type counts and binned normalized location. | `Mismatch` |
+| `src/lqc/splice.py` | Splice (intron) pair/site counts. | `Splice` |
+| `src/lqc/stat.py` | Open BAM/FASTA, iterate one contig, build the five objects above. The multiprocessing worker. | `stat_element_from_bam_by_contig` |
+| `src/lqc/utils.py` | Small helpers: file-type detection, tag detection, complement conversion, `write_readcs`. | `bam_or_sam`, `check_bam_with_cs_or_md`, `write_readcs` |
+| `src/lqc/report_table.py` | Build pandas DataFrames for the `.txt` summary tables. | `create_*_table` |
+| `src/lqc/report_figure.py` | matplotlib (Agg) figures. | `plot_*` |
+| `src/lqc/report_html.py` | Substitute `{%token%}` placeholders in the template with computed tables. | `html_add_*` |
+| `src/lqc/template/` | `template.html` + SVG logos shipped as package data. | `get_html_template`, `copy_logo` |
 | `tests/` | pytest unit + integration tests (outside the package). | `test_cs.py`, `test_cli.py`, `test_stat.py`, ... |
 | `tests/data/` | Committed small CS/CIGAR+MD fixture used by the unit tests. | `cs_test.test_data` |
 | `scripts/` | Developer utilities (not shipped, not tested). | `generate_cs_test_data.py` |
 | `tmp/data/` | Large real BAM + index for manual smoke runs (gitignored, not CI). | `ENCFF417VHJ.chr22.sorted.bam` |
-| `lqc/cli.py` | CLI entry point; composes the above and defines every output filename. | — |
+| `src/lqc/cli.py` | CLI entry point; composes the above and defines every output filename. | — |
 
 ## The data objects
 
@@ -57,13 +57,13 @@ seeds with `0`) produces a merged object. That is the only reason `lqc/cli.py` c
 
 ## Two rules that keep the layering safe
 
-- **Opening input files belongs only to `lqc/stat.py` and `lqc/utils.py`.**
+- **Opening input files belongs only to `src/lqc/stat.py` and `src/lqc/utils.py`.**
   *why: keeps report modules pure and testable · when: adding new input handling ·
   expire: if an explicit I/O layer is introduced.*
-- **A new output artifact is wired end-to-end in `lqc/cli.py` only** (compute → table/figure
-  → `report_html` → filename in `o_files`). *why: `lqc/cli.py` is the single composition
+- **A new output artifact is wired end-to-end in `src/lqc/cli.py` only** (compute → table/figure
+  → `report_html` → filename in `o_files`). *why: `src/lqc/cli.py` is the single composition
   root · when: adding a table, figure, or report section · expire: if composition moves
-  out of `lqc/cli.py`.*
+  out of `src/lqc/cli.py`.*
 
 ## What is documented in code, not here
 

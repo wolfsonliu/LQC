@@ -32,10 +32,10 @@ Homepage = "https://github.com/gxiaolab/LQC"
 lqc = "lqc.cli:main"
 
 [tool.hatch.version]
-path = "lqc/__init__.py"
+path = "src/lqc/__init__.py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["lqc"]
+packages = ["src/lqc"]
 
 [tool.ruff]
 target-version = "py311"

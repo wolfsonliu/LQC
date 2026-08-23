@@ -1,12 +1,12 @@
 # Reporting & Output Format
 
-> **When to read:** before touching `lqc/report_table.py`, `lqc/report_figure.py`,
-> `lqc/report_html.py`, or `lqc/template/`. Full code (formats, columns, colors) lives in
+> **When to read:** before touching `src/lqc/report_table.py`, `src/lqc/report_figure.py`,
+> `src/lqc/report_html.py`, or `src/lqc/template/`. Full code (formats, columns, colors) lives in
 > the modules; this doc records the cross-file contracts.
 
 ## Output directory layout
 
-`lqc/cli.py` builds this structure under `-o OUT`:
+`src/lqc/cli.py` builds this structure under `-o OUT`:
 
 ```
 OUT/
@@ -44,28 +44,28 @@ expire: if a shared schema/constants module is introduced.*
 
 ## Figures
 
-`lqc/report_figure.py` renders each stat as: per-contig facets (one figure), a `'Total'`
+`src/lqc/report_figure.py` renders each stat as: per-contig facets (one figure), a `'Total'`
 figure, and one figure per contig (`.png` and `.pdf` for every file, via `savefig` in
-`lqc/cli.py`). Feature names in `plot_readstat_bar` must exactly match the strings listed in
-`lqc/cli.py` (`"Read count"`, `"Median read length"`, …). All figure code assumes the `Agg`
+`src/lqc/cli.py`). Feature names in `plot_readstat_bar` must exactly match the strings listed in
+`src/lqc/cli.py` (`"Read count"`, `"Median read length"`, …). All figure code assumes the `Agg`
 backend. *why: filenames and facet titles are derived from these strings · when: adding a
 figure or feature · expire: if plotting is moved behind a config-driven registry.*
 
 ## HTML report contract
 
-- `lqc/template/template.html` contains `{%token%}` placeholders; `lqc/report_html.py`
+- `src/lqc/template/template.html` contains `{%token%}` placeholders; `src/lqc/report_html.py`
   (`html_add_*`) is the **only** code that substitutes them. Token groups: `readstat_*`,
   `mismatch_*`, `insertion_*`, `deletion_*`, `intron_*`, `splice_*`, plus the self-contained
   asset tokens `bootstrap_css`, `bootstrap_js`, `lqc_data`, `version`.
 - Every placeholder in the template must be replaced for a given run; the `html_add_*`
-  functions are chained in `lqc/cli.py` and must cover the template's full token set. Add a
+  functions are chained in `src/lqc/cli.py` and must cover the template's full token set. Add a
   new token only together with the `html_add_*` that fills it.
   *why: unreplaced tokens would surface verbatim as `{%...%}` in the report · when: adding
   a report section · expire: if template rendering moves to a real templating engine.*
 - The `'Total'` row is styled specially (`table-secondary`) and also sourced for the
   headline metric values — keep the aggregate row labeled exactly `'Total'`.
-- **Self-contained output:** `lqc/cli.py` finalizes the report with
-  `html_add_bootstrap` (inlines the vendored Bootstrap CSS/JS from `lqc/template/`,
+- **Self-contained output:** `src/lqc/cli.py` finalizes the report with
+  `html_add_bootstrap` (inlines the vendored Bootstrap CSS/JS from `src/lqc/template/`,
   MIT-licensed), `html_add_data` (embeds the five summary tables as JSON in
   `<script type="application/json" id="lqc-data">`), and `inline_figures` (rewrites
   `src="fig/..."` to base64 `data:` URIs). The rendered `LQC_report.html` therefore
@@ -74,6 +74,6 @@ figure or feature · expire: if plotting is moved behind a config-driven registr
 ## Things already documented in code (do not duplicate)
 
 - Exact figure layout/colors (`magentas` palette, `get_facet_row_col` grid) — in
-  `lqc/report_figure.py`.
-- Exact per-placeholder replacement strings and table markup — in `lqc/report_html.py` and
-  `lqc/template/template.html`.
+  `src/lqc/report_figure.py`.
+- Exact per-placeholder replacement strings and table markup — in `src/lqc/report_html.py` and
+  `src/lqc/template/template.html`.
