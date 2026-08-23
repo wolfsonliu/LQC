@@ -60,12 +60,17 @@ to produce output **identical** to the cs path — asserted in `tests/test_cs.py
   *why: mixing bases off-by-one is the top source of subtle bugs · expire: only if the
   whole pipeline migrates in one coordinated change.*
 
-## `write_readcs` output
+## `read.cs` output (`--output-cs`)
 
 `--output-cs` writes one line per cs element into `read.cs` with six columns:
 `read name, contig, low, high, cs mark, cs value`. Keep this schema if you extend the
 option. *why: users may consume `read.cs` directly · expire: if the file format is
 deliberately versioned/renamed.*
+
+`read.cs` now contains only the reads of the analyzed contigs (`-c`, or the default
+chromosome list), in requested-contig order — not every reference in the BAM. The CLI
+logs a warning when it omits any header reference. `src/lqc/utils.py` `write_readcs`
+still dumps the entire BAM in file order for library callers.
 
 ## How to verify a parsing change
 

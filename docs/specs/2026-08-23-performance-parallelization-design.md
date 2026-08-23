@@ -53,14 +53,14 @@ Replace the per-contig pool with per-read-chunk parallelism:
 ### Stage 3 — Single-pass `--output-cs`
 
 1. Extend each worker to also emit its chunk's `read.cs` lines (the `get_contig_position()` records for the reads it parsed) into a per-chunk temp file under the output dir, in BAM order.
-2. Main process concatenates the chunk temp files **in chunk order** into `read.cs`, then removes the temp files. This preserves the exact current `read.cs` schema and row order while eliminating the second full parse.
+2. Main process concatenates the chunk temp files **in chunk order** into `read.cs`, then removes the temp files. This preserves the current `read.cs` schema, per-contig row order, and row contents for the analyzed contigs, while eliminating the second full parse (the old `write_readcs` iterated the entire BAM).
 3. Buffer writes per chunk (write whole lines in memory per chunk, or use a buffered writer) instead of the current per-element `writelines` generator + per-line list/format allocation.
 4. Optional `--readcs-gzip` flag to gzip the (large) `read.cs`; default stays uncompressed to preserve byte-compatibility for existing consumers.
 
 ## User Experience / Behavior Considerations
 
 - No CLI flag is removed; `-t`, `-c`, `--output-cs`, `--output-pickle` keep their meaning.
-- `read.cs` content and ordering are unchanged; only the generation path changes.
+- `read.cs` schema is unchanged; it now contains only the analyzed contigs in requested order (the CLI warns when references are omitted), instead of the old whole-BAM dump.
 - Empty-contig and header-present-but-unmapped cases are handled identically to today (the existing `read_count > 0` filter at `src/lqc/cli.py:396-403` still applies after reduce).
 - Logging keeps the existing start/finish lines; add one debug line per stage for diagnosis.
 

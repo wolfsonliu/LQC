@@ -81,3 +81,5 @@ def test_output_cs_identical_across_thread_counts(cs_bam, tmp_path):
     main(['-b', cs_bam, '-o', str(out1), '-c', 'chr1', '-t', '1', '--output-cs'])
     main(['-b', cs_bam, '-o', str(out2), '-c', 'chr1', '-t', '2', '--output-cs'])
     assert (out1 / 'read.cs').read_bytes() == (out2 / 'read.cs').read_bytes()
+    assert not list(out1.glob('.readcs-*.tmp'))
+    assert not list(out2.glob('.readcs-*.tmp'))

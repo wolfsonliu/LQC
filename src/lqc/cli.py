@@ -370,6 +370,18 @@ def main(argv = None) -> int:
         logger.error(message)
         raise ValueError(message)
 
+    if args['output_cs']:
+        for stale in os.listdir(o_dirs['base']):
+            if stale.startswith('.readcs-') and stale.endswith('.tmp'):
+                os.remove(os.path.join(o_dirs['base'], stale))
+        omitted = bam_contigs - set(contigs)
+        if omitted:
+            logger.warning(
+                'read.cs contains only the analyzed contigs; %d other header '
+                'reference(s) are omitted: %s',
+                len(omitted), ', '.join(sorted(omitted))
+            )
+
     # run jobs by chunked reads (data-parallel, independent of contig count)
     message = 'Element statistic process starts.'
     logger.info(message)
@@ -469,14 +481,18 @@ def main(argv = None) -> int:
     if args['output_cs']:
         message = 'Output processed cs tags.'
         logger.info(message)
-        with open(o_files['cs'], 'w') as out:
+        tmp_cs = o_files['cs'] + '.tmp'
+        with open(tmp_cs, 'w') as out:
             out.write(
                 'read_name\tcontig\tlow\thigh\tcs_mark\tcs_value\n'
             )
             for block in block_results:
-                with open(block.cs_path, 'r') as fh:
-                    out.write(fh.read())
-                os.remove(block.cs_path)
+                try:
+                    with open(block.cs_path, 'r') as fh:
+                        out.write(fh.read())
+                finally:
+                    os.remove(block.cs_path)
+        os.replace(tmp_cs, o_files['cs'])
         message = 'Output processed cs tags finished.'
         logger.debug(message)
     else:

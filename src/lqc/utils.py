@@ -78,6 +78,13 @@ def write_readcs(bam_file,
                  genome_file,
                  output_file,
                  method = 'cs'):
+    """Dump the ``cs`` elements of every read in the BAM to a 6-column file.
+
+    Iterates the entire BAM in file order, independent of any ``-c`` contig
+    selection. The CLI no longer calls this — the single-pass stat workers emit
+    ``read.cs`` for the analyzed contigs instead — but it remains for library
+    callers that want a full-BAM dump.
+    """
     assert method in ['cs', 'MD', 'both'],\
         "method should be either: cs, MD, both."
     file_type = bam_or_sam(bam_file)
