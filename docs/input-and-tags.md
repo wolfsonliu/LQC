@@ -33,7 +33,7 @@ items where positions are **0-based half-open on the reference**.
 | `~` | intron/splice | numeric prefix | `~ct140ac` → 140 bp, `ct` donor, `ac` acceptor |
 
 Read length is reconstructed as the sum of `:` + `*` + `+` contributions (deletions and
-introns consume reference but not read). See `_get_read_length` in `src/lqc/cs.py`.
+introns consume reference but not read). See `_compute_counts` in `src/lqc/cs.py`.
 
 > **Why** this table is a hard constraint: every downstream count (insertions, deletions,
 > mismatches, splice pairs) derives from these five tokens. **When:** any change to `cs.py`
