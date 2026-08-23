@@ -46,6 +46,7 @@ from lqc import (
     plot_readstat_length_hist,
     plot_splice_type_count,
 )
+from lqc.formatting import FLOAT_FORMAT
 from lqc.stat import prefetch_records, reduce_blocks_to_contigs, stat_records
 
 matplotlib.use('Agg')
@@ -504,23 +505,28 @@ def main(argv = None) -> int:
     logger.info(message)
     t_readstat.to_csv(
         o_files['t_readstat'],
-        sep = '\t', index = False
+        sep = '\t', index = False,
+        float_format = FLOAT_FORMAT
     )
     t_insertion.to_csv(
         o_files['t_insertion'],
-        sep = '\t', index = False
+        sep = '\t', index = False,
+        float_format = FLOAT_FORMAT
     )
     t_deletion.to_csv(
         o_files['t_deletion'],
-        sep = '\t', index = False
+        sep = '\t', index = False,
+        float_format = FLOAT_FORMAT
     )
     t_mismatch.to_csv(
         o_files['t_mismatch'],
-        sep = '\t', index = False
+        sep = '\t', index = False,
+        float_format = FLOAT_FORMAT
     )
     t_splice.to_csv(
         o_files['t_splice'],
-        sep = '\t', index = False
+        sep = '\t', index = False,
+        float_format = FLOAT_FORMAT
     )
     message = 'Output summary tables finished.'
     logger.debug(message)
