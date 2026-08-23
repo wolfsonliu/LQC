@@ -10,24 +10,26 @@ from lqc.report_table import (
 )
 
 READSTAT_COLUMNS = [
-    'label', 'read_count', 'total_base',
+    'label', 'read_count', 'total_base', 'aligned_base',
     'read_length_mean', 'read_length_median',
     'read_length_N50', 'read_length_L50',
     'mean_insertion_per_read', 'mean_insertion_per_read_per_kb',
-    'insertion_per_kb',
+    'insertion_per_query_kb', 'insertion_per_aligned_kb',
     'mean_deletion_per_read', 'mean_deletion_per_read_per_kb',
-    'deletion_per_kb',
+    'deletion_per_query_kb', 'deletion_per_aligned_kb',
     'mean_mismatch_per_read', 'mean_mismatch_per_read_per_kb',
-    'mismatch_per_kb',
+    'mismatch_per_query_kb', 'mismatch_per_aligned_kb',
     'mean_intron_per_read', 'mean_intron_per_read_per_kb',
 ]
 
 
 def _two_readstat():
     r1 = ReadStat('chr1')
-    r1.add_read(200, insertion=2, deletion=4, mismatch=6, intron=8)
+    r1.add_read(200, insertion=2, deletion=4, mismatch=6, intron=8,
+                mapping_quality=60, aligned_length=190)
     r2 = ReadStat('chr2')
-    r2.add_read(200, insertion=4, deletion=8, mismatch=12, intron=16)
+    r2.add_read(200, insertion=4, deletion=8, mismatch=12, intron=16,
+                mapping_quality=60, aligned_length=190)
     total = sum([r1, r2])
     total.label = 'Total'
     return r1, r2, total
@@ -49,6 +51,17 @@ def test_readstat_table_values():
     assert total_row['mean_mismatch_per_read'] == pytest.approx(9)
     assert total_row['mean_mismatch_per_read_per_kb'] == pytest.approx(45)
     assert total_row['mean_intron_per_read'] == pytest.approx(12)
+
+
+def test_readstat_table_aligned_columns():
+    r1, r2, total = _two_readstat()
+    df = create_readstat_table([r1, r2], total)
+    total_row = df[df['label'] == 'Total'].iloc[0]
+    # 2 reads x aligned 190 = 380 aligned bases
+    assert total_row['aligned_base'] == 380
+    assert total_row['insertion_per_query_kb'] == pytest.approx(6 / 400 * 1000)
+    assert total_row['insertion_per_aligned_kb'] == pytest.approx(6 / 380 * 1000)
+    assert total_row['mismatch_per_aligned_kb'] == pytest.approx(18 / 380 * 1000)
 
 
 def test_indel_summary_table():
