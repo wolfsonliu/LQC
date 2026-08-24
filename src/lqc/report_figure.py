@@ -114,13 +114,17 @@ def plot_readstat_bar(readstat_list,
     fig, axes = plt.subplots(
         1, 1, figsize = (width, height)
     )
+    colors = [
+        magentas[i % len(magentas)]
+        for i in range(len(read_feature))
+    ]
     axes.bar(
         [read_feature[i][0]
          for i in range(len(read_feature))],
         [read_feature[i][2]
          for i in range(len(read_feature))],
         width = 0.66,
-        color = ["#7a0177", "#dd3497"],
+        color = colors,
         fill = True
     )
     axes.set_xticks(
@@ -505,13 +509,17 @@ def plot_element_total_count(element_list,
     fig, axes = plt.subplots(
         1, 1, figsize = (width, height)
     )
+    colors = [
+        magentas[i % len(magentas)]
+        for i in range(len(count_list))
+    ]
     axes.bar(
         [count_list[i][0]
          for i in range(len(count_list))],
         [count_list[i][2]
          for i in range(len(count_list))],
         width = 0.66,
-        color = ["#7a0177", "#dd3497"],
+        color = colors,
         fill = True
     )
     axes.set_xticks(
@@ -527,6 +535,15 @@ def plot_element_total_count(element_list,
     axes.set_title(element_name)
     plt.tight_layout()
     return fig
+
+
+def _indel_length_bins(lengths):
+    """1-bp bins up to 10, plus one catch-all tail bin for longer indels."""
+    maxlen = max(lengths)
+    edges = [i + 0.5 for i in range(0, 11)]
+    if maxlen > 10:
+        edges.append(maxlen + 0.5)
+    return edges
 
 
 def plot_indel_hist_length(indel_list,
@@ -550,24 +567,31 @@ def plot_indel_hist_length(indel_list,
     )
     for ai in range(row * col):
         if ai in list(range(len(indel_list))):
-            fig.axes[ai].hist(
-                indel_list[ai].get_lengths(),
-                color = "#7a0177",
-                label = indel_list[ai].label
-            )
-            fig.axes[ai].set_title(
-                indel_list[ai].label
-            )
-            xlimits = fig.axes[ai].get_xlim()
-            ylimits = fig.axes[ai].get_ylim()
-            fig.axes[ai].text(
-                xlimits[1] * 0.98,
-                ylimits[1] * 0.98,
-                "Median:\n{}".format(int(
-                    indel_list[ai].get_median_length()
-                )),
-                ha = "right", va = "top"
-            )
+            lengths = indel_list[ai].get_lengths()
+            if lengths:
+                fig.axes[ai].hist(
+                    lengths,
+                    bins = _indel_length_bins(lengths),
+                    color = "#7a0177",
+                    label = indel_list[ai].label
+                )
+                fig.axes[ai].set_yscale('log')
+                fig.axes[ai].set_title(
+                    indel_list[ai].label
+                )
+                xlimits = fig.axes[ai].get_xlim()
+                ylimits = fig.axes[ai].get_ylim()
+                fig.axes[ai].text(
+                    xlimits[1] * 0.98,
+                    ylimits[1] * 0.98,
+                    "Median:\n{}".format(int(
+                        indel_list[ai].get_median_length()
+                    )),
+                    ha = "right", va = "top"
+                )
+            else:
+                fig.axes[ai].set_frame_on(False)
+                fig.axes[ai].set_axis_off()
         else:
             fig.axes[ai].set_frame_on(False)
             fig.axes[ai].set_axis_off()
