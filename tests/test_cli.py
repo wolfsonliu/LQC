@@ -69,7 +69,7 @@ def test_tables_identical_across_thread_counts(cs_bam, tmp_path):
     assert main(['-b', cs_bam, '-o', str(out2), '-c', 'chr1', '-t', '2']) == 0
     for name in (
         'read_stat.txt', 'insertion.txt', 'deletion.txt',
-        'mismatch.txt', 'splice.txt',
+        'mismatch.txt', 'splice.txt', 'mapping.txt', 'splice_all.txt',
     ):
         assert (out1 / 'table' / name).read_bytes() == \
                (out2 / 'table' / name).read_bytes()
