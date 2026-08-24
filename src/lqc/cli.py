@@ -20,14 +20,17 @@ from lqc import (
     check_bam_with_cs_or_md,
     copy_logo,
     create_indel_summary_table,
+    create_mapping_table,
     create_mismatch_normalized_read_location_table,
     create_readstat_table,
+    create_splice_all_table,
     create_splice_table,
     get_html_template,
     html_add_bootstrap,
     html_add_data,
     html_add_deletion_table,
     html_add_insertion_table,
+    html_add_mapping,
     html_add_mismatch_table,
     html_add_readstat_table,
     html_add_splice_table,
@@ -36,6 +39,9 @@ from lqc import (
     plot_element_total_count,
     plot_indel_hist_length,
     plot_indel_hist_location,
+    plot_mapping_aligned_fraction_hist,
+    plot_mapping_aligned_vs_query,
+    plot_mapping_mapq_hist,
     plot_mismatch_hist_location,
     plot_mismatch_type_count,
     plot_readstat_bar,
@@ -261,6 +267,12 @@ def main(argv = None) -> int:
             o_dirs['table'],
             'splice.txt'
         ),
+        't_mapping': os.path.join(
+            o_dirs['table'], 'mapping.txt'
+        ),
+        't_splice_all': os.path.join(
+            o_dirs['table'], 'splice_all.txt'
+        ),
         'f_readstat_bar_Read count': os.path.join(
             o_dirs['fig'], 'readstat_bar_Read_count'
         ),
@@ -344,6 +356,15 @@ def main(argv = None) -> int:
         ),
         'f_splice_type': os.path.join(
             o_dirs['fig'], 'splice_type'
+        ),
+        'f_mapping_mapq_hist': os.path.join(
+            o_dirs['fig'], 'mapping_hist_mapq'
+        ),
+        'f_mapping_aligned_fraction_hist': os.path.join(
+            o_dirs['fig'], 'mapping_hist_aligned_fraction'
+        ),
+        'f_mapping_aligned_vs_query': os.path.join(
+            o_dirs['fig'], 'mapping_scatter_aligned_vs_query'
         ),
         'html': os.path.join(
             o_dirs['base'], 'LQC_report.html'
@@ -451,6 +472,8 @@ def main(argv = None) -> int:
     t_deletion = create_indel_summary_table(l_deletion, sdeletion)
     t_mismatch = create_mismatch_normalized_read_location_table(l_mismatch, smismatch)
     t_splice = create_splice_table(l_splice, ssplice)
+    t_mapping = create_mapping_table(l_readstat, sreadstat)
+    t_splice_all = create_splice_all_table(l_splice, ssplice)
 
     ####################
     # output
@@ -525,6 +548,16 @@ def main(argv = None) -> int:
     )
     t_splice.to_csv(
         o_files['t_splice'],
+        sep = '\t', index = False,
+        float_format = FLOAT_FORMAT
+    )
+    t_mapping.to_csv(
+        o_files['t_mapping'],
+        sep = '\t', index = False,
+        float_format = FLOAT_FORMAT
+    )
+    t_splice_all.to_csv(
+        o_files['t_splice_all'],
         sep = '\t', index = False,
         float_format = FLOAT_FORMAT
     )
@@ -719,6 +752,34 @@ def main(argv = None) -> int:
         width = 5, height = 4
     )
 
+    # mapping metrics
+    message = 'Output figures: mapping metrics.'
+    logger.debug(message)
+    filelabel = 'f_mapping_mapq_hist'
+    generate_multiple_figs(
+        plot_mapping_mapq_hist,
+        data_list = l_readstat,
+        data_sum = sreadstat,
+        filelabel = o_files[filelabel],
+        width = 5, height = 4
+    )
+    filelabel = 'f_mapping_aligned_fraction_hist'
+    generate_multiple_figs(
+        plot_mapping_aligned_fraction_hist,
+        data_list = l_readstat,
+        data_sum = sreadstat,
+        filelabel = o_files[filelabel],
+        width = 5, height = 4
+    )
+    filelabel = 'f_mapping_aligned_vs_query'
+    generate_multiple_figs(
+        plot_mapping_aligned_vs_query,
+        data_list = l_readstat,
+        data_sum = sreadstat,
+        filelabel = o_files[filelabel],
+        width = 5, height = 4
+    )
+
     message = 'Output figures finished.'
     logger.debug(message)
 
@@ -733,6 +794,10 @@ def main(argv = None) -> int:
 
     new_html_string = html_add_readstat_table(
         html_string, t_readstat
+    )
+
+    new_html_string = html_add_mapping(
+        new_html_string, t_mapping
     )
 
     mismatch_type_counter = smismatch.get_type_count()
@@ -777,6 +842,7 @@ def main(argv = None) -> int:
         new_html_string,
         {
             'readstat': t_readstat,
+            'mapping': t_mapping,
             'insertion': t_insertion,
             'deletion': t_deletion,
             'mismatch': t_mismatch,
