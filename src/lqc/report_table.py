@@ -132,26 +132,53 @@ def create_indel_summary_table(indel_list, indel_sum):
 
 
 def create_splice_table(splice_list, splice_sum):
+    """Four-category splice summary (gt-ag / gc-ag / at-ac / other, count+pct)."""
 
-    sptypes = list(
-        splice_sum.get_splice_pair_count_dict().keys()
+    def _row(a):
+        count_dict = a.get_splice_pair_count_dict()
+        gtag = count_dict.get('gt-ag', 0)
+        gcag = count_dict.get('gc-ag', 0)
+        atac = count_dict.get('at-ac', 0)
+        other = sum(
+            v for k, v in count_dict.items()
+            if k not in ('gt-ag', 'gc-ag', 'at-ac')
+        )
+        total = gtag + gcag + atac + other
+        if total == 0:
+            gtagp = gcagp = atacp = otherp = 0.0
+        else:
+            gtagp = gtag / total * 100
+            gcagp = gcag / total * 100
+            atacp = atac / total * 100
+            otherp = other / total * 100
+        return [a.label, gtag, gtagp, gcag, gcagp,
+                atac, atacp, other, otherp]
+
+    rows = [_row(a) for a in splice_list] + [_row(splice_sum)]
+    return pd.DataFrame(
+        rows,
+        columns = ['label', 'gt-ag', 'gt-ag_pct',
+                   'gc-ag', 'gc-ag_pct',
+                   'at-ac', 'at-ac_pct',
+                   'other', 'other_pct']
     )
 
-    sptable = pd.DataFrame(
-        [
-            [splice_list[i].label] +
-            [splice_list[i].get_splice_pair_count_dict()[a]
-             for a in sptypes]
-            for i in range(len(splice_list))
-        ] + [
-            ['Total'] +
-            [splice_sum.get_splice_pair_count_dict()[a]
-             for a in sptypes]
-        ],
-        columns = ['label', *sptypes]
-    )
 
-    return sptable
+def create_splice_all_table(splice_list, splice_sum):
+    """Full splice-pair matrix (one column per observed pair)."""
+
+    sptypes = list(splice_sum.get_splice_pair_count_dict().keys())
+    rows = [
+        [splice_list[i].label] +
+        [splice_list[i].get_splice_pair_count_dict().get(a, 0)
+         for a in sptypes]
+        for i in range(len(splice_list))
+    ] + [
+        [splice_sum.label] +
+        [splice_sum.get_splice_pair_count_dict().get(a, 0)
+         for a in sptypes]
+    ]
+    return pd.DataFrame(rows, columns = ['label', *sptypes])
 
 
 ########################################

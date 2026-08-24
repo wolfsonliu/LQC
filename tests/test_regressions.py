@@ -51,7 +51,12 @@ def test_splice_html_table_with_no_introns_does_not_divide_by_zero():
     s = Splice('chr1')
     total = Splice('Total')
     table = create_splice_table([s], total)
-    assert list(table.columns) == ['label']
+    assert list(table.columns) == [
+        'label', 'gt-ag', 'gt-ag_pct', 'gc-ag', 'gc-ag_pct',
+        'at-ac', 'at-ac_pct', 'other', 'other_pct',
+    ]
+    total_row = table.iloc[1]
+    assert total_row['other_pct'] == 0.0
     html = html_add_splice_table('<html>{%splice_table%}</html>', table, 0.0)
     assert '{%splice_table%}' not in html
 

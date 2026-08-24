@@ -32,6 +32,7 @@ from lqc.report_table import (
     create_mapping_table,
     create_mismatch_normalized_read_location_table,
     create_readstat_table,
+    create_splice_all_table,
     create_splice_table,
 )
 from lqc.splice import Splice
@@ -56,6 +57,7 @@ __all__ = [
     'create_mapping_table',
     'create_mismatch_normalized_read_location_table',
     'create_readstat_table',
+    'create_splice_all_table',
     'create_splice_table',
     'get_html_template',
     'html_add_bootstrap',

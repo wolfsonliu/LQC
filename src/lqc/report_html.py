@@ -292,32 +292,16 @@ def html_add_splice_table(html_string, splice_table,
     total_other = 0
     total_otherp = 0.0
     for _, row in splice_table.iterrows():
-        label = ""
-        gtag = 0
-        gcag = 0
-        atac = 0
-        other = 0
-        for rn in row.index:
-            if rn == "label":
-                label = row[rn]
-            elif rn == "gt-ag":
-                gtag = row[rn]
-            elif rn == "gc-ag":
-                gcag = row[rn]
-            elif rn == "at-ac":
-                atac = row[rn]
-            else:
-                other += row[rn]
-        total = gtag + gcag + atac + other
-        if total == 0:
-            gtagp = gcagp = atacp = otherp = 0.0
-        else:
-            gtagp = gtag / total * 100
-            gcagp = gcag / total * 100
-            atacp = atac / total * 100
-            otherp = other / total * 100
+        gtag = row['gt-ag']
+        gtagp = row['gt-ag_pct']
+        gcag = row['gc-ag']
+        gcagp = row['gc-ag_pct']
+        atac = row['at-ac']
+        atacp = row['at-ac_pct']
+        other = row['other']
+        otherp = row['other_pct']
         tmprow_list = [
-            f'<th scope="row">{label}</th>',
+            f'<th scope="row">{row["label"]}</th>',
             f'<td>{gtag}</td>',
             f'<td>{gtagp:.4}</td>',
             f'<td>{gcag}</td>',
@@ -331,7 +315,6 @@ def html_add_splice_table(html_string, splice_table,
             rowstring_list.append(
                 '<tr class="table-secondary">' +
                 '\n'.join(tmprow_list) + "</tr>"
-
             )
             total_gtag = gtag
             total_gtagp = gtagp

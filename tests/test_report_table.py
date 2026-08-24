@@ -6,6 +6,7 @@ from lqc.report_table import (
     create_indel_summary_table,
     create_mapping_table,
     create_readstat_table,
+    create_splice_all_table,
     create_splice_table,
 )
 
@@ -86,9 +87,30 @@ def test_splice_table():
     s2.add_splice_pair('gt-ag')
     total = s1 + s2
     total.label = 'Total'
+
     df = create_splice_table([s1, s2], total)
-    assert list(df.columns) == ['label', 'gt-ag']
-    assert df[df['label'] == 'Total']['gt-ag'].values[0] == 2
+    assert list(df.columns) == [
+        'label', 'gt-ag', 'gt-ag_pct', 'gc-ag', 'gc-ag_pct',
+        'at-ac', 'at-ac_pct', 'other', 'other_pct',
+    ]
+    total_row = df[df['label'] == 'Total'].iloc[0]
+    assert total_row['gt-ag'] == 2
+    assert total_row['gt-ag_pct'] == 100.0
+    assert total_row['other'] == 0
+    assert total_row['other_pct'] == 0.0
+
+
+def test_splice_all_table_preserves_full_matrix():
+    s = Splice('chr1')
+    s.add_splice_pair_count_dict({'gt-ag': 3, 'gc-ag': 1, 'tt-tt': 4})
+    total = Splice('Total')
+    total.add_splice_pair_count_dict({'gt-ag': 3, 'gc-ag': 1, 'tt-tt': 4})
+
+    df = create_splice_all_table([s], total)
+    assert list(df.columns) == ['label', 'gt-ag', 'gc-ag', 'tt-tt']
+    total_row = df[df['label'] == 'Total'].iloc[0]
+    assert total_row['gt-ag'] == 3
+    assert total_row['tt-tt'] == 4
 
 
 def test_mapping_table_columns_and_values():
