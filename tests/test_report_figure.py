@@ -96,3 +96,21 @@ def test_plot_mapping_aligned_vs_query_returns_figure():
     fig = plot_mapping_aligned_vs_query([_one_mapped_readstat()])
     assert isinstance(fig, Figure)
     plt.close('all')
+
+
+def test_plot_mapping_mapq_hist_caps_high_mapq():
+    r = ReadStat('chr1')
+    r.add_read(200, insertion=0, deletion=0, mismatch=0, intron=0,
+               mapping_quality=255, aligned_length=200)
+    fig = plot_mapping_mapq_hist([r])
+    assert len(fig.axes[0].patches) < 100
+    plt.close('all')
+
+
+def test_plot_mapping_hist_empty_readstat_renders_blank():
+    empty = ReadStat('chr1')
+    fig = plot_mapping_mapq_hist([empty])
+    assert len(fig.axes[0].patches) == 0
+    fig2 = plot_mapping_aligned_fraction_hist([empty])
+    assert len(fig2.axes[0].patches) == 0
+    plt.close('all')

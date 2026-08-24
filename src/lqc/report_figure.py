@@ -662,23 +662,32 @@ def plot_mapping_mapq_hist(readstat_list,
     for ai in range(row * col):
         if ai in list(range(len(readstat_list))):
             qualities = readstat_list[ai].get_mapping_qualities()
-            maxq = max(qualities) if qualities else 60
-            bins = list(range(0, max(maxq, 60) + 2))
-            fig.axes[ai].hist(
-                qualities,
-                bins = bins,
-                color = magentas[0],
-                label = readstat_list[ai].label
-            )
-            fig.axes[ai].set_title(readstat_list[ai].label)
-            xlimits = fig.axes[ai].get_xlim()
-            ylimits = fig.axes[ai].get_ylim()
-            fig.axes[ai].text(
-                xlimits[1] * 0.98,
-                ylimits[1] * 0.98,
-                "Median:\n{}".format(readstat_list[ai].get_median_mapping_quality()),
-                ha = "right", va = "top"
-            )
+            if qualities:
+                maxq = max(qualities)
+                if maxq > 60:
+                    # MAPQ > 60 (e.g. the 255 sentinel) goes into a single
+                    # catch-all bin so it does not flatten the 0-60 range.
+                    bins = [*range(0, 61), maxq + 1]
+                else:
+                    bins = list(range(0, maxq + 2))
+                fig.axes[ai].hist(
+                    qualities,
+                    bins = bins,
+                    color = magentas[0],
+                    label = readstat_list[ai].label
+                )
+                fig.axes[ai].set_title(readstat_list[ai].label)
+                xlimits = fig.axes[ai].get_xlim()
+                ylimits = fig.axes[ai].get_ylim()
+                fig.axes[ai].text(
+                    xlimits[1] * 0.98,
+                    ylimits[1] * 0.98,
+                    "Median:\n{}".format(readstat_list[ai].get_median_mapping_quality()),
+                    ha = "right", va = "top"
+                )
+            else:
+                fig.axes[ai].set_frame_on(False)
+                fig.axes[ai].set_axis_off()
         else:
             fig.axes[ai].set_frame_on(False)
             fig.axes[ai].set_axis_off()
@@ -705,24 +714,28 @@ def plot_mapping_aligned_fraction_hist(readstat_list,
     for ai in range(row * col):
         if ai in list(range(len(readstat_list))):
             fractions = readstat_list[ai].get_aligned_fractions()
-            fig.axes[ai].hist(
-                fractions,
-                bins = 50,
-                range = (0, 1),
-                color = magentas[0],
-                label = readstat_list[ai].label
-            )
-            fig.axes[ai].set_title(readstat_list[ai].label)
-            xlimits = fig.axes[ai].get_xlim()
-            ylimits = fig.axes[ai].get_ylim()
-            fig.axes[ai].text(
-                xlimits[1] * 0.98,
-                ylimits[1] * 0.98,
-                "Median:\n{:.4}".format(
-                    readstat_list[ai].get_median_aligned_fraction()
-                ),
-                ha = "right", va = "top"
-            )
+            if fractions:
+                fig.axes[ai].hist(
+                    fractions,
+                    bins = 50,
+                    range = (0, 1),
+                    color = magentas[0],
+                    label = readstat_list[ai].label
+                )
+                fig.axes[ai].set_title(readstat_list[ai].label)
+                xlimits = fig.axes[ai].get_xlim()
+                ylimits = fig.axes[ai].get_ylim()
+                fig.axes[ai].text(
+                    xlimits[1] * 0.98,
+                    ylimits[1] * 0.98,
+                    "Median:\n{:.4}".format(
+                        readstat_list[ai].get_median_aligned_fraction()
+                    ),
+                    ha = "right", va = "top"
+                )
+            else:
+                fig.axes[ai].set_frame_on(False)
+                fig.axes[ai].set_axis_off()
         else:
             fig.axes[ai].set_frame_on(False)
             fig.axes[ai].set_axis_off()
