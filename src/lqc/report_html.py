@@ -11,7 +11,7 @@ def html_add_readstat_table(html_string, readstat_table):
             '<th scope="row">{}</th>'.format(row['label']),
             '<td>{}</td>'.format(row['read_count']),
             '<td>{}</td>'.format(row['total_base']),
-            '<td>{:.4}</td>'.format(row['read_length_mean']),
+            '<td>{:.4g}</td>'.format(row['read_length_mean']),
             '<td>{}</td>'.format(row['read_length_median']),
             '<td>{}</td>'.format(row['read_length_N50']),
             '<td>{}</td>'.format(row['read_length_L50'])
@@ -52,7 +52,7 @@ def html_add_readstat_table(html_string, readstat_table):
     )
     new_html_string = re.sub(
         r"\{%readstat_mean_read_length%\}",
-        f'{total_mean_read_length:.4}',
+        f'{total_mean_read_length:.4g}',
         new_html_string
     )
     new_html_string = re.sub(
@@ -67,17 +67,17 @@ def html_add_readstat_table(html_string, readstat_table):
     )
     new_html_string = re.sub(
         r'\{%readstat_insertion_per_read_per_kb%\}',
-        f'{total_insertion_per_read_per_kb:.4}',
+        f'{total_insertion_per_read_per_kb:.4g}',
         new_html_string
     )
     new_html_string = re.sub(
         r'\{%readstat_deletion_per_read_per_kb%\}',
-        f'{total_deletion_per_read_per_kb:.4}',
+        f'{total_deletion_per_read_per_kb:.4g}',
         new_html_string
     )
     new_html_string = re.sub(
         r'\{%readstat_mismatch_per_read_per_kb%\}',
-        f'{total_mismatch_per_read_per_kb:.4}',
+        f'{total_mismatch_per_read_per_kb:.4g}',
         new_html_string
     )
 
@@ -131,7 +131,7 @@ def html_add_mismatch_table(html_string, mismatch_table,
     )
     new_html_string = re.sub(
         r"\{%mismatch_mean_mismatch_per_read_per_kb%\}",
-        f'{mean_mismatch_per_read_per_kb:.4}',
+        f'{mean_mismatch_per_read_per_kb:.4g}',
         new_html_string
     )
     mistype_list1 = [
@@ -168,8 +168,8 @@ def html_add_insertion_table(html_string, insertion_table,
             '<th scope="row">{}</th>'.format(row['label']),
             '<td>{}</td>'.format(row['total_count']),
             '<td>{}</td>'.format(row['total_length']),
-            '<td>{:.4}</td>'.format(float(row['mean_length'])),
-            '<td>{:.4}</td>'.format(float(row['median_length']))
+            '<td>{:.4g}</td>'.format(float(row['mean_length'])),
+            '<td>{:.4g}</td>'.format(float(row['median_length']))
         ]
         if row['label'] == "Total":
             rowstring_list.append(
@@ -199,17 +199,17 @@ def html_add_insertion_table(html_string, insertion_table,
     )
     new_html_string = re.sub(
         r"\{%insertion_mean_length%\}",
-        f'{mean_insertion_length:.4}',
+        f'{mean_insertion_length:.4g}',
         new_html_string
     )
     new_html_string = re.sub(
         r"\{%insertion_median_length%\}",
-        f'{median_insertion_length:.4}',
+        f'{median_insertion_length:.4g}',
         new_html_string
     )
     new_html_string = re.sub(
         r"\{%insertion_mean_insertion_per_read_per_kb%\}",
-        f'{mean_insertion_per_read_per_kb:.4}',
+        f'{mean_insertion_per_read_per_kb:.4g}',
         new_html_string
     )
     new_html_string = re.sub(
@@ -227,8 +227,8 @@ def html_add_deletion_table(html_string, deletion_table,
             '<th scope="row">{}</th>'.format(row['label']),
             '<td>{}</td>'.format(row['total_count']),
             '<td>{}</td>'.format(row['total_length']),
-            '<td>{:.4}</td>'.format(float(row['mean_length'])),
-            '<td>{:.4}</td>'.format(float(row['median_length']))
+            '<td>{:.4g}</td>'.format(float(row['mean_length'])),
+            '<td>{:.4g}</td>'.format(float(row['median_length']))
         ]
         if row['label'] == "Total":
             rowstring_list.append(
@@ -258,17 +258,17 @@ def html_add_deletion_table(html_string, deletion_table,
     )
     new_html_string = re.sub(
         r"\{%deletion_mean_length%\}",
-        f'{mean_deletion_length:.4}',
+        f'{mean_deletion_length:.4g}',
         new_html_string
     )
     new_html_string = re.sub(
         r"\{%deletion_median_length%\}",
-        f'{median_deletion_length:.4}',
+        f'{median_deletion_length:.4g}',
         new_html_string
     )
     new_html_string = re.sub(
         r"\{%deletion_mean_deletion_per_read_per_kb%\}",
-        f'{mean_deletion_per_read_per_kb:.4}',
+        f'{mean_deletion_per_read_per_kb:.4g}',
         new_html_string
     )
     new_html_string = re.sub(
@@ -303,13 +303,13 @@ def html_add_splice_table(html_string, splice_table,
         tmprow_list = [
             f'<th scope="row">{row["label"]}</th>',
             f'<td>{gtag}</td>',
-            f'<td>{gtagp:.4}</td>',
+            f'<td>{gtagp:.4g}</td>',
             f'<td>{gcag}</td>',
-            f'<td>{gcagp:.4}</td>',
+            f'<td>{gcagp:.4g}</td>',
             f'<td>{atac}</td>',
-            f'<td>{atacp:.4}</td>',
+            f'<td>{atacp:.4g}</td>',
             f'<td>{other}</td>',
-            f'<td>{otherp:.4}</td>'
+            f'<td>{otherp:.4g}</td>'
         ]
         if row['label'] == "Total":
             rowstring_list.append(
@@ -331,10 +331,10 @@ def html_add_splice_table(html_string, splice_table,
             )
 
     splice_list = [
-        f"<li>gt-ag: {total_gtag} ({total_gtagp:.4}%)</li>",
-        f"<li>gc-ag: {total_gcag} ({total_gcagp:.4}%)</li>",
-        f"<li>at-ac: {total_atac} ({total_atacp:.4}%)</li>",
-        f"<li>other: {total_other} ({total_otherp:.4}%)</li>"
+        f"<li>gt-ag: {total_gtag} ({total_gtagp:.4g}%)</li>",
+        f"<li>gc-ag: {total_gcag} ({total_gcagp:.4g}%)</li>",
+        f"<li>at-ac: {total_atac} ({total_atacp:.4g}%)</li>",
+        f"<li>other: {total_other} ({total_otherp:.4g}%)</li>"
     ]
     new_html_string = re.sub(
         r"\{%splice_type_list%\}",
@@ -351,7 +351,7 @@ def html_add_splice_table(html_string, splice_table,
     )
     new_html_string = re.sub(
         r"\{%intron_mean_intron_per_read%\}",
-        f'{mean_intron_per_read:.4}',
+        f'{mean_intron_per_read:.4g}',
         new_html_string
     )
     new_html_string = re.sub(
@@ -374,10 +374,10 @@ def html_add_mapping(html_string, mapping_table):
             '<td>{}</td>'.format(row['read_count']),
             '<td>{}</td>'.format(row['query_base']),
             '<td>{}</td>'.format(row['aligned_base']),
-            '<td>{:.4}</td>'.format(float(row['aligned_fraction_mean'])),
-            '<td>{:.4}</td>'.format(float(row['aligned_fraction_median'])),
-            '<td>{:.4}</td>'.format(float(row['mapq_mean'])),
-            '<td>{:.4}</td>'.format(float(row['mapq_median'])),
+            '<td>{:.4g}</td>'.format(float(row['aligned_fraction_mean'])),
+            '<td>{:.4g}</td>'.format(float(row['aligned_fraction_median'])),
+            '<td>{:.4g}</td>'.format(float(row['mapq_mean'])),
+            '<td>{:.4g}</td>'.format(float(row['mapq_median'])),
             '<td>{}</td>'.format(row['reads_aligned_fraction_lt_0.9']),
             '<td>{}</td>'.format(row['reads_fully_aligned'])
         ]
@@ -395,22 +395,22 @@ def html_add_mapping(html_string, mapping_table):
 
     new_html_string = re.sub(
         r"\{%mapping_aligned_fraction_mean%\}",
-        f'{total_aligned_fraction_mean:.4}',
+        f'{total_aligned_fraction_mean:.4g}',
         html_string
     )
     new_html_string = re.sub(
         r"\{%mapping_aligned_fraction_median%\}",
-        f'{total_aligned_fraction_median:.4}',
+        f'{total_aligned_fraction_median:.4g}',
         new_html_string
     )
     new_html_string = re.sub(
         r"\{%mapping_mapq_mean%\}",
-        f'{total_mapq_mean:.4}',
+        f'{total_mapq_mean:.4g}',
         new_html_string
     )
     new_html_string = re.sub(
         r"\{%mapping_mapq_median%\}",
-        f'{total_mapq_median:.4}',
+        f'{total_mapq_median:.4g}',
         new_html_string
     )
     new_html_string = re.sub(
