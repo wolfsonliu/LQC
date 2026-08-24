@@ -34,14 +34,15 @@ def test_plot_readstat_bar_returns_figure():
 
 def test_plot_readstat_bar_multi_contig_cycles_palette():
     rs = []
-    for i in range(5):
+    for i in range(9):
         r = ReadStat(f'chr{i}')
         r.add_read(200, insertion=2, deletion=4, mismatch=6, intron=8)
         rs.append(r)
     fig = plot_readstat_bar(rs, 'Read count')
     bars = fig.axes[0].patches
     colors = {p.get_facecolor() for p in bars}
-    assert len(colors) > 2
+    # 9 bars over an 8-color palette wrap back: exactly 8 distinct colors
+    assert len(colors) == 8
     plt.close('all')
 
 
@@ -53,4 +54,17 @@ def test_plot_indel_hist_length_readable():
     fig = plot_indel_hist_length(indels, width=5, height=4)
     ax = fig.axes[0]
     assert ax.get_yscale() == 'log'
+    heights = [p.get_height() for p in ax.patches]
+    assert len(heights) == 11
+    assert heights[0] == 1
+    assert heights[-1] == 1
+    assert sum(heights) == 2
+    plt.close('all')
+
+
+def test_plot_indel_hist_length_empty_indel_renders_blank():
+    indels = [Indel('chr1')]  # no indels -> empty lengths
+    fig = plot_indel_hist_length(indels, width=5, height=4)
+    ax = fig.axes[0]
+    assert len(ax.patches) == 0
     plt.close('all')
