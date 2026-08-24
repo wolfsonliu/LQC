@@ -113,6 +113,36 @@ def test_splice_all_table_preserves_full_matrix():
     assert total_row['tt-tt'] == 4
 
 
+def test_splice_table_other_bucket_and_percent():
+    s1 = Splice('chr1')
+    s1.add_splice_pair_count_dict({'gt-ag': 3, 'gc-ag': 1, 'tt-tt': 4})
+    s2 = Splice('chr2')
+    s2.add_splice_pair_count_dict({'gt-ag': 1})
+    total = s1 + s2
+    total.label = 'Total'
+
+    df = create_splice_table([s1, s2], total)
+    total_row = df[df['label'] == 'Total'].iloc[0]
+    assert total_row['gt-ag'] == 4
+    assert total_row['gc-ag'] == 1
+    assert total_row['at-ac'] == 0
+    assert total_row['other'] == 4
+    assert total_row['other_pct'] == pytest.approx(4 / 9 * 100)
+    assert str(df['other_pct'].dtype) == 'float64'
+
+
+def test_splice_all_table_fills_missing_pairs_with_zero():
+    s = Splice('chr1')
+    s.add_splice_pair_count_dict({'gt-ag': 3})
+    total = Splice('Total')
+    total.add_splice_pair_count_dict({'gt-ag': 3, 'gc-ag': 1})
+
+    df = create_splice_all_table([s], total)
+    assert list(df.columns) == ['label', 'gt-ag', 'gc-ag']
+    assert df[df['label'] == 'chr1'].iloc[0]['gc-ag'] == 0
+    assert df[df['label'] == 'Total'].iloc[0]['gc-ag'] == 1
+
+
 def test_mapping_table_columns_and_values():
     r1 = ReadStat('chr1')
     r1.add_read(200, insertion=2, deletion=4, mismatch=6, intron=8,

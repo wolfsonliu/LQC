@@ -57,6 +57,7 @@ def test_splice_html_table_with_no_introns_does_not_divide_by_zero():
     ]
     total_row = table.iloc[1]
     assert total_row['other_pct'] == 0.0
+    assert str(table['other_pct'].dtype) == 'float64'
     html = html_add_splice_table('<html>{%splice_table%}</html>', table, 0.0)
     assert '{%splice_table%}' not in html
 
