@@ -362,6 +362,65 @@ def html_add_splice_table(html_string, splice_table,
     return new_html_string
 
 
+def html_add_mapping(html_string, mapping_table):
+    rowstring_list = []
+    total_aligned_fraction_mean = 0.0
+    total_aligned_fraction_median = 0.0
+    total_mapq_mean = 0.0
+    total_mapq_median = 0.0
+    for _, row in mapping_table.iterrows():
+        tmprow_list = [
+            '<th scope="row">{}</th>'.format(row['label']),
+            '<td>{}</td>'.format(row['read_count']),
+            '<td>{}</td>'.format(row['query_base']),
+            '<td>{}</td>'.format(row['aligned_base']),
+            '<td>{:.4}</td>'.format(float(row['aligned_fraction_mean'])),
+            '<td>{:.4}</td>'.format(float(row['aligned_fraction_median'])),
+            '<td>{:.4}</td>'.format(float(row['mapq_mean'])),
+            '<td>{:.4}</td>'.format(float(row['mapq_median'])),
+            '<td>{}</td>'.format(row['reads_aligned_fraction_lt_0.9']),
+            '<td>{}</td>'.format(row['reads_fully_aligned'])
+        ]
+        if row['label'] == 'Total':
+            rowstring_list.append(
+                '<tr class="table-secondary">' +
+                '\n'.join(tmprow_list) + '</tr>'
+            )
+            total_aligned_fraction_mean = float(row['aligned_fraction_mean'])
+            total_aligned_fraction_median = float(row['aligned_fraction_median'])
+            total_mapq_mean = float(row['mapq_mean'])
+            total_mapq_median = float(row['mapq_median'])
+        else:
+            rowstring_list.append('<tr>' + '\n'.join(tmprow_list) + '</tr>')
+
+    new_html_string = re.sub(
+        r"\{%mapping_aligned_fraction_mean%\}",
+        f'{total_aligned_fraction_mean:.4}',
+        html_string
+    )
+    new_html_string = re.sub(
+        r"\{%mapping_aligned_fraction_median%\}",
+        f'{total_aligned_fraction_median:.4}',
+        new_html_string
+    )
+    new_html_string = re.sub(
+        r"\{%mapping_mapq_mean%\}",
+        f'{total_mapq_mean:.4}',
+        new_html_string
+    )
+    new_html_string = re.sub(
+        r"\{%mapping_mapq_median%\}",
+        f'{total_mapq_median:.4}',
+        new_html_string
+    )
+    new_html_string = re.sub(
+        r"\{%mapping_table%\}",
+        '\n'.join(rowstring_list),
+        new_html_string
+    )
+    return new_html_string
+
+
 ########################################
 
 

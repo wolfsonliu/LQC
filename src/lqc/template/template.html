@@ -34,6 +34,11 @@
               </div>
             </li>
             <li class="nav-item text-center">
+              <div class="text-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMapping" aria-expanded="false" aria-controls="collapseMapping" data-bs-parent="#toggleGroup">
+                <p class="fs-5 fw-bold">Mapping</p>
+              </div>
+            </li>
+            <li class="nav-item text-center">
               <div class="text-light" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInsertion" aria-expanded="false" aria-controls="collapseInsertion" data-bs-parent="#toggleGroup">
                 <p class="fs-5 fw-bold">Insertion</p>
               </div>
@@ -260,6 +265,101 @@
                     </thead>
                     <tbody>
                       {%readstat_table%}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          <div class="accordion-collapse collapse p-3" id="collapseMapping" data-bs-parent="#toggleGroup">
+            <h1 id="h_mapping">Mapping</h1>
+            <div class="d-flex flex-column gap-3">
+              <div class="card mb-3">
+                <div class="row g-0">
+                  <div class="col-md-5">
+                    <div class="card-body">
+                      <h3 class="card-title">Mapping quality</h3>
+                      <p class="card-text">The mean mapping quality is
+                      {%mapping_mapq_mean%} and the median is
+                      {%mapping_mapq_median%}.</p>
+                    </div>
+                  </div>
+                  <div class="col-md-7">
+                    <img class="card-img" src="fig/mapping_hist_mapq.Total.png"/>
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">Mapping quality by contig</h3>
+                </div>
+                <img class="card-img-bottom" src="fig/mapping_hist_mapq.png" />
+              </div>
+              <div class="card mb-3">
+                <div class="row g-0">
+                  <div class="col-md-5">
+                    <div class="card-body">
+                      <h3 class="card-title">Aligned fraction</h3>
+                      <p class="card-text">The fraction of each read that is
+                      aligned (aligned length / read length). Mean
+                      {%mapping_aligned_fraction_mean%}, median
+                      {%mapping_aligned_fraction_median%}.</p>
+                    </div>
+                  </div>
+                  <div class="col-md-7">
+                    <img class="card-img" src="fig/mapping_hist_aligned_fraction.Total.png"/>
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">Aligned fraction by contig</h3>
+                </div>
+                <img class="card-img-bottom" src="fig/mapping_hist_aligned_fraction.png" />
+              </div>
+              <div class="card mb-3">
+                <div class="row g-0">
+                  <div class="col-md-5">
+                    <div class="card-body">
+                      <h3 class="card-title">Aligned vs query length</h3>
+                      <p class="card-text">Each read's aligned query length
+                      against its full query length, with the y=x fully-aligned
+                      reference line.</p>
+                    </div>
+                  </div>
+                  <div class="col-md-7">
+                    <img class="card-img" src="fig/mapping_scatter_aligned_vs_query.Total.png"/>
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-body">
+                  <h3 class="card-title">Aligned vs query length by contig</h3>
+                </div>
+                <img class="card-img-bottom" src="fig/mapping_scatter_aligned_vs_query.png" />
+              </div>
+              <div class="card">
+                <div class="card-header">Statistic Summary</div>
+                <div class="card-body">
+                  <table class="table table-striped text-center">
+                    <thead>
+                      <tr>
+                        <th scope="col">Contig</th>
+                        <th scope="col">Read count</th>
+                        <th scope="col">Query base</th>
+                        <th scope="col">Aligned base</th>
+                        <th scope="col">Aligned fraction mean</th>
+                        <th scope="col">Aligned fraction median</th>
+                        <th scope="col">MAPQ mean</th>
+                        <th scope="col">MAPQ median</th>
+                        <th scope="col">Reads &lt;0.9 aligned</th>
+                        <th scope="col">Fully aligned</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {%mapping_table%}
                     </tbody>
                   </table>
                 </div>
