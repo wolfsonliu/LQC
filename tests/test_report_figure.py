@@ -10,6 +10,9 @@ from lqc.report_figure import (
     determine_figure_size,
     get_facet_row_col,
     plot_indel_hist_length,
+    plot_mapping_aligned_fraction_hist,
+    plot_mapping_aligned_vs_query,
+    plot_mapping_mapq_hist,
     plot_readstat_bar,
 )
 
@@ -67,4 +70,29 @@ def test_plot_indel_hist_length_empty_indel_renders_blank():
     fig = plot_indel_hist_length(indels, width=5, height=4)
     ax = fig.axes[0]
     assert len(ax.patches) == 0
+    plt.close('all')
+
+
+def _one_mapped_readstat():
+    r = ReadStat('chr1')
+    r.add_read(200, insertion=2, deletion=4, mismatch=6, intron=8,
+               mapping_quality=60, aligned_length=180)
+    return r
+
+
+def test_plot_mapping_mapq_hist_returns_figure():
+    fig = plot_mapping_mapq_hist([_one_mapped_readstat()])
+    assert isinstance(fig, Figure)
+    plt.close('all')
+
+
+def test_plot_mapping_aligned_fraction_hist_returns_figure():
+    fig = plot_mapping_aligned_fraction_hist([_one_mapped_readstat()])
+    assert isinstance(fig, Figure)
+    plt.close('all')
+
+
+def test_plot_mapping_aligned_vs_query_returns_figure():
+    fig = plot_mapping_aligned_vs_query([_one_mapped_readstat()])
+    assert isinstance(fig, Figure)
     plt.close('all')

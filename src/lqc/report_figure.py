@@ -645,6 +645,133 @@ def plot_indel_hist_location(indel_list,
     return fig
 
 
+def plot_mapping_mapq_hist(readstat_list,
+                           width = None,
+                           height = None):
+    row, col = get_facet_row_col(len(readstat_list))
+    if width is None and height is None:
+        width, height = determine_figure_size(
+            row, col,
+            base_width = 3, base_height = 2
+        )
+        width = max(width, 5)
+        height = max(height, 5)
+    else:
+        pass
+    fig, _ = plt.subplots(row, col, figsize = (width, height))
+    for ai in range(row * col):
+        if ai in list(range(len(readstat_list))):
+            qualities = readstat_list[ai].get_mapping_qualities()
+            maxq = max(qualities) if qualities else 60
+            bins = list(range(0, max(maxq, 60) + 2))
+            fig.axes[ai].hist(
+                qualities,
+                bins = bins,
+                color = magentas[0],
+                label = readstat_list[ai].label
+            )
+            fig.axes[ai].set_title(readstat_list[ai].label)
+            xlimits = fig.axes[ai].get_xlim()
+            ylimits = fig.axes[ai].get_ylim()
+            fig.axes[ai].text(
+                xlimits[1] * 0.98,
+                ylimits[1] * 0.98,
+                "Median:\n{}".format(readstat_list[ai].get_median_mapping_quality()),
+                ha = "right", va = "top"
+            )
+        else:
+            fig.axes[ai].set_frame_on(False)
+            fig.axes[ai].set_axis_off()
+    fig.supxlabel("Mapping quality")
+    fig.supylabel("Read count")
+    plt.tight_layout()
+    return fig
+
+
+def plot_mapping_aligned_fraction_hist(readstat_list,
+                                       width = None,
+                                       height = None):
+    row, col = get_facet_row_col(len(readstat_list))
+    if width is None and height is None:
+        width, height = determine_figure_size(
+            row, col,
+            base_width = 3, base_height = 2
+        )
+        width = max(width, 5)
+        height = max(height, 5)
+    else:
+        pass
+    fig, _ = plt.subplots(row, col, figsize = (width, height))
+    for ai in range(row * col):
+        if ai in list(range(len(readstat_list))):
+            fractions = readstat_list[ai].get_aligned_fractions()
+            fig.axes[ai].hist(
+                fractions,
+                bins = 50,
+                range = (0, 1),
+                color = magentas[0],
+                label = readstat_list[ai].label
+            )
+            fig.axes[ai].set_title(readstat_list[ai].label)
+            xlimits = fig.axes[ai].get_xlim()
+            ylimits = fig.axes[ai].get_ylim()
+            fig.axes[ai].text(
+                xlimits[1] * 0.98,
+                ylimits[1] * 0.98,
+                "Median:\n{:.4}".format(
+                    readstat_list[ai].get_median_aligned_fraction()
+                ),
+                ha = "right", va = "top"
+            )
+        else:
+            fig.axes[ai].set_frame_on(False)
+            fig.axes[ai].set_axis_off()
+    fig.supxlabel("Aligned fraction")
+    fig.supylabel("Read count")
+    plt.tight_layout()
+    return fig
+
+
+def plot_mapping_aligned_vs_query(readstat_list,
+                                  width = None,
+                                  height = None):
+    row, col = get_facet_row_col(len(readstat_list))
+    if width is None and height is None:
+        width, height = determine_figure_size(
+            row, col,
+            base_width = 3, base_height = 3
+        )
+        width = max(width, 5)
+        height = max(height, 5)
+    else:
+        pass
+    fig, _ = plt.subplots(row, col, figsize = (width, height))
+    for ai in range(row * col):
+        if ai in list(range(len(readstat_list))):
+            qlen = readstat_list[ai].get_lengths()
+            alen = readstat_list[ai].get_aligned_lengths()
+            if qlen:
+                fig.axes[ai].hexbin(
+                    qlen, alen,
+                    gridsize = 40,
+                    bins = 'log',
+                    cmap = 'magma_r'
+                )
+                high = max(qlen)
+                fig.axes[ai].plot(
+                    [0, high], [0, high],
+                    color = '#7a0177', linestyle = ':'
+                )
+            fig.axes[ai].set_title(readstat_list[ai].label)
+        else:
+            fig.axes[ai].set_frame_on(False)
+            fig.axes[ai].set_axis_off()
+    fig.supxlabel("Query length")
+    fig.supylabel("Aligned length")
+    plt.tight_layout()
+    return fig
+
+
 def plot_mismatch_type_count(mismatch_list,
                              width = None,
                              height = None):
