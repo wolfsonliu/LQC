@@ -71,6 +71,10 @@ def create_mapping_table(readstat_list, readstat_sum):
     return pd.DataFrame(rows, columns = colnames)
 
 
+MISMATCH_TYPES_IN_ORDER = ['ac', 'ag', 'at', 'ca', 'cg', 'ct',
+                           'ga', 'gc', 'gt', 'ta', 'tc', 'tg']
+
+
 def create_mismatch_normalized_read_location_table(mismatch_list,
                                                    mismatch_sum):
     cuts = [0, 0.1, 0.2, 0.3, 0.4, 0.5,
@@ -80,7 +84,10 @@ def create_mismatch_normalized_read_location_table(mismatch_list,
         for i in range(len(mismatch_list))
     ]
     sum_type_bin_count = mismatch_sum.get_location_bin_count_by_type(cuts = cuts)
-    mistypes = list(sum_type_bin_count.keys())
+    mistypes = [
+        t for t in MISMATCH_TYPES_IN_ORDER
+        if t in sum_type_bin_count
+    ]
     if not mistypes:
         return pd.DataFrame(columns = ['label', 'bin'])
     bins = list(
@@ -104,6 +111,8 @@ def create_mismatch_normalized_read_location_table(mismatch_list,
         data_list,
         columns = ['label', 'bin', *mistypes]
     )
+    mistable = mistable.copy()
+    mistable['bin_total'] = mistable[mistypes].sum(axis = 1)
     return mistable
 
 

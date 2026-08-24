@@ -1,10 +1,11 @@
 import pytest
 
-from lqc import Indel, Splice
+from lqc import Indel, Mismatch, Splice
 from lqc.readstat import ReadStat
 from lqc.report_table import (
     create_indel_summary_table,
     create_mapping_table,
+    create_mismatch_normalized_read_location_table,
     create_readstat_table,
     create_splice_all_table,
     create_splice_table,
@@ -170,3 +171,20 @@ def test_mapping_table_columns_and_values():
     assert t['mapq_mean'] == pytest.approx(45)
     assert t['reads_aligned_fraction_lt_0.9'] == 0
     assert t['reads_fully_aligned'] == 1
+
+
+def test_mismatch_table_fixed_type_order_and_bin_total():
+    a = Mismatch('chr1')
+    a.add_mismatch('ct', 0.05)
+    a.add_mismatch('ag', 0.05)
+    total = Mismatch('Total')
+    total.add_mismatch('ct', 0.05)
+    total.add_mismatch('ag', 0.05)
+
+    df = create_mismatch_normalized_read_location_table([a], total)
+    # fixed canonical order, present types only: ag before ct
+    assert list(df.columns) == ['label', 'bin', 'ag', 'ct', 'bin_total']
+    row = df[df['label'] == 'chr1'].iloc[0]
+    assert row['ag'] == 1
+    assert row['ct'] == 1
+    assert row['bin_total'] == 2
