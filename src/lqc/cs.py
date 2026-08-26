@@ -408,14 +408,15 @@ class CS:
         read_len = read_pos
         strand = self._strand
         normalized = []
-        for read_low, read_high, mark, value in raw_coords:
-            if strand == '+':
-                low_n = read_low / read_len
-                high_n = read_high / read_len
-            else:
-                low_n = (read_len - read_high) / read_len
-                high_n = (read_len - read_low) / read_len
-            normalized.append([low_n, high_n, mark, value])
+        if read_len > 0:
+            for read_low, read_high, mark, value in raw_coords:
+                if strand == '+':
+                    low_n = read_low / read_len
+                    high_n = read_high / read_len
+                else:
+                    low_n = (read_len - read_high) / read_len
+                    high_n = (read_len - read_low) / read_len
+                normalized.append([low_n, high_n, mark, value])
         return (read_len,
                 intron_count,
                 splice_pair_count,

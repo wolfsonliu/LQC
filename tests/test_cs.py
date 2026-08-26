@@ -267,3 +267,14 @@ def test_element_count():
     assert cs_obj.get_insertion_length() == 16
     assert cs_obj.get_deletion_count() == 0
     assert cs_obj.get_deletion_length() == 0
+
+
+def test_zero_read_length_tag_does_not_crash():
+    cs_obj = CS.from_cs_tag_list(
+        [[0, 3, '-', 'ccc']], contig='chr1', start_pos=0, strand='+'
+    )
+    assert cs_obj.get_read_length() == 0
+    assert cs_obj.get_deletion_count() == 1
+    assert cs_obj.get_deletion_length() == 3
+    # no read-length contribution -> no normalized locations, but no crash
+    assert cs_obj.get_indel_mismatches(coordinate='normalized_read') == ([], [], [])
