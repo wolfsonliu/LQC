@@ -4,6 +4,7 @@ from lqc.stat import (
     reduce_blocks_to_contigs,
     stat_element_from_bam_by_contig,
     stat_records,
+    stat_region,
 )
 from lqc.utils import check_bam_with_cs_or_md
 
@@ -196,3 +197,31 @@ def test_plan_tasks_splits_by_target_reads(cs_bam):
         (0, 'chr1', 0, 500000),
         (1, 'chr1', 500000, 1000000),
     ]
+
+
+def test_stat_region_matches_serial(cs_bam):
+    # Two windows over chr1 (both reads fall in the first window; the second
+    # is empty). The reduced result must equal the serial single-contig path.
+    tasks = plan_tasks(cs_bam, ['chr1'], target_reads=1)
+    blocks = [
+        stat_region(task, cs_bam, None, 'cs')
+        for task in tasks
+    ]
+    reduced = reduce_blocks_to_contigs(blocks, ['chr1'])
+    serial = stat_element_from_bam_by_contig(cs_bam, None, 'chr1', 'cs')
+    _assert_stat_tuples_equal(reduced[0], serial)
+    assert reduced[0][0].get_read_count() == 2
+
+
+def test_stat_region_assigns_boundary_read_once(cs_bam_boundary):
+    tasks = plan_tasks(cs_bam_boundary, ['chr1'], target_reads=1)
+    blocks = [
+        stat_region(task, cs_bam_boundary, None, 'cs')
+        for task in tasks
+    ]
+    # 'span' (reference_start=499990, 20M) crosses the 500000 boundary; it must
+    # be counted in the first window and skipped in the second.
+    assert [b.readstat.get_read_count() for b in blocks] == [1, 1]
+    reduced = reduce_blocks_to_contigs(blocks, ['chr1'])
+    serial = stat_element_from_bam_by_contig(cs_bam_boundary, None, 'chr1', 'cs')
+    _assert_stat_tuples_equal(reduced[0], serial)

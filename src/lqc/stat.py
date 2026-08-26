@@ -243,6 +243,29 @@ def stat_records(task, genome_file, method, cs_dir=None):
     )
 
 
+def stat_region(task, bam_file, genome_file, method, cs_dir=None):
+    """Process one ``(index, contig, start, end)`` coordinate-window task.
+
+    Opens the BAM itself, fetches the window, and assigns each read to the
+    window containing its ``reference_start`` (a read that only overlaps the
+    window's left edge belongs to the previous window and is skipped). The
+    selected records are then accumulated by ``stat_records``.
+    """
+    index, contig, start, end = task
+    file_type = bam_or_sam(bam_file)
+    file_read = "rb" if file_type == "BAM" else "r"
+    bam = pysam.AlignmentFile(bam_file, file_read)
+    records = []
+    for read in bam.fetch(contig, start, end):
+        if read.reference_start < start:
+            continue
+        records.append(record_from_read(read, contig, method))
+    bam.close()
+    return stat_records(
+        (index, contig, records), genome_file, method, cs_dir
+    )
+
+
 def reduce_blocks_to_contigs(blocks, contigs):
     """Fold ``StatBlock`` chunks into per-contig ``(readstat, insertion,
     deletion, mismatch, splice)`` tuples.
