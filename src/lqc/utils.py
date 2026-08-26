@@ -12,7 +12,7 @@ def convert_complement(string):
 
 
 def convert_reverse_complement(string):
-    return convert_complement(string)[::-1]
+    return string.translate(_COMPLEMENT_TABLE)[::-1]
 
 
 def check_cs_md_tag(tag_list):
