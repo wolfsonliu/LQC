@@ -38,3 +38,16 @@ def test_add_two_splices():
     b.add_splice_pair('gc-ag')
     c = a + b
     assert c.get_splice_pair_count_dict() == {'gt-ag': 2, 'gc-ag': 1}
+
+
+def test_add_counts_accumulate_without_aliasing():
+    a = Splice('a')
+    b = Splice('b')
+    a.add_splice_pair('gt-ag')
+    b.add_splice_pair('ct-ac')
+    b.add_splice_pair('gt-ag')
+    total = a + b
+    assert total.get_splice_pair_count_dict() == {'gt-ag': 2, 'ct-ac': 1}
+    # the operands are untouched (no aliasing)
+    assert a.get_splice_pair_count_dict() == {'gt-ag': 1}
+    assert b.get_splice_pair_count_dict() == {'ct-ac': 1, 'gt-ag': 1}

@@ -1,5 +1,4 @@
 from collections import Counter
-from copy import deepcopy
 
 from lqc.utils import convert_reverse_complement
 
@@ -81,7 +80,7 @@ class Splice:
     def __add__(self, other):
         assert isinstance(other, type(self)),\
             'wrong object to add'
-        new_dict = deepcopy(
+        new_dict = (
             self.get_splice_pair_count_dict() +
             other.get_splice_pair_count_dict()
         )
