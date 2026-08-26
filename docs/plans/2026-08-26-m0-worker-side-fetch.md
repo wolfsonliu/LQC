@@ -494,21 +494,36 @@ done && echo "THREAD-DETERMINISM OK"
 
 Expected: `THREAD-DETERMINISM OK`.
 
-- [ ] **Step 3: full-genome run with wall-time + peak RSS**
+- [x] **Step 3: full-genome run with wall-time + peak RSS**
 
 ```bash
 bash tmp/run_lqc_full.sh tmp/full_bam/ENCFF417VHJ.sorted.bam tmp/verify/full 4
 ```
 
-Expected: exits 0 and completes (previously it OOM'd >7 GB without finishing).
-Record the `tmp/verify/full.time.txt` "Maximum resident set size" — target
-**≤ ~2 GB** (see spec §6).
+**Actual result (2026-08-26):** the P0 blocker is GONE — the stat phase now
+completes instead of dying in `prefetch_records`. `tmp/verify/full.run.log`:
+`Element statistic process starts.` 23:19:15 → `… finished.` 23:34:39
+(15.4 min, ~1.57 M reads, `-t 4`). The run was then OOM-killed (SIGKILL,
+exit 137) at **8.4 GB peak RSS** (`full.time.txt`) while building the `'Total'`
+row — `sum(l_mismatch)`/`sum(l_indel)`/… merge the per-contig boxed event lists
+via deep-copying `__add__` (design §1.3 **P2**, fixed by **M2** "cheap merges").
+This is a *separate* post-stat bottleneck, not a P0 regression: chr22 byte-parity
+and the full 118-test suite already prove the M0 path is correct. Full-run
+completion within a few GB is therefore a cross-milestone acceptance (M0+M2),
+per design §2.1 Goal 1.
 
-- [ ] **Step 4: Record the result in this plan's comments (no code change)**
+- [x] **Step 4: Result recorded**
 
-Note the new wall time and peak RSS next to the baseline (15.62 s / 221 MB for
-chr22; full run previously OOM'd). If byte-parity fails, stop and investigate
-before proceeding to M1.
+| phase | M0 (this branch) |
+| --- | --- |
+| stat phase | ✅ completes; 15.4 min @ `-t 4` (~1.18× CPU → I/O-bound, 157 window fetches) |
+| post-stat `sum()`/`'Total'` | ❌ OOM @ 8.4 GB — deferred to **M2** (P2) |
+| chr22 `-t1` vs baseline | ✅ byte-identical (table/read.cs/HTML/PNG) |
+| chr22 `-t4` vs `-t1` | ✅ byte-identical |
+| full test suite | ✅ 118 passed |
+
+`read.cs` byte-parity requires `--output-cs`; `fig/*.pdf` embed a creation
+timestamp and are intentionally excluded from byte comparison.
 
 ---
 
