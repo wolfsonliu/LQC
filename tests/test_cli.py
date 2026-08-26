@@ -7,7 +7,7 @@ def test_version_flag(capsys):
     with pytest.raises(SystemExit) as excinfo:
         main(['--version'])
     assert excinfo.value.code == 0
-    assert capsys.readouterr().out.strip() == 'lqc 0.0.6'
+    assert capsys.readouterr().out.strip() == 'lqc 0.0.7'
 
 
 def test_missing_bam_file_exits_with_error(capsys):

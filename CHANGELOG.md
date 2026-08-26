@@ -5,6 +5,22 @@ All notable changes to LQC are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and LQC adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.7] - 2026-08-26
+
+### Added
+- Mapping metrics: per-read mapping quality and aligned length are now captured, a mapping summary table is emitted, and a dedicated "Mapping" section (MAPQ, aligned-fraction, and aligned-vs-query histograms) is embedded in the HTML report.
+- A `splice_all` table alongside the four-category splice table, including an explicit "other" bucket.
+- Aligned-base normalization rates in the read-stat table.
+
+### Changed
+- TSV float columns are rounded to 4 significant digits, matching the HTML report's formatting.
+- The indel-length histogram uses a log scale and bar plots share a common color palette; the mismatch-type column order now ends with a per-bin total.
+- The splice table is collapsed to four categories.
+
+### Fixed
+- MAPQ bins are capped at 60 and the mapping histograms guard against empty reads.
+- Splice-table per-contig fallback when references are omitted.
+
 ## [0.0.6] - 2026-08-23
 
 ### Added
