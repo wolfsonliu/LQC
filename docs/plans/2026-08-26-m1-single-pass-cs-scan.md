@@ -378,39 +378,40 @@ git commit -m "perf: fuse cs counts + normalized indel/mismatch locations, cache
 
 **Files:** none (verification only).
 
-- [ ] **Step 1: Full test suite**
+- [x] **Step 1: Full test suite** — `.venv/bin/python -m pytest -q` → **133 passed** (118 M0 + 11 tokenizer parity + 3 fused-location + 1 zero-read-length guard). Ruff clean.
 
-Run: `.venv/bin/python -m pytest -q`
-Expected: `118 passed` (no new tests were added to the running total except the parametrized parity cases; if the count differs, confirm every test passes and note the new total).
+- [x] **Step 2: chr22 byte-parity vs baseline** — ran
+  `.venv/bin/lqc -b tmp/full_bam/ENCFF417VHJ.sorted.bam -c chr22 -o tmp/m1/chr22 -t 1 --output-cs`
+  (the single-contig flag is `-c/--contig`). Compared against `tmp/verify/chr22`:
+  all 7 `table/*.txt`, `read.cs`, `LQC_report.html`, and all 61 `fig/*.png` are
+  **byte-identical** (`cmp` OK). Only `fig/*.pdf` diffs (creation timestamp), as
+  expected and excluded.
 
-- [ ] **Step 2: chr22 byte-parity vs baseline**
+- [x] **Step 3: chr22 stat-phase timing (CPU win)** — `tmp/profile_lqc.py` on chr22:
+  `stat_element_from_bam_by_contig` = **11.65 s cProfiled** (43,339 reads), vs the
+  15.62 s M0 baseline → **≈1.34× cProfiled**. CLI `-t1` stat phase = **9.8 s** vs
+  ~16.7 s M0 → **≈1.7× wall**.
 
-Run:
-```bash
-rm -rf tmp/m1/chr22 && mkdir -p tmp/m1/chr22
-.venv/bin/lqc -b tmp/full_bam/ENCFF417VHJ.sorted.bam --subsample-contigs chr22 -o tmp/m1/chr22 -t 1 --output-cs
-```
-(If the CLI flag for a single contig is `--contig chr22` or similar, use the exact flag from `lqc --help`; the goal is a `-t 1` chr22 run producing `table/`, `fig/`, `LQC_report.html`, `read.cs`.)
+- [x] **Step 4: Result recorded**
 
-Then compare the deterministic artifacts against `tmp/verify/chr22` (the accepted M0 baseline):
-```bash
-for f in table/*.txt read.cs LQC_report.html; do
-  cmp tmp/m1/chr22/$f tmp/verify/chr22/$f && echo "OK $f" || echo "DIFF $f"
-done
-for f in fig/*.png; do
-  cmp tmp/m1/chr22/$f tmp/verify/chr22/$f && echo "OK $f" || echo "DIFF $f"
-done
-```
-Expected: every line `OK`. `fig/*.pdf` embeds a creation timestamp and is excluded.
+| metric | M0 baseline | M1 (this branch) |
+| --- | --- | --- |
+| `get_indel_mismatches` (the old 35% hotspot) | 5.5 s | **0.39 s** (≈14×) |
+| counts + normalized coords | `_compute_counts` 2.0 s + location 5.5 s | fused **3.1 s** total |
+| `cs_to_list` | ~4.3 s (regex) | ~4.4 s (manual) — **flat** |
+| chr22 stat, cProfiled | 15.62 s | 11.65 s (≈1.34×) |
+| chr22 stat, CLI `-t1` wall | ~16.7 s | 9.8 s (≈1.7×) |
+| full test suite | 118 | 133 passed |
+| chr22 byte-parity | — | table/read.cs/HTML/PNG all `OK` |
 
-- [ ] **Step 3: chr22 stat-phase timing (CPU win)**
-
-Run: `.venv/bin/python tmp/profile_lqc.py` (or the equivalent single-contig `stat_element_from_bam_by_contig` profile) on chr22.
-Expected: per-read wall time drops (the ~35% location recompute + ~27% regex tokenization are removed). Record the before/after numbers in a comment here.
-
-- [ ] **Step 4: Record results in this plan (no code change)**
-
-Note the byte-parity outcome and the new timing next to the M0 baseline (chr22 stat ~16.7 s single-threaded). If byte-parity fails, STOP and investigate before proceeding to M2.
+**Honest finding:** the big win is the fused count+location pass (the old 35%
+`get_indel_mismatches` recompute is ~gone). The `cs_to_list` rewrite did **not**
+speed up — a pure-Python per-char scan costs about the same as C-backed regex
+`re.sub`/`split` here, so `cs_to_list` remains the top function (~4.4 s cProfiled).
+A future single-regex `re.findall(r'([:*+~-])([0-9a-z]*)', s)` tokenizer (one
+C-level pass) is a candidate follow-up if the ~2× CPU goal (§6, now at ~1.34×
+cProfiled / ~1.7× wall) needs to be closed further. Not blocking; the M2 memory
+work is the next milestone's focus.
 
 ---
 
