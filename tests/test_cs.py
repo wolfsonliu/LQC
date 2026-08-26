@@ -1,3 +1,5 @@
+import re
+
 import pytest
 
 from lqc import CS
@@ -52,6 +54,68 @@ def test_convert_cigar_md_to_cs_list(cigar, md, read_seq, ref_seq, expected):
 # ---- CS object: counts, positions, mutators ----
 
 CS_STRING = ':10*ag:5+tt:3~gt100ag:4-ccc:2'
+
+
+# NOTE: CS_STRING is already defined at module scope; do NOT redefine it here.
+
+
+def _ref_cs_to_list(cs_string):
+    """Reference copy of the pre-M1 regex tokenizer, for byte-parity only."""
+    pos = 0
+    cslenfuncs = {
+        ':': int,
+        '*': lambda x: 1,
+        '+': lambda x: 0,
+        '-': len,
+        '~': lambda x: int(re.sub('[a-z]', '', x)),
+    }
+    cs_mark = re.sub('[0-9a-z]', ' ', cs_string).strip().split()
+    cs_value = re.sub(r'[:*\-+~]', ' ', cs_string).strip().split()
+    cslist = []
+    for a, b in zip(cs_mark, cs_value, strict=True):
+        low = pos
+        pos += cslenfuncs[a](b)
+        high = pos
+        cslist.append([low, high, a, b])
+    return cslist
+
+
+def test_cs_to_list_all_marks():
+    assert cs_to_list(CS_STRING) == [
+        [0, 10, ':', '10'],
+        [10, 11, '*', 'ag'],
+        [11, 16, ':', '5'],
+        [16, 16, '+', 'tt'],
+        [16, 19, ':', '3'],
+        [19, 119, '~', 'gt100ag'],
+        [119, 123, ':', '4'],
+        [123, 126, '-', 'ccc'],
+        [126, 128, ':', '2'],
+    ]
+
+
+PARITY_STRINGS = [
+    ':29*ga:19',
+    CS_STRING,
+    '*ag',
+    ':10',
+    '+atcg',
+    '-c',
+    '~gt100ag',
+    ':4~ct636ac:5',
+    ':29*ga:19*at:61~ct140ac:45*gc',
+]
+
+
+@pytest.mark.parametrize('cs_string', PARITY_STRINGS)
+def test_cs_to_list_matches_reference(cs_string):
+    assert cs_to_list(cs_string) == _ref_cs_to_list(cs_string)
+
+
+def test_cs_to_list_matches_reference_on_fixtures(cs_test_data_records):
+    for record in cs_test_data_records:
+        cs_string = record[2]
+        assert cs_to_list(cs_string) == _ref_cs_to_list(cs_string), record[0]
 
 
 @pytest.fixture()

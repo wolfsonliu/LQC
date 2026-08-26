@@ -8,30 +8,37 @@ from collections import Counter
 def cs_to_list(cs_string):
     '''convert the cs_strings into a list with values and
        genomic positions (0-based) [low, high, cs tag, cs value].'''
-    # 0 based
-    pos = 0
-    # length functions dictionary
-    cslenfuncs = {
-        ':': int,
-        '*': lambda x: 1,
-        '+': lambda x: 0,
-        '-': len,
-        '~': lambda x: int(
-            re.sub('[a-z]', '', x)
-        )
-    }
-    cs_mark = re.sub(
-        '[0-9a-z]', ' ', cs_string
-    ).strip().split()
-    cs_value = re.sub(
-        r'[:*\-+~]', ' ', cs_string
-    ).strip().split()
+    # Manual single-pass scan. Marks {:,*,+,-,~} are disjoint from the value
+    # character set ([0-9a-z]), so read one mark then one maximal value run.
     cslist = []
-    for a, b in zip(cs_mark, cs_value, strict = True):
+    pos = 0
+    i = 0
+    n = len(cs_string)
+    while i < n:
+        mark = cs_string[i]
+        i += 1
+        j = i
+        while j < n and (
+            ('0' <= cs_string[j] <= '9') or ('a' <= cs_string[j] <= 'z')
+        ):
+            j += 1
+        value = cs_string[i:j]
+        i = j
         low = pos
-        pos += cslenfuncs[a](b)
-        high = pos
-        cslist.append([low, high, a, b])
+        if mark == ':':
+            pos += int(value)
+        elif mark == '*':
+            pos += 1
+        elif mark == '-':
+            pos += len(value)
+        elif mark == '~':
+            # intron reference length = the digit run (drop donor/acceptor letters)
+            pos += int(''.join(c for c in value if '0' <= c <= '9'))
+        elif mark == '+':
+            pass
+        else:
+            pass
+        cslist.append([low, pos, mark, value])
     return cslist
 
 
