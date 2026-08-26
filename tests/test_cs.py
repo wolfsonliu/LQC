@@ -165,6 +165,54 @@ def test_get_indel_mismatches_groups(cs_obj):
     assert mismatches[0][3] == 'ag'
 
 
+def test_indel_mismatch_normalized_eager_matches_lazy(cs_obj):
+    # cached attribute is in cs-tag order (for CS_STRING: *, +, -)
+    cached = cs_obj._indel_mismatch_normalized
+    assert [a[2] for a in cached] == ['*', '+', '-']
+    ins, dels, mism = cs_obj.get_indel_mismatches(coordinate='normalized_read')
+    # the grouped getter must still match the single-mark lazy getters
+    assert ins == cs_obj.get_insertions(coordinate='normalized_read')
+    assert dels == cs_obj.get_deletions(coordinate='normalized_read')
+    assert mism == cs_obj.get_mismatches(coordinate='normalized_read')
+    # regroup the cached items by mark; must reproduce the grouped getter exactly
+    by_mark = {'+': [], '-': [], '*': []}
+    for a in cached:
+        by_mark[a[2]].append(a)
+    assert by_mark['+'] == ins
+    assert by_mark['-'] == dels
+    assert by_mark['*'] == mism
+
+
+def test_get_indel_mismatches_reverse_strand_mirrors():
+    rev = CS.from_cs_tag_string(
+        CS_STRING, contig='chr1', start_pos=1000, strand='-'
+    )
+    ins, dels, mism = rev.get_indel_mismatches(coordinate='normalized_read')
+    # read_len == 27; *ag at read_low=10, read_high=11 -> mirror to (16,17)
+    assert len(mism) == 1
+    assert mism[0][0] == (27 - 11) / 27
+    assert mism[0][1] == (27 - 10) / 27
+    assert mism[0][2] == '*'
+    assert mism[0][3] == 'ag'
+    # +tt at read_low=16, read_high=18 -> mirror to (9,11)
+    assert len(ins) == 1
+    assert ins[0][0] == (27 - 18) / 27
+    assert ins[0][1] == (27 - 16) / 27
+    # -ccc at read_low=25, read_high=25 -> mirror to (2,2)
+    assert len(dels) == 1
+    assert dels[0][0] == (27 - 25) / 27
+    assert dels[0][1] == (27 - 25) / 27
+
+
+def test_indel_mismatch_other_coordinates_unchanged(cs_obj):
+    # non-normalized coordinates still go through the lazy path
+    ins_c, dels_c, mism_c = cs_obj.get_indel_mismatches(coordinate='contig')
+    assert [a[2] for a in ins_c] == ['+']
+    assert dels_c[0][2] == '-'
+    assert mism_c[0][2] == '*'
+    assert mism_c[0][0] == 1010  # start_pos 1000 + ref_low 10
+
+
 def test_intron_and_splice_counts(cs_obj):
     assert cs_obj.get_intron_count() == 1
     assert cs_obj.get_splice_pair_count() == {'gt-ag': 1}

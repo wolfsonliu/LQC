@@ -359,11 +359,14 @@ class CS:
          self._insertion_count,
          self._insertion_length,
          self._deletion_count,
-         self._deletion_length) = self._compute_counts()
+         self._deletion_length,
+         self._indel_mismatch_normalized) = \
+            self._compute_counts_and_indel_mismatch_locations()
 
-    def _compute_counts(self):
-        """Compute every precomputed metric in a single pass over the cs list."""
-        read_len = 0
+    def _compute_counts_and_indel_mismatch_locations(self):
+        """One pass over the cs list: precomputed metrics AND the normalized-read
+        coordinates of ``+``/``-``/``*`` elements (design spec §4.2)."""
+        read_pos = 0
         intron_count = 0
         splice_pair_count = Counter()
         splice_l_count = Counter()
@@ -374,9 +377,11 @@ class CS:
         insertion_length = 0
         deletion_count = 0
         deletion_length = 0
+        raw_coords = []   # (read_low, read_high, mark, value) for +,-,*
         for _, _, mark, value in self._cs:
+            read_low = read_pos
             if mark == ':':
-                read_len += int(value)
+                read_pos += int(value)
             elif mark == '~':
                 intron_count += 1
                 donor = value[:2]
@@ -385,20 +390,32 @@ class CS:
                 splice_l_count[donor] += 1
                 splice_r_count[acceptor] += 1
             elif mark == '+':
-                read_len += len(value)
+                read_pos += len(value)
                 insertion_count += 1
                 insertion_length += len(value)
+                raw_coords.append((read_low, read_pos, mark, value))
             elif mark == '*':
-                read_len += 1
+                read_pos += 1
                 mismatch_count += 1
-                mismatch_type_count[
-                    f'{value[0]}{value[1]}'
-                ] += 1
+                mismatch_type_count[f'{value[0]}{value[1]}'] += 1
+                raw_coords.append((read_low, read_pos, mark, value))
             elif mark == '-':
                 deletion_count += 1
                 deletion_length += len(value)
+                raw_coords.append((read_low, read_pos, mark, value))
             else:
                 pass
+        read_len = read_pos
+        strand = self._strand
+        normalized = []
+        for read_low, read_high, mark, value in raw_coords:
+            if strand == '+':
+                low_n = read_low / read_len
+                high_n = read_high / read_len
+            else:
+                low_n = (read_len - read_high) / read_len
+                high_n = (read_len - read_low) / read_len
+            normalized.append([low_n, high_n, mark, value])
         return (read_len,
                 intron_count,
                 splice_pair_count,
@@ -409,7 +426,8 @@ class CS:
                 insertion_count,
                 insertion_length,
                 deletion_count,
-                deletion_length)
+                deletion_length,
+                normalized)
 
     @classmethod
     def from_cs_tag_list(cls, cs_tag_list,
@@ -599,12 +617,17 @@ class CS:
         ]
 
     def get_indel_mismatches(self, coordinate='normalized_read'):
-        """Return (insertions, deletions, mismatches) in one pass over the
-        coordinate list, avoiding three separate full-list scans."""
+        """Return (insertions, deletions, mismatches) in one pass, avoiding
+        three separate full-list scans. ``normalized_read`` serves from the
+        ``__init__``-cached attribute (no recompute)."""
         insertions = []
         deletions = []
         mismatches = []
-        for a in self._get_coordinate_list(coordinate):
+        if coordinate == 'normalized_read':
+            source = self._indel_mismatch_normalized
+        else:
+            source = self._get_coordinate_list(coordinate)
+        for a in source:
             mark = a[2]
             if mark == '+':
                 insertions.append(a)
