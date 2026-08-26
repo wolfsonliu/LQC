@@ -53,7 +53,7 @@ from lqc import (
     plot_splice_type_count,
 )
 from lqc.formatting import FLOAT_FORMAT
-from lqc.stat import prefetch_records, reduce_blocks_to_contigs, stat_records
+from lqc.stat import plan_tasks, reduce_blocks_to_contigs, stat_region
 
 matplotlib.use('Agg')
 
@@ -77,14 +77,6 @@ def get_stat_list(result, stat_type):
     idx = stat_type_ids[stat_type]
 
     return [result[i][idx] for i in range(len(result))]
-
-
-def _chunk(records, n):
-    n = max(1, int(n))
-    if not records:
-        return []
-    size = (len(records) + n - 1) // n
-    return [records[i:i + size] for i in range(0, len(records), size)]
 
 
 def build_directories(dir_dict):
@@ -404,23 +396,16 @@ def main(argv = None) -> int:
                 len(omitted), ', '.join(sorted(omitted))
             )
 
-    # run jobs by chunked reads (data-parallel, independent of contig count)
+    # run jobs by balanced per-contig coordinate windows (worker-side fetch)
     message = 'Element statistic process starts.'
     logger.info(message)
-    per_contig = prefetch_records(
-        args['bam_file'], contigs, bam_type
-    )
-    tasks = []
-    for contig, records in per_contig:
-        if not records:
-            continue
-        for chunk in _chunk(records, args['thread']):
-            tasks.append((len(tasks), contig, chunk))
+    tasks = plan_tasks(args['bam_file'], contigs)
 
     with mp.Pool(args['thread']) as p:
         block_results = p.map(
             partial(
-                stat_records,
+                stat_region,
+                bam_file = args['bam_file'],
                 genome_file = args['genome_fasta'],
                 method = bam_type,
                 cs_dir = o_dirs['base'] if args['output_cs'] else None
