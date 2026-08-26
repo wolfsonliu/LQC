@@ -59,7 +59,9 @@ expire: if a shared schema/constants module is introduced.*
 figure, and one figure per contig (`.png` and `.pdf` for every file, via `savefig` in
 `src/lqc/cli.py`). Mapping-specific figures are `plot_mapping_mapq_hist` (MAPQ history),
 `plot_mapping_aligned_fraction_hist` (aligned-fraction histogram), and
-`plot_mapping_aligned_vs_query` (aligned-vs-query-length hexbin scatter). Feature names in
+`plot_mapping_aligned_vs_query` (aligned-vs-query-length hexbin scatter). `plot_indel_hist_length`
+(shared by insertion and deletion) bins one integer-width per observed length (1 through the
+max) on a log y-axis, so long tails are not collapsed into a single catch-all bar. Feature names in
 `plot_readstat_bar` must exactly match the strings listed in `src/lqc/cli.py` (`"Read count"`,
 `"Median read length"`, …). All figure code assumes the `Agg`
 backend. *why: filenames and facet titles are derived from these strings · when: adding a

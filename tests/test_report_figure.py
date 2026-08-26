@@ -58,10 +58,24 @@ def test_plot_indel_hist_length_readable():
     ax = fig.axes[0]
     assert ax.get_yscale() == 'log'
     heights = [p.get_height() for p in ax.patches]
-    assert len(heights) == 11
+    # one integer-width bin per length (1..1000), no catch-all tail bin
+    assert len(heights) == 1000
     assert heights[0] == 1
     assert heights[-1] == 1
     assert sum(heights) == 2
+    plt.close('all')
+
+
+def test_plot_indel_hist_length_one_bin_per_length():
+    indels = [Indel('chr1')]
+    for length in range(1, 21):
+        indels[0].add_indel('a' * length, 0.5)
+    fig = plot_indel_hist_length(indels, width=5, height=4)
+    ax = fig.axes[0]
+    heights = [p.get_height() for p in ax.patches]
+    # 20 distinct lengths -> 20 bins, each with exactly one count (no plateau)
+    assert len(heights) == 20
+    assert heights == [1] * 20
     plt.close('all')
 
 

@@ -538,12 +538,9 @@ def plot_element_total_count(element_list,
 
 
 def _indel_length_bins(lengths):
-    """1-bp bins up to 10, plus one catch-all tail bin for longer indels."""
+    """One integer-width bin per indel length, from 1 through the observed max."""
     maxlen = max(lengths)
-    edges = [i + 0.5 for i in range(0, 11)]
-    if maxlen > 10:
-        edges.append(maxlen + 0.5)
-    return edges
+    return [i + 0.5 for i in range(0, maxlen + 1)]
 
 
 def plot_indel_hist_length(indel_list,
