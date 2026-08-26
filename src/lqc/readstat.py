@@ -1,4 +1,4 @@
-from copy import deepcopy
+import numpy as np
 
 
 class ReadStat:
@@ -18,6 +18,8 @@ class ReadStat:
         self._total_base = 0
         self._total_aligned_base = 0
         self._reads = []
+        self._reads_array = None
+        self._sorted_lengths = None
 
     def add_read(self,
                  length,
@@ -36,6 +38,19 @@ class ReadStat:
         ])
         self._total_base += length
         self._total_aligned_base += aligned_length
+        self._reads_array = None
+        self._sorted_lengths = None
+
+    def _finalize(self):
+        """Convert the boxed row list to an ``(n, 7)`` int32 array (lazily) and
+        drop the boxed list. Columns: length, insertion, deletion, mismatch,
+        intron, mapping_quality, aligned_length."""
+        if self._reads_array is None:
+            self._reads_array = np.asarray(
+                self._reads, dtype = np.int32
+            ).reshape(-1, 7)
+            self._reads = None
+        return self._reads_array
 
     def get_read_count(self):
         return self._read_count
@@ -65,37 +80,47 @@ class ReadStat:
         return self._total_base
 
     def get_lengths(self):
-        return [a[0] for a in self._reads]
+        return self._finalize()[:, 0].tolist()
 
     def get_insertions(self):
-        return [a[1] for a in self._reads]
+        return self._finalize()[:, 1].tolist()
 
     def get_deletions(self):
-        return [a[2] for a in self._reads]
+        return self._finalize()[:, 2].tolist()
 
     def get_mismatches(self):
-        return [a[3] for a in self._reads]
+        return self._finalize()[:, 3].tolist()
 
     def get_introns(self):
-        return [a[4] for a in self._reads]
+        return self._finalize()[:, 4].tolist()
 
     def get_length_normalized_insertions(self):
-        return [a[1] / a[0] for a in self._reads]
+        arr = self._finalize()
+        return (arr[:, 1] / arr[:, 0]).tolist()
 
     def get_length_normalized_deletions(self):
-        return [a[2] / a[0] for a in self._reads]
+        arr = self._finalize()
+        return (arr[:, 2] / arr[:, 0]).tolist()
 
     def get_length_normalized_mismatches(self):
-        return [a[3] / a[0] for a in self._reads]
+        arr = self._finalize()
+        return (arr[:, 3] / arr[:, 0]).tolist()
 
     def get_length_normalized_introns(self):
-        return [a[4] / a[0] for a in self._reads]
+        arr = self._finalize()
+        return (arr[:, 4] / arr[:, 0]).tolist()
+
+    def _sorted_lengths_desc(self):
+        if self._sorted_lengths is None:
+            self._sorted_lengths = sorted(
+                self.get_lengths(), reverse = True
+            )
+        return self._sorted_lengths
 
     def get_length_NL(self, percent):
         assert percent >= 0 and percent <= 100,\
             "percent value should be between 0 and 100."
-        lengths = self.get_lengths()
-        lengths = sorted(lengths, reverse = True)
+        lengths = self._sorted_lengths_desc()
         basesum = 0
         previous_basesum = 0
         percentbase = self._total_base * percent / 100
@@ -201,16 +226,17 @@ class ReadStat:
         return max(self.get_introns())
 
     def get_mapping_qualities(self):
-        return [a[5] for a in self._reads]
+        return self._finalize()[:, 5].tolist()
 
     def get_aligned_lengths(self):
-        return [a[6] for a in self._reads]
+        return self._finalize()[:, 6].tolist()
 
     def get_aligned_fractions(self):
-        return [
-            a[6] / a[0] if a[0] > 0 else 0.0
-            for a in self._reads
-        ]
+        arr = self._finalize()
+        length = arr[:, 0]
+        aligned = arr[:, 6]
+        fraction = np.where(length > 0, aligned / length, 0.0)
+        return fraction.tolist()
 
     def get_total_aligned_base(self):
         return self._total_aligned_base
@@ -234,16 +260,15 @@ class ReadStat:
         return self._get_median(self.get_aligned_fractions())
 
     def get_read_count_with_aligned_fraction_below(self, threshold = 0.9):
-        return sum(
-            1 for a in self._reads
-            if (a[6] / a[0] if a[0] > 0 else 0.0) < threshold
-        )
+        arr = self._finalize()
+        length = arr[:, 0]
+        aligned = arr[:, 6]
+        fraction = np.where(length > 0, aligned / length, 0.0)
+        return int(np.sum(fraction < threshold))
 
     def get_read_count_fully_aligned(self):
-        return sum(
-            1 for a in self._reads
-            if a[6] == a[0]
-        )
+        arr = self._finalize()
+        return int(np.sum(arr[:, 6] == arr[:, 0]))
 
     def insertions_per_aligned_base(self):
         if self._total_aligned_base == 0:
@@ -317,18 +342,13 @@ class ReadStat:
         sumReadStat = type(self)(
             f'{self.label} {other.label}'
         )
-        sumReadStat._reads = deepcopy(
-            self._reads + other._reads
-        )
-        sumReadStat._read_count = deepcopy(
-            self._read_count + other._read_count
-        )
-        sumReadStat._total_base = deepcopy(
-            self._total_base + other._total_base
-        )
-        sumReadStat._total_aligned_base = deepcopy(
-            self._total_aligned_base + other._total_aligned_base
-        )
+        sumReadStat._reads_array = np.concatenate([
+            self._finalize(), other._finalize()
+        ])
+        sumReadStat._reads = None
+        sumReadStat._read_count = self._read_count + other._read_count
+        sumReadStat._total_base = self._total_base + other._total_base
+        sumReadStat._total_aligned_base = self._total_aligned_base + other._total_aligned_base
         return sumReadStat
 
     def __radd__(self, other):

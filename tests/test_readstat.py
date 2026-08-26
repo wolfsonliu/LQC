@@ -146,3 +146,14 @@ def test_add_two_readstats_sums_aligned_base():
                mapping_quality=30, aligned_length=200)
     c = a + b
     assert c.get_total_aligned_base() == 290
+
+
+def test_add_empty_and_nonempty_via_sum():
+    empty = ReadStat('e')
+    full = ReadStat('f')
+    full.add_read(100, 1, 2, 3, 4, mapping_quality=60, aligned_length=90)
+    full.add_read(200, 5, 6, 7, 8, mapping_quality=30, aligned_length=200)
+    total = sum([empty, full])
+    assert total.get_read_count() == 2
+    assert total.get_lengths() == [100, 200]
+    assert total.get_total_base() == 300
