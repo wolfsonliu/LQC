@@ -686,3 +686,12 @@ git commit -m "perf: drop deepcopy from Splice.__add__"
 - **Placeholder scan:** complete code in every step; no TBD/TODO. Merged objects are final (array-only) — the plan's tests only exercise add-then-merge and merge ordering, never add-after-merge.
 - **Type consistency:** `_finalize()` return types are consistent per class (`(n,7)` int32; `(iidx, ilen, loc)`; `dict[str, float64 array]`); `get_*` boundaries return Python `int`/`float`/`list`; `get_type_count` returns `Counter`. Consistent.
 - **Key risk to re-verify in review:** empty-object `reshape(-1, N)` (Task 1/2), `__radd__` returning `self` for `0 + x` (unchanged), and `Mismatch.get_locations`/`get_type_count` ordering (first-seen type order must match old `_mismatch_types` order — preserved because `_mismatch_types` is still a list).
+---
+
+## Results (recorded post-implementation)
+
+- **Branch:** `perf/m2-numpy-columnar-storage`; commits `1981c06` (ReadStat), `2613cef` (zero-length divide guard), `9f171e0` (Indel), `7c1176b` (Mismatch), `9e871e6` (Splice). Merged to `main` via `--ff-only`.
+- **Tests/lint:** full suite **140 passed** (133 baseline + 7 new), `.venv/bin/python -m ruff check src tests` clean.
+- **chr22 byte-parity:** 70/70 deterministic artifacts match `tmp/verify/chr22` (7 `table/*.txt`, `read.cs`, `LQC_report.html`, 61 `fig/*.png`).
+- **Full-genome run** (`-t 4`, `tmp/m2/full`): **exit 0 — completes** (previously SIGKILL at >8.4 GB). Wall **8:26.86**, stat 2.6 min / reduce+Total 19 s / figures 5.3 min. Peak RSS **6,658,812 KB ≈ 6.35 GB**.
+- **Honest finding:** the merge/`'Total'` deep-copy OOM is fixed (the run now completes), and peak RSS dropped from the fatal >8.4 GB to 6.35 GB — but §6's "≤ ~2 GB working set" target is NOT met. The residual peak lives in the stat phase: worker-side boxed accumulation plus the `mp.Pool.map` result transfer of all chunks into the parent before `reduce_blocks_to_contigs` finalizes them (lazy `_finalize()` only converts at merge). Finalizing inside `stat_region` before returning (numpy pickle) is a candidate follow-up, outside this milestone's merge-scope.
