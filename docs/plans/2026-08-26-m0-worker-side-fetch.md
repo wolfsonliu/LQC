@@ -159,12 +159,11 @@ from lqc.stat import (
     prefetch_records,
     reduce_blocks_to_contigs,
     stat_element_from_bam_by_contig,
-    stat_region,
     stat_records,
 )
 ```
 
-(Importing `plan_tasks`/`stat_region` before they exist will make collection fail — expected for TDD.)
+(Importing `plan_tasks` before it exists will make collection fail — expected for TDD.)
 
 - [ ] **Step 2: Write the failing test**
 
@@ -260,9 +259,12 @@ git commit -m "feat: plan balanced per-contig coordinate-window tasks"
 - Modify: `tests/conftest.py` (add `cs_bam_boundary` fixture)
 - Test: `tests/test_stat.py`
 
-- [ ] **Step 1: Add the boundary fixture**
+- [ ] **Step 1: Add the `stat_region` import + boundary fixture**
 
-In `tests/conftest.py`, append:
+First, in `tests/test_stat.py`, add `stat_region,` to the top-level
+`from lqc.stat import (...)` block (alphabetical order, after `stat_element_from_bam_by_contig`). Importing `stat_region` before it exists makes collection fail — expected for TDD.
+
+Then in `tests/conftest.py`, append:
 
 ```python
 @pytest.fixture()
