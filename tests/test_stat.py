@@ -137,6 +137,7 @@ def test_record_from_read_md_captures_mapping_fields():
         is_reverse = False
         reference_start = 5
         query_sequence = 'ACGTACGTAC'
+        query_length = 10
         mapping_quality = 42
         query_alignment_length = 10
         query_name = 'read1'
@@ -150,3 +151,29 @@ def test_record_from_read_md_captures_mapping_fields():
     record = record_from_read(FakeRead(), 'chr1', 'md')
     assert record.mapping_quality == 42
     assert record.aligned_length == 10
+    assert record.query_length == 10
+
+
+def test_record_from_read_cs_uses_query_length_not_sequence():
+    from lqc.stat import record_from_read
+
+    class FakeRead:
+        is_reverse = False
+        reference_start = 0
+        mapping_quality = 60
+        query_alignment_length = 10
+        query_name = 'read1'
+        query_length = 10
+
+        @property
+        def query_sequence(self):
+            raise AssertionError(
+                'cs path must use query_length, not materialize query_sequence'
+            )
+
+        def get_tag(self, tag):
+            assert tag == 'cs'
+            return ':10'
+
+    record = record_from_read(FakeRead(), 'chr1', 'cs')
+    assert record.query_length == 10
