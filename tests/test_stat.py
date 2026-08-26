@@ -1,4 +1,5 @@
 from lqc.stat import (
+    plan_tasks,
     prefetch_records,
     reduce_blocks_to_contigs,
     stat_element_from_bam_by_contig,
@@ -177,3 +178,21 @@ def test_record_from_read_cs_uses_query_length_not_sequence():
 
     record = record_from_read(FakeRead(), 'chr1', 'cs')
     assert record.query_length == 10
+
+
+def test_plan_tasks_splits_by_target_reads(cs_bam):
+    # cs_bam: chr1 (LN=1,000,000) with 2 mapped reads.
+    # target_reads=1  -> ceil(2/1)=2 windows of 500,000 bp each.
+    assert plan_tasks(cs_bam, ['chr1'], target_reads=1) == [
+        (0, 'chr1', 0, 500000),
+        (1, 'chr1', 500000, 1000000),
+    ]
+    # target_reads >= mapped -> a single full-contig window.
+    assert plan_tasks(cs_bam, ['chr1'], target_reads=100) == [
+        (0, 'chr1', 0, 1000000),
+    ]
+    # A contig with zero mapped reads is skipped.
+    assert plan_tasks(cs_bam, ['chr1', 'chr999'], target_reads=1) == [
+        (0, 'chr1', 0, 500000),
+        (1, 'chr1', 500000, 1000000),
+    ]

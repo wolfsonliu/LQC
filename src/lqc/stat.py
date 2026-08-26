@@ -155,6 +155,41 @@ def prefetch_records(bam_file, contigs, method):
     return per_contig
 
 
+def plan_tasks(bam_file, contigs, target_reads=10000):
+    """Return ``[(index, contig, start, end), ...]`` coordinate windows.
+
+    Splits each contig's coordinate span into windows of roughly
+    ``target_reads`` mapped reads so a large contig can be processed by
+    several workers. Windows are emitted in requested-contig order, then
+    ascending coordinate order, so concatenating per-window results preserves
+    the current single-contig traversal order.
+    """
+    file_type = bam_or_sam(bam_file)
+    file_read = "rb" if file_type == "BAM" else "r"
+    bam = pysam.AlignmentFile(bam_file, file_read)
+    try:
+        stats = {
+            stat.contig: stat.mapped
+            for stat in bam.get_index_statistics()
+        }
+        tasks = []
+        index = 0
+        for contig in contigs:
+            mapped = stats.get(contig, 0)
+            if mapped == 0:
+                continue
+            length = bam.get_reference_length(contig)
+            n_windows = max(1, (mapped + target_reads - 1) // target_reads)
+            for w in range(n_windows):
+                start = (w * length) // n_windows
+                end = ((w + 1) * length) // n_windows
+                tasks.append((index, contig, start, end))
+                index += 1
+    finally:
+        bam.close()
+    return tasks
+
+
 @contextmanager
 def _open_optional_cs(path):
     """Yield an open write handle for ``path``, or ``None`` if path is ``None``."""
