@@ -36,10 +36,10 @@ read-only data mount, so write outputs under `tmp/baseline/`.)
 
 ```bash
 mkdir -p tmp/baseline
-.venv/bin/lqc -b tmp/full_bam/ENCFF417VHJ.sorted.bam -o tmp/baseline/chr22 -c chr22 -t 1
+.venv/bin/lqc -b tmp/full_bam/ENCFF417VHJ.sorted.bam -o tmp/baseline/chr22 -c chr22 -t 1 --output-cs
 ```
 
-Expected: exit 0; `tmp/baseline/chr22/table/`, `fig/`, `LQC_report.html` written.
+Expected: exit 0; `tmp/baseline/chr22/table/`, `fig/`, `read.cs`, `LQC_report.html` written.
 
 - [ ] **Step 2: Record the fixture reference `read.cs` fields**
 
@@ -465,17 +465,29 @@ git commit -m "feat: worker-side fetch in CLI (plan_tasks + stat_region, drop _c
 
 ```bash
 mkdir -p tmp/verify
-.venv/bin/lqc -b tmp/full_bam/ENCFF417VHJ.sorted.bam -o tmp/verify/chr22 -c chr22 -t 1
-diff -r tmp/baseline/chr22 tmp/verify/chr22 && echo "BYTE-PARITY OK"
+.venv/bin/lqc -b tmp/full_bam/ENCFF417VHJ.sorted.bam -o tmp/verify/chr22 -c chr22 -t 1 --output-cs
+# Deterministic artifacts only (fig/*.pdf embed a creation timestamp and are
+# NOT byte-comparable across runs):
+diff -r tmp/baseline/chr22/table tmp/verify/chr22/table && \
+diff tmp/baseline/chr22/read.cs tmp/verify/chr22/read.cs && \
+diff tmp/baseline/chr22/LQC_report.html tmp/verify/chr22/LQC_report.html && \
+for f in $(cd tmp/baseline/chr22/fig && find . -name '*.png' | sort); do \
+  cmp -s "tmp/baseline/chr22/fig/$f" "tmp/verify/chr22/fig/$f" || { echo "DIFF: $f"; exit 1; }; \
+done && echo "BYTE-PARITY OK"
 ```
 
-Expected: `BYTE-PARITY OK` (tables, figures, and `LQC_report.html` identical).
+Expected: `BYTE-PARITY OK` (tables, `read.cs`, inlined HTML report, and PNG figures identical).
 
 - [ ] **Step 2: thread determinism on chr22**
 
 ```bash
-.venv/bin/lqc -b tmp/full_bam/ENCFF417VHJ.sorted.bam -o tmp/verify/chr22_t4 -c chr22 -t 4
-diff -r tmp/verify/chr22 tmp/verify/chr22_t4 && echo "THREAD-DETERMINISM OK"
+.venv/bin/lqc -b tmp/full_bam/ENCFF417VHJ.sorted.bam -o tmp/verify/chr22_t4 -c chr22 -t 4 --output-cs
+diff -r tmp/verify/chr22/table tmp/verify/chr22_t4/table && \
+diff tmp/verify/chr22/read.cs tmp/verify/chr22_t4/read.cs && \
+diff tmp/verify/chr22/LQC_report.html tmp/verify/chr22_t4/LQC_report.html && \
+for f in $(cd tmp/verify/chr22/fig && find . -name '*.png' | sort); do \
+  cmp -s "tmp/verify/chr22/fig/$f" "tmp/verify/chr22_t4/fig/$f" || { echo "DIFF: $f"; exit 1; }; \
+done && echo "THREAD-DETERMINISM OK"
 ```
 
 Expected: `THREAD-DETERMINISM OK`.
