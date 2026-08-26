@@ -99,3 +99,13 @@ git commit -m "perf: inline translate in convert_reverse_complement"
 - **Spec coverage:** §4.4 — figure policy resolved (keep, measured, documented) and `convert_reverse_complement` micro-fix (one translate + reverse slice, no redundant call; stays a pure helper). Covered.
 - **Placeholder scan:** no TBD/TODO; complete code in every step.
 - **Key risk:** none — the micro-fix is byte-identical (chr22 PNG + table byte-parity guards it), and the figure decision introduces no code change.
+---
+
+## Results (recorded post-implementation)
+
+- **Branch:** `perf/m3-report-phase-polish`; commit `33789d3`. Merged to `main` via `--ff-only`.
+- **Figure policy:** kept (Option 1) — measured figures at 5:16 / 8:27 wall (62%); thread/process parallelization judged disproportionate and a byte-parity risk; no code change.
+- **Micro-fix:** `convert_reverse_complement` now `string.translate(_COMPLEMENT_TABLE)[::-1]` (one translate + reverse, no redundant `convert_complement` call); byte-identical.
+- **Tests/lint:** full suite **141 passed**, `.venv/bin/python -m ruff check src tests` clean.
+- **chr22 byte-parity:** 70/70 deterministic artifacts match `tmp/verify/chr22`.
+- **Full-genome re-run:** skipped — M3 is byte-identical and off the figure path (figures kept), so the M2 full-genome numbers (exit 0, wall 8:26.86, peak RSS 6.35 GB) stand unchanged as the final program measurements.
