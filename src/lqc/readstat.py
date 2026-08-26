@@ -235,7 +235,11 @@ class ReadStat:
         arr = self._finalize()
         length = arr[:, 0]
         aligned = arr[:, 6]
-        fraction = np.where(length > 0, aligned / length, 0.0)
+        fraction = np.divide(
+            aligned, length,
+            out = np.zeros_like(length, dtype = np.float64),
+            where = length > 0,
+        )
         return fraction.tolist()
 
     def get_total_aligned_base(self):
@@ -263,7 +267,11 @@ class ReadStat:
         arr = self._finalize()
         length = arr[:, 0]
         aligned = arr[:, 6]
-        fraction = np.where(length > 0, aligned / length, 0.0)
+        fraction = np.divide(
+            aligned, length,
+            out = np.zeros_like(length, dtype = np.float64),
+            where = length > 0,
+        )
         return int(np.sum(fraction < threshold))
 
     def get_read_count_fully_aligned(self):

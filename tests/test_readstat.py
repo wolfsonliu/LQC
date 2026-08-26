@@ -157,3 +157,13 @@ def test_add_empty_and_nonempty_via_sum():
     assert total.get_read_count() == 2
     assert total.get_lengths() == [100, 200]
     assert total.get_total_base() == 300
+
+
+def test_zero_length_read_aligned_fraction_no_warning():
+    import warnings
+    r = ReadStat('z')
+    r.add_read(0, 0, 0, 0, 0, mapping_quality=0, aligned_length=0)
+    with warnings.catch_warnings():
+        warnings.simplefilter('error')  # RuntimeWarning -> error
+        assert r.get_aligned_fractions() == [0.0]
+        assert r.get_read_count_with_aligned_fraction_below(0.9) == 1
