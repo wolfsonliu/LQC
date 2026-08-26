@@ -199,6 +199,15 @@ def test_plan_tasks_splits_by_target_reads(cs_bam):
     ]
 
 
+def test_plan_tasks_multiple_contigs_ordering(cs_bam_two_contigs):
+    # Requested-contig order is preserved and the global index is monotonic
+    # across the contig boundary.
+    assert plan_tasks(cs_bam_two_contigs, ['chr2', 'chr1'], target_reads=1) == [
+        (0, 'chr2', 0, 2000000),
+        (1, 'chr1', 0, 1000000),
+    ]
+
+
 def test_stat_region_matches_serial(cs_bam):
     # Two windows over chr1 (both reads fall in the first window; the second
     # is empty). The reduced result must equal the serial single-contig path.

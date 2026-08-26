@@ -81,6 +81,45 @@ def cs_bam_with_indel(tmp_path):
 
 
 @pytest.fixture()
+def cs_bam_two_contigs(tmp_path):
+    """Two contigs, one mapped read each (for cross-contig index/order)."""
+    bam_path = tmp_path / 'two.cs.bam'
+    header = {
+        'HD': {'VN': '1.6', 'SO': 'coordinate'},
+        'SQ': [
+            {'SN': 'chr1', 'LN': 1000000},
+            {'SN': 'chr2', 'LN': 2000000},
+        ],
+    }
+    with pysam.AlignmentFile(bam_path, 'wb', header=header) as out:
+        r1 = pysam.AlignedSegment()
+        r1.query_name = 'r1'
+        r1.flag = 0
+        r1.reference_id = 0
+        r1.reference_start = 100
+        r1.mapping_quality = 60
+        r1.cigar = [(0, 10)]
+        r1.query_sequence = 'ACGTACGTAC'
+        r1.query_qualities = pysam.qualitystring_to_array('I' * 10)
+        r1.set_tag('cs', ':10')
+        out.write(r1)
+
+        r2 = pysam.AlignedSegment()
+        r2.query_name = 'r2'
+        r2.flag = 0
+        r2.reference_id = 1
+        r2.reference_start = 200
+        r2.mapping_quality = 60
+        r2.cigar = [(0, 10)]
+        r2.query_sequence = 'ACGTACGTAC'
+        r2.query_qualities = pysam.qualitystring_to_array('I' * 10)
+        r2.set_tag('cs', ':10')
+        out.write(r2)
+    pysam.index(str(bam_path))
+    return str(bam_path)
+
+
+@pytest.fixture()
 def cs_bam_boundary(tmp_path):
     """chr1 with two reads: one spanning the coordinate-window midpoint.
 

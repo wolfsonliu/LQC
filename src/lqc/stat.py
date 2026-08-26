@@ -255,12 +255,14 @@ def stat_region(task, bam_file, genome_file, method, cs_dir=None):
     file_type = bam_or_sam(bam_file)
     file_read = "rb" if file_type == "BAM" else "r"
     bam = pysam.AlignmentFile(bam_file, file_read)
-    records = []
-    for read in bam.fetch(contig, start, end):
-        if read.reference_start < start:
-            continue
-        records.append(record_from_read(read, contig, method))
-    bam.close()
+    try:
+        records = []
+        for read in bam.fetch(contig, start, end):
+            if read.reference_start < start:
+                continue
+            records.append(record_from_read(read, contig, method))
+    finally:
+        bam.close()
     return stat_records(
         (index, contig, records), genome_file, method, cs_dir
     )
