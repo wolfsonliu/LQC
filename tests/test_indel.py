@@ -55,3 +55,25 @@ def test_add_two_indels():
     c = a + b
     assert c.get_indel_count() == {'a': 2, 'tt': 1}
     assert c.get_total_count() == 3
+
+
+def test_indel_empty_plus_nonempty_merge():
+    empty = Indel('e')
+    full = Indel('f')
+    full.add_indel('a', 0.1)
+    full.add_indel('b', 0.5)
+    total = sum([empty, full])
+    assert total.get_total_count() == 2
+    assert total.get_lengths() == [1, 1]
+    assert total.get_locations() == [0.1, 0.5]
+    assert total.get_indel_count() == {'a': 1, 'b': 1}
+
+
+def test_indel_locations_order_preserved():
+    a = Indel('a')
+    b = Indel('b')
+    a.add_indel('x', 0.25)
+    a.add_indel('y', 0.9)
+    b.add_indel('z', 0.33)
+    total = a + b
+    assert total.get_locations() == [0.25, 0.9, 0.33]

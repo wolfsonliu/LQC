@@ -1,5 +1,4 @@
 from collections import Counter
-from copy import deepcopy
 
 import numpy as np
 
@@ -22,6 +21,7 @@ class Indel:
         self._indel_strings = []
         self._indel_index = {}
         self._indels = []
+        self._indel_arrays = None  # (iidx int32, ilen int32, loc float64)
 
     def add_indel(self, indel,
                   normalized_read_location):
@@ -34,22 +34,31 @@ class Indel:
             iidx, len(indel),
             normalized_read_location
         ])
+        self._indel_arrays = None
+
+    def _finalize(self):
+        if self._indel_arrays is None:
+            rows = np.asarray(self._indels, dtype = np.float64).reshape(-1, 3)
+            self._indel_arrays = (
+                rows[:, 0].astype(np.int32, copy = False),
+                rows[:, 1].astype(np.int32, copy = False),
+                rows[:, 2],
+            )
+            self._indels = None
+        return self._indel_arrays
 
     def get_indel_count(self):
         indel_count = Counter()
-        for iidx, _, _ in self._indels:
-            indel = self._indel_strings[iidx]
-            indel_count[indel] += 1
+        iidx, _, _ = self._finalize()
+        for i in iidx.tolist():
+            indel_count[self._indel_strings[i]] += 1
         return indel_count
 
     def get_total_count(self):
-        return len(self._indels)
+        return int(self._finalize()[0].size)
 
     def get_total_length(self):
-        return sum([
-            ilen
-            for iidx, ilen, loc in self._indels
-        ])
+        return int(self._finalize()[1].sum())
 
     def get_mean_length(self):
         total_count = self.get_total_count()
@@ -106,20 +115,16 @@ class Indel:
         return aims
 
     def get_lengths(self):
-        return [
-            ilen
-            for iidx, ilen, loc in self._indels
-        ]
+        return self._finalize()[1].tolist()
 
     def get_locations(self):
-        return [
-            loc
-            for iidx, ilen, loc in self._indels
-        ]
+        return self._finalize()[2].tolist()
 
     def convert_reverse_complement(self):
         newIndel = type(self)(self.label)
-        newIndel._indels = deepcopy(self._indels)
+        iidx, ilen, loc = self._finalize()
+        newIndel._indel_arrays = (iidx.copy(), ilen.copy(), loc.copy())
+        newIndel._indels = None
         new_strings = [
             convert_reverse_complement(indel)
             for indel in self._indel_strings
@@ -144,17 +149,10 @@ class Indel:
         return bin_count
 
     def get_location_histogram(self, cuts = None):
-        """Return (edges, counts) for the normalized-location histogram
-        without materializing the raw locations as a Python list."""
         if cuts is None:
             cuts = [i / 10 for i in range(11)]
-        locs = np.fromiter(
-            (loc for iidx, ilen, loc in self._indels),
-            dtype = float,
-            count = len(self._indels)
-        )
         hist, edges = np.histogram(
-            locs, bins = cuts, density = False
+            self._finalize()[2], bins = cuts, density = False
         )
         return edges, hist
 
@@ -163,7 +161,10 @@ class Indel:
         newIndel = type(self)(
             f'{self.label} {other.label}'
         )
-        new_strings = deepcopy(self._indel_strings)
+        siidx, silen, sloc = self._finalize()
+        oiidx, oilen, oloc = other._finalize()
+        # string table: keep self's ordering, append other's new strings once
+        new_strings = list(self._indel_strings)
         string_index = {
             indel: i for i, indel in enumerate(new_strings)
         }
@@ -175,14 +176,17 @@ class Indel:
                 string_index[indel] = len(new_strings)
                 new_strings.append(indel)
                 other_new_idx.append(len(new_strings) - 1)
-        new_indels = deepcopy(self._indels)
-        for iidx, ilen, loc in other._indels:
-            new_iidx = other_new_idx[iidx]
-            new_indels.append([
-                new_iidx, ilen, loc
-            ])
+        remapped_oiidx = np.asarray(
+            [other_new_idx[i] for i in oiidx.tolist()],
+            dtype = np.int32,
+        )
+        newIndel._indel_arrays = (
+            np.concatenate([siidx, remapped_oiidx]),
+            np.concatenate([silen, oilen]),
+            np.concatenate([sloc, oloc]),
+        )
+        newIndel._indels = None
         newIndel._indel_strings = new_strings
-        newIndel._indels = new_indels
         newIndel._indel_index = string_index
         return newIndel
 
