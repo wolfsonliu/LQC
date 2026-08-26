@@ -49,3 +49,26 @@ def test_add_two_mismatches():
     c = a + b
     assert c.get_type_count() == {'ag': 2, 'ct': 1}
     assert c.get_total_count() == 3
+
+
+def test_mismatch_empty_plus_nonempty():
+    empty = Mismatch('e')
+    full = Mismatch('f')
+    full.add_mismatch('ac', 0.1)
+    full.add_mismatch('gt', 0.9)
+    total = sum([empty, full])
+    assert total.get_total_count() == 2
+    assert total.get_locations() == [0.1, 0.9]
+
+
+def test_mismatch_merge_order_by_type():
+    a = Mismatch('a')
+    b = Mismatch('b')
+    a.add_mismatch('ac', 0.1)
+    a.add_mismatch('gt', 0.2)
+    a.add_mismatch('ac', 0.3)
+    b.add_mismatch('gt', 0.4)
+    total = a + b
+    # get_locations iterates types in first-seen order: ac then gt
+    assert total.get_locations() == [0.1, 0.3, 0.2, 0.4]
+    assert total.get_type_count() == {'ac': 2, 'gt': 2}

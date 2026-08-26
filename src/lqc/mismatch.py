@@ -22,6 +22,7 @@ class Mismatch:
         self._mismatch_index = {}
         self._type_count = Counter()
         self._type_locations = defaultdict(list)
+        self._type_location_arrays = None  # {type: float64 array}
 
     def add_mismatch(self, mismatch,
                      normalized_read_location):
@@ -32,9 +33,81 @@ class Mismatch:
         self._type_locations[mismatch].append(
             normalized_read_location
         )
+        self._type_location_arrays = None
+
+    def _finalize(self):
+        if self._type_location_arrays is None:
+            self._type_location_arrays = {
+                ty: np.asarray(locs, dtype = np.float64)
+                for ty, locs in self._type_locations.items()
+            }
+            self._type_locations = None
+        return self._type_location_arrays
 
     def get_total_count(self):
         return sum(self._type_count.values())
+
+    def _get_bin_count(self, value_list, cuts):
+        hist, edges = np.histogram(
+            value_list, bins = cuts, density = False
+        )
+        bin_count = Counter()
+        for i in range(len(hist)):
+            if i < (len(hist) - 1):
+                label = f'[{edges[i]},{edges[i+1]})'
+            else:
+                label = f'[{edges[i]},{edges[i+1]}]'
+            bin_count[label] = hist[i]
+        return bin_count
+
+    def get_location_bin_count(self, cuts = None):
+        if cuts is None:
+            cuts = [0, 0.25, 0.5, 0.75, 1]
+        bin_count = Counter()
+        arrays = self._finalize()
+        for ty in self._mismatch_types:
+            bin_count += self._get_bin_count(
+                arrays[ty], cuts = cuts
+            )
+        return bin_count
+
+    def get_location_histogram(self, cuts = None):
+        if cuts is None:
+            cuts = [i / 10 for i in range(11)]
+        arrays = self._finalize()
+        total_hist = None
+        edges = None
+        for ty in self._mismatch_types:
+            hist, edges = np.histogram(
+                arrays[ty], bins = cuts, density = False
+            )
+            if total_hist is None:
+                total_hist = hist.astype(np.float64)
+            else:
+                total_hist += hist
+        if total_hist is None:
+            total_hist, edges = np.histogram(
+                [], bins = cuts, density = False
+            )
+        return edges, total_hist
+
+    def get_location_bin_count_by_type(self, cuts = None):
+        if cuts is None:
+            cuts = [0, 0.25, 0.5, 0.75, 1]
+        type_bin_count_dict = defaultdict(Counter)
+        arrays = self._finalize()
+        for ty in self._mismatch_types:
+            type_bin_count_dict[ty] += self._get_bin_count(
+                arrays[ty], cuts = cuts
+            )
+        return type_bin_count_dict
+
+    def get_locations(self):
+        arrays = self._finalize()
+        locations = []
+        for ty in self._mismatch_types:
+            locations.extend(arrays[ty].tolist())
+        return locations
 
     def convert_complement(self):
         newMis = type(self)(self.label)
@@ -52,80 +125,15 @@ class Mismatch:
                 self._mismatch_types, new_types, strict = True
             )
         })
-        newMis._type_locations = defaultdict(list, {
-            new_ty: list(self._type_locations[old_ty])
+        arrays = self._finalize()
+        newMis._type_location_arrays = {
+            new_ty: arrays[old_ty].copy()
             for old_ty, new_ty in zip(
                 self._mismatch_types, new_types, strict = True
             )
-        })
+        }
+        newMis._type_locations = None
         return newMis
-
-    def _get_bin_count(self, value_list, cuts):
-        hist, edges = np.histogram(
-            value_list,
-            bins = cuts,
-            density = False
-        )
-        bin_count = Counter()
-        for i in range(len(hist)):
-            if i < (len(hist) - 1):
-                label = f'[{edges[i]},{edges[i+1]})'
-            else:
-                label = f'[{edges[i]},{edges[i+1]}]'
-            bin_count[label] = hist[i]
-        return bin_count
-
-    def get_location_bin_count(self, cuts = None):
-        if cuts is None:
-            cuts = [0, 0.25, 0.5, 0.75, 1]
-        bin_count = Counter()
-        for ty in self._mismatch_types:
-            bin_count += self._get_bin_count(
-                self._type_locations[ty], cuts = cuts
-            )
-        return bin_count
-
-    def get_location_histogram(self, cuts = None):
-        """Return (edges, counts) for the overall normalized-location
-        histogram, summed across mismatch types without materializing the
-        full location list."""
-        if cuts is None:
-            cuts = [i / 10 for i in range(11)]
-        total_hist = None
-        edges = None
-        for ty in self._mismatch_types:
-            hist, edges = np.histogram(
-                self._type_locations[ty],
-                bins = cuts,
-                density = False
-            )
-            if total_hist is None:
-                total_hist = hist.astype(np.float64)
-            else:
-                total_hist += hist
-        if total_hist is None:
-            total_hist, edges = np.histogram(
-                [], bins = cuts, density = False
-            )
-        return edges, total_hist
-
-    def get_location_bin_count_by_type(self, cuts = None):
-        if cuts is None:
-            cuts = [0, 0.25, 0.5, 0.75, 1]
-        type_bin_count_dict = defaultdict(
-            Counter
-        )
-        for ty in self._mismatch_types:
-            type_bin_count_dict[ty] += self._get_bin_count(
-                self._type_locations[ty], cuts = cuts
-            )
-        return type_bin_count_dict
-
-    def get_locations(self):
-        locations = []
-        for ty in self._mismatch_types:
-            locations.extend(self._type_locations[ty])
-        return locations
 
     def get_type_count(self):
         return Counter(self._type_count)
@@ -155,17 +163,19 @@ class Mismatch:
             if ty not in type_index:
                 type_index[ty] = len(new_types)
                 new_types.append(ty)
-
-        new_locs = defaultdict(list)
+        s_arrs = self._finalize()
+        o_arrs = other._finalize()
+        empty = np.array([], dtype = np.float64)
+        new_arrays = {}
         for ty in new_types:
-            merged = list(self._type_locations.get(ty, ()))
-            merged.extend(other._type_locations.get(ty, ()))
-            new_locs[ty] = merged
-
+            new_arrays[ty] = np.concatenate([
+                s_arrs.get(ty, empty), o_arrs.get(ty, empty)
+            ])
         newMis._mismatch_types = new_types
         newMis._mismatch_index = type_index
         newMis._type_count = self._type_count + other._type_count
-        newMis._type_locations = new_locs
+        newMis._type_location_arrays = new_arrays
+        newMis._type_locations = None
         return newMis
 
     def __radd__(self, other):
