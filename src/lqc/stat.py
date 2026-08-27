@@ -278,8 +278,7 @@ def stat_region(task, bam_file, genome_file, method, cs_dir=None):
 
 
 def reduce_blocks_to_contigs(blocks, contigs):
-    """Fold ``StatBlock`` chunks into per-contig ``(readstat, insertion,
-    deletion, mismatch, splice)`` tuples.
+    """Fold ``StatBlock`` chunks into per-contig ``ContigStats`` objects.
 
     ``sum`` concatenates each object's ``label``, so restore the label to the
     contig name afterwards — every block in a group shares that contig.

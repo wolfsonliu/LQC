@@ -403,7 +403,7 @@ def main(argv = None) -> int:
     # ReadStat has undefined mean/median/N50 and would break table/plots.
     result = [
         r for r in result
-        if r[0].get_read_count() > 0
+        if r.readstat.get_read_count() > 0
     ]
     if not result:
         message = 'No reads were found for the requested contigs.'
