@@ -1,5 +1,7 @@
 import pandas as pd
 
+from lqc.constants import MISMATCH_TYPES
+
 
 def create_readstat_table(readstat_list, readstat_sum):
     colnames = [
@@ -71,8 +73,7 @@ def create_mapping_table(readstat_list, readstat_sum):
     return pd.DataFrame(rows, columns = colnames)
 
 
-MISMATCH_TYPES_IN_ORDER = ['ac', 'ag', 'at', 'ca', 'cg', 'ct',
-                           'ga', 'gc', 'gt', 'ta', 'tc', 'tg']
+MISMATCH_TYPES_IN_ORDER = list(MISMATCH_TYPES)
 
 
 def create_mismatch_normalized_read_location_table(mismatch_list,

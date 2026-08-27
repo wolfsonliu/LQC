@@ -5,6 +5,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
+from lqc.constants import MISMATCH_TYPES
+
 matplotlib.use("Agg")
 
 magentas = ["#7a0177", "#ae017e", "#dd3497",
@@ -793,10 +795,7 @@ def plot_mismatch_type_count(mismatch_list,
         "gt": "#9ecae1", "ta": "#006d2c",
         "tc": "#41ab5d", "tg": "#a1d99b"
     }
-    mistypes = ["ac", "ag", "at",
-                "ca", "cg", "ct",
-                "ga", "gc", "gt",
-                "ta", "tc", "tg"]
+    mistypes = list(MISMATCH_TYPES)
     row, col = get_facet_row_col(
         len(mismatch_list) + 1
     )
