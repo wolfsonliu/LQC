@@ -1,6 +1,11 @@
 import pytest
 
-from lqc.cli import main
+from lqc.cli import (
+    ELEMENT_BAR_SPECS,
+    MULTI_FIG_SPECS,
+    READSTAT_BAR_SPECS,
+    main,
+)
 
 
 def test_version_flag(capsys):
@@ -96,3 +101,54 @@ def test_main_outputs_expected_figure_files(cs_bam, tmp_path):
                      'insertion_bar_count.png',
                      'splice_type.png']:
         assert expected in produced
+
+
+def test_figure_spec_lists_match_contract():
+    assert READSTAT_BAR_SPECS == [
+        ('Read count', 'readstat_bar_Read_count'),
+        ('Median read length', 'readstat_bar_Median_read_length'),
+        ('Mean read length', 'readstat_bar_Mean_read_length'),
+        ('Insertions per read', 'readstat_bar_insertions_per_read'),
+        ('Insertions per read per kb',
+         'readstat_bar_insertions_per_read_per_kb'),
+        ('Deletions per read', 'readstat_bar_deletions_per_read'),
+        ('Deletions per read per kb', 'readstat_bar_deletions_per_read_per_kb'),
+        ('Mismatches per read', 'readstat_bar_mismatches_per_read'),
+        ('Mismatches per read per kb', 'readstat_bar_mismatches_per_read_per_kb'),
+        ('Mean intron number', 'readstat_bar_Mean_intron_number'),
+        ('N50', 'readstat_bar_N50'),
+        ('L50', 'readstat_bar_L50'),
+    ]
+    assert ELEMENT_BAR_SPECS == [
+        ('insertion_bar_count', 'insertion', 'Insertion'),
+        ('deletion_bar_count', 'deletion', 'Deletion'),
+        ('mismatch_bar_count', 'mismatch', 'Mismatch'),
+        ('intron_bar_count', 'splice', 'Intron'),
+    ]
+    assert [(stem, fn.__name__, key) for stem, fn, key in MULTI_FIG_SPECS] == [
+        ('readstat_bar_mean_element_per_read',
+         'plot_readstat_bar_mean_element_per_read', 'readstat'),
+        ('readstat_bar_mean_element_per_read_per_kb',
+         'plot_readstat_bar_mean_element_per_read_per_kb', 'readstat'),
+        ('readstat_line_cumulative_length',
+         'plot_readstat_cumulative_length', 'readstat'),
+        ('readstat_bar_ratio_with_element',
+         'plot_readstat_bar_ratio_with_element', 'readstat'),
+        ('readstat_hist_length', 'plot_readstat_length_hist', 'readstat'),
+        ('insertion_hist_length', 'plot_indel_hist_length', 'insertion'),
+        ('deletion_hist_length', 'plot_indel_hist_length', 'deletion'),
+        ('insertion_hist_location', 'plot_indel_hist_location', 'insertion'),
+        ('deletion_hist_location', 'plot_indel_hist_location', 'deletion'),
+        ('mismatch_type', 'plot_mismatch_type_count', 'mismatch'),
+        ('mismatch_hist_location', 'plot_mismatch_hist_location', 'mismatch'),
+        ('splice_type', 'plot_splice_type_count', 'splice'),
+        ('mapping_hist_mapq', 'plot_mapping_mapq_hist', 'readstat'),
+        ('mapping_hist_aligned_fraction',
+         'plot_mapping_aligned_fraction_hist', 'readstat'),
+        ('mapping_scatter_aligned_vs_query',
+         'plot_mapping_aligned_vs_query', 'readstat'),
+    ]
+    data_keys = ({key for _, _, key in MULTI_FIG_SPECS}
+                 | {key for _, key, _ in ELEMENT_BAR_SPECS})
+    assert data_keys <= {'readstat', 'insertion', 'deletion',
+                         'mismatch', 'splice'}

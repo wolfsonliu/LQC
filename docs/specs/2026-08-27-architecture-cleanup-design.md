@@ -163,8 +163,9 @@ Replaces the six copied open/close blocks in `utils.py` (3×) and `stat.py` (3×
   capitalized, so the stem is spelled out explicitly rather than derived),
   then `plot_readstat_bar(l_readstat, feature)` per pair.
 - `generate_multiple_figs` plots: a module-level spec list
-  `(stem, plot_func, data_list, data_sum)` and one loop.
-- Element bar counts: a spec list `(stem, element_list, kind)` and one loop.
+  `(stem, plot_func, data_key)` plus a per-run `data_sets` dict (key →
+  `(list, sum)`) built in `main`, and one loop.
+- Element bar counts: a spec list `(stem, data_key, kind)` and one loop.
 - Tables: a `(o_files_key, dataframe)` list driven by one `to_csv` loop.
 
 `o_files` shrinks to the non-bulk artifacts (pickle, read.cs, html). No filename,

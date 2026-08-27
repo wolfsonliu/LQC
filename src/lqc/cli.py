@@ -72,6 +72,10 @@ def savefig(fig, prefix):
     fig.savefig(prefix + '.pdf')
 
 
+# Figure filename stems are an external contract: `template.html` references
+# several of them by name (e.g. `fig/splice_type.png`). Do not rename a stem
+# without updating the template. Each spec list maps a stem to its plot
+# function and its data source so the main() loops stay declarative.
 READSTAT_BAR_SPECS = [
     ('Read count', 'readstat_bar_Read_count'),
     ('Median read length', 'readstat_bar_Median_read_length'),
