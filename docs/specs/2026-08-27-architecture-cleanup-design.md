@@ -157,9 +157,11 @@ Replaces the six copied open/close blocks in `utils.py` (3×) and `stat.py` (3×
 
 ### ⑥ Data-driven figure/table emission — `src/lqc/cli.py`
 
-- Readstat 12 bar features: derive the filename stem from the feature string —
-  `'readstat_bar_' + feature.replace(' ', '_')` reproduces every existing key
-  verbatim — then `plot_readstat_bar(l_readstat, feature)`.
+- Readstat 12 bar features: a module-level spec list of `(feature, stem)` pairs
+  (the stems reproduce every existing key verbatim; note six "Insertions /
+  Deletions / Mismatches" stems are lowercase while the feature strings are
+  capitalized, so the stem is spelled out explicitly rather than derived),
+  then `plot_readstat_bar(l_readstat, feature)` per pair.
 - `generate_multiple_figs` plots: a module-level spec list
   `(stem, plot_func, data_list, data_sum)` and one loop.
 - Element bar counts: a spec list `(stem, element_list, kind)` and one loop.

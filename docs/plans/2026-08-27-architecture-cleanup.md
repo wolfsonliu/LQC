@@ -793,12 +793,19 @@ Delete every `f_*` key from `o_files` (lines 268–360). `o_files` keeps only `p
 Replace the entire `# plot figures` section (from the `message = 'Output figures.'` line through the end of the `plot_mapping_*` block, ending just before `message = 'Output figures finished.'`) and the table-write block with declarative loops. Use module-level spec lists (place them near `savefig`, above `main`):
 
 ```python
-READSTAT_BAR_FEATURES = [
-    'Read count', 'Median read length', 'Mean read length',
-    'Insertions per read', 'Insertions per read per kb',
-    'Deletions per read', 'Deletions per read per kb',
-    'Mismatches per read', 'Mismatches per read per kb',
-    'Mean intron number', 'N50', 'L50',
+READSTAT_BAR_SPECS = [
+    ('Read count', 'readstat_bar_Read_count'),
+    ('Median read length', 'readstat_bar_Median_read_length'),
+    ('Mean read length', 'readstat_bar_Mean_read_length'),
+    ('Insertions per read', 'readstat_bar_insertions_per_read'),
+    ('Insertions per read per kb', 'readstat_bar_insertions_per_read_per_kb'),
+    ('Deletions per read', 'readstat_bar_deletions_per_read'),
+    ('Deletions per read per kb', 'readstat_bar_deletions_per_read_per_kb'),
+    ('Mismatches per read', 'readstat_bar_mismatches_per_read'),
+    ('Mismatches per read per kb', 'readstat_bar_mismatches_per_read_per_kb'),
+    ('Mean intron number', 'readstat_bar_Mean_intron_number'),
+    ('N50', 'readstat_bar_N50'),
+    ('L50', 'readstat_bar_L50'),
 ]
 
 MULTI_FIG_SPECS = [
@@ -861,11 +868,9 @@ and replace the figure/table blocks with:
     ####################
     # plot figures
     figdir = o_dirs['fig']
-    for feature in READSTAT_BAR_FEATURES:
+    for feature, stem in READSTAT_BAR_SPECS:
         fig = plot_readstat_bar(l_readstat, feature)
-        savefig(fig, os.path.join(
-            figdir, 'readstat_bar_' + feature.replace(' ', '_')
-        ))
+        savefig(fig, os.path.join(figdir, stem))
         plt.close('all')
 
     for stem, plot_func, data_key in MULTI_FIG_SPECS:
