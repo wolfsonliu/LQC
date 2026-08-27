@@ -58,20 +58,39 @@ def test_html_add_mapping_substitutes_placeholders():
     assert '<tr class="table-secondary">' in html
 
 
-def test_replace_tokens_substitutes_all_in_order():
+def test_replace_tokens_substitutes_tokens():
     html = _replace_tokens(
         '<p>{%a%}-{%b%}</p>', {'{%a%}': '1', '{%b%}': '2'}
     )
     assert html == '<p>1-2</p>'
 
 
-def test_indel_tables_share_implementation():
+def test_replace_tokens_applies_in_insertion_order():
+    # A later token must be able to match text introduced by an earlier
+    # replacement, proving substitutions chain in insertion order.
+    html = _replace_tokens(
+        '{%x%}', {'{%x%}': '{%y%}', '{%y%}': 'done'}
+    )
+    assert html == 'done'
+
+
+def test_indel_tables_replaces_all_six_tokens_per_kind():
     import pandas as pd
     table = pd.DataFrame([{
-        'label': 'Total', 'total_count': 1, 'total_length': 2,
-        'mean_length': 2.0, 'median_length': 2.0,
+        'label': 'Total', 'total_count': 3, 'total_length': 7,
+        'mean_length': 1.5, 'median_length': 2.0,
     }])
-    ins = html_add_insertion_table('<h>{%insertion_table%}</h>', table, 0.0)
-    dele = html_add_deletion_table('<h>{%deletion_table%}</h>', table, 0.0)
-    assert '{%insertion_table%}' not in ins
-    assert '{%deletion_table%}' not in dele
+    terms = [
+        'total_{0}_number', 'total_{0}_length', 'mean_length',
+        'median_length', 'mean_{0}_per_read_per_kb', 'table',
+    ]
+    for kind in ('insertion', 'deletion'):
+        tokens = [f'{{%{kind}_{term.format(kind)}%}}' for term in terms]
+        input_html = '|'.join(tokens)
+        render = (
+            html_add_insertion_table if kind == 'insertion'
+            else html_add_deletion_table
+        )
+        out = render(input_html, table, 0.25)
+        assert '{%' not in out
+        assert '3|7|1.5|2|0.25|' in out
