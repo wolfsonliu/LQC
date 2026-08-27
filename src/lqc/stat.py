@@ -11,7 +11,6 @@ from lqc.mismatch import Mismatch
 from lqc.readstat import ReadStat
 from lqc.splice import Splice
 from lqc.utils import (
-    bam_or_sam,
     convert_complement,
     convert_reverse_complement,
     open_alignment_file,
@@ -308,22 +307,18 @@ def stat_element_from_bam_by_contig(bam_file,
     mismatch = Mismatch(contig)
     splice = Splice(contig)
 
-    file_type = bam_or_sam(bam_file)
-    file_read = "rb" if file_type == "BAM" else "r"
-    bam = pysam.AlignmentFile(bam_file, file_read)
-
     genome = None
     if method not in ['cs', 'both']:
         genome = pysam.FastaFile(genome_file)
 
-    for read in bam.fetch(contig):
-        record = record_from_read(read, contig, method)
-        process_record(
-            record, genome,
-            readstat, insertion, deletion, mismatch, splice
-        )
+    with open_alignment_file(bam_file) as bam:
+        for read in bam.fetch(contig):
+            record = record_from_read(read, contig, method)
+            process_record(
+                record, genome,
+                readstat, insertion, deletion, mismatch, splice
+            )
 
-    bam.close()
     if genome is not None:
         genome.close()
 
