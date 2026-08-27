@@ -1,19 +1,14 @@
 import numpy as np
 
+from lqc._base import _LabelledStat
 
-class ReadStat:
+
+class ReadStat(_LabelledStat):
     """
     A class to store read count and read statistic information.
     """
     def __init__(self, label = ''):
-        super().__init__()
-        if isinstance(label, str):
-            pass
-        else:
-            raise TypeError(
-                "label should be string."
-            )
-        self.label = label
+        super().__init__(label)
         self._read_count = 0
         self._total_base = 0
         self._total_aligned_base = 0
@@ -345,8 +340,7 @@ class ReadStat:
         return outstring
 
     def __add__(self, other):
-        assert isinstance(other, type(self)),\
-            'wrong object to add'
+        other = self._require_same_type(other)
         sumReadStat = type(self)(
             f'{self.label} {other.label}'
         )
@@ -358,12 +352,6 @@ class ReadStat:
         sumReadStat._total_base = self._total_base + other._total_base
         sumReadStat._total_aligned_base = self._total_aligned_base + other._total_aligned_base
         return sumReadStat
-
-    def __radd__(self, other):
-        if other == 0:
-            return self
-        else:
-            return self.__add__(other)
 
     def __len__(self):
         return self._read_count

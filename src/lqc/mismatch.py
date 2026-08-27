@@ -2,22 +2,16 @@ from collections import Counter, defaultdict
 
 import numpy as np
 
+from lqc._base import _LabelledStat
 from lqc.utils import convert_complement
 
 
-class Mismatch:
+class Mismatch(_LabelledStat):
     """
     A class to store mismatch count information.
     """
     def __init__(self, label = ''):
-        super().__init__()
-        if isinstance(label, str):
-            pass
-        else:
-            raise TypeError(
-                "label should be string."
-            )
-        self.label = label
+        super().__init__(label)
         self._mismatch_types = []
         self._mismatch_index = {}
         self._type_count = Counter()
@@ -155,7 +149,7 @@ class Mismatch:
         return outstring
 
     def __add__(self, other):
-        assert isinstance(other, type(self)), 'wrong object to add'
+        other = self._require_same_type(other)
         newMis = type(self)(f'{self.label} {other.label}')
         new_types = list(self._mismatch_types)
         type_index = {ty: i for i, ty in enumerate(new_types)}
@@ -178,10 +172,4 @@ class Mismatch:
         newMis._type_locations = None
         return newMis
 
-    def __radd__(self, other):
-        if other == 0:
-            return self
-        else:
-            return self.__add__(other)
-
-########################################
+    ########################################

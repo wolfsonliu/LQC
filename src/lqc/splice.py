@@ -1,21 +1,15 @@
 from collections import Counter
 
+from lqc._base import _LabelledStat
 from lqc.utils import convert_reverse_complement
 
 
-class Splice:
+class Splice(_LabelledStat):
     """
     A class to store splice pair counts.
     """
     def __init__(self, label = ''):
-        super().__init__()
-        if isinstance(label, str):
-            pass
-        else:
-            raise TypeError(
-                "label should be string."
-            )
-        self.label = label
+        super().__init__(label)
         self._pair_count_dict = Counter()
 
     def add_splice_pair(self, splice_pair):
@@ -78,8 +72,7 @@ class Splice:
         return outstring
 
     def __add__(self, other):
-        assert isinstance(other, type(self)),\
-            'wrong object to add'
+        other = self._require_same_type(other)
         new_dict = (
             self.get_splice_pair_count_dict() +
             other.get_splice_pair_count_dict()
@@ -90,10 +83,4 @@ class Splice:
         newSp.add_splice_pair_count_dict(new_dict)
         return newSp
 
-    def __radd__(self, other):
-        if other == 0:
-            return self
-        else:
-            return self.__add__(other)
-
-########################################
+    ########################################

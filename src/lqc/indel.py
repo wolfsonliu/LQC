@@ -2,22 +2,16 @@ from collections import Counter
 
 import numpy as np
 
+from lqc._base import _LabelledStat
 from lqc.utils import convert_reverse_complement
 
 
-class Indel:
+class Indel(_LabelledStat):
     """
     A class to store insertion or deletion count information.
     """
     def __init__(self, label = ''):
-        super().__init__()
-        if isinstance(label, str):
-            pass
-        else:
-            raise TypeError(
-                "label should be string."
-            )
-        self.label = label
+        super().__init__(label)
         self._indel_strings = []
         self._indel_index = {}
         self._indels = []
@@ -157,7 +151,7 @@ class Indel:
         return edges, hist
 
     def __add__(self, other):
-        assert isinstance(other, type(self)), 'wrong object to add'
+        other = self._require_same_type(other)
         newIndel = type(self)(
             f'{self.label} {other.label}'
         )
@@ -189,12 +183,6 @@ class Indel:
         newIndel._indel_strings = new_strings
         newIndel._indel_index = string_index
         return newIndel
-
-    def __radd__(self, other):
-        if other == 0:
-            return self
-        else:
-            return self.__add__(other)
 
     def __str__(self):
         outstring = f"Indel {self.label}: {self.get_total_count()} indels with total length {self.get_total_length()}"
