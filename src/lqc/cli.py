@@ -61,25 +61,6 @@ matplotlib.use('Agg')
 logger = logging.getLogger(__name__)
 
 
-def get_stat_list(result, stat_type):
-    stat_type_ids = {
-        'readstat': 0,
-        'insertion': 1,
-        'deletion': 2,
-        'mismatch': 3,
-        'splice': 4
-    }
-    assert stat_type in stat_type_ids,\
-        'stat_type should be in [{}].'.format(
-            ','.join(
-                stat_type_ids.keys()
-            )
-        )
-    idx = stat_type_ids[stat_type]
-
-    return [result[i][idx] for i in range(len(result))]
-
-
 def build_directories(dir_dict):
     for b in dir_dict.values():
         os.makedirs(b, exist_ok = True)
@@ -429,11 +410,11 @@ def main(argv = None) -> int:
         logger.error(message)
         raise ValueError(message)
 
-    l_readstat = get_stat_list(result, 'readstat')
-    l_insertion = get_stat_list(result, 'insertion')
-    l_deletion = get_stat_list(result, 'deletion')
-    l_mismatch = get_stat_list(result, 'mismatch')
-    l_splice = get_stat_list(result, 'splice')
+    l_readstat = [cs.readstat for cs in result]
+    l_insertion = [cs.insertion for cs in result]
+    l_deletion = [cs.deletion for cs in result]
+    l_mismatch = [cs.mismatch for cs in result]
+    l_splice = [cs.splice for cs in result]
 
     message = 'Sum of statistics from each contig.'
     logger.debug(message)

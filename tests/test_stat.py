@@ -222,6 +222,15 @@ def test_stat_region_matches_serial(cs_bam):
     assert reduced[0][0].get_read_count() == 2
 
 
+def test_stat_element_returns_contigstats_named_fields(cs_bam):
+    cs = stat_element_from_bam_by_contig(cs_bam, None, 'chr1', 'cs')
+    assert cs._fields == (
+        'readstat', 'insertion', 'deletion', 'mismatch', 'splice'
+    )
+    assert cs.readstat.get_read_count() == 2
+    assert cs.insertion.label == 'chr1'
+
+
 def test_stat_region_assigns_boundary_read_once(cs_bam_boundary):
     tasks = plan_tasks(cs_bam_boundary, ['chr1'], target_reads=1)
     blocks = [

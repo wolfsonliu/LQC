@@ -45,6 +45,15 @@ class StatBlock(NamedTuple):
     cs_path: Optional[str] = None
 
 
+class ContigStats(NamedTuple):
+    """The five per-contig accumulators, in canonical order."""
+    readstat: ReadStat
+    insertion: Indel
+    deletion: Indel
+    mismatch: Mismatch
+    splice: Splice
+
+
 def record_from_read(read, contig, method):
     """Extract the minimal fields from a pysam read for stat accumulation."""
     strand = '-' if read.is_reverse else '+'
@@ -290,7 +299,7 @@ def reduce_blocks_to_contigs(blocks, contigs):
         splice = sum(b.splice for b in contig_blocks)
         for obj in (readstat, insertion, deletion, mismatch, splice):
             obj.label = contig
-        result.append((
+        result.append(ContigStats(
             readstat, insertion, deletion, mismatch, splice
         ))
     return result
@@ -327,7 +336,7 @@ def stat_element_from_bam_by_contig(bam_file,
     if genome is not None:
         genome.close()
 
-    return readstat, insertion, deletion, mismatch, splice
+    return ContigStats(readstat, insertion, deletion, mismatch, splice)
 
 
 ########################################
