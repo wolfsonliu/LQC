@@ -1,6 +1,14 @@
 import pandas as pd
 
-from lqc.constants import MISMATCH_TYPES
+from lqc.constants import MISMATCH_TYPES, TOTAL_LABEL
+
+COL_LABEL = 'label'
+COL_READ_COUNT = 'read_count'
+
+
+def total_row(table, column):
+    """Return the ``column`` value from the ``Total`` row of a summary table."""
+    return table.loc[table[COL_LABEL] == TOTAL_LABEL, column].iloc[0]
 
 
 def create_readstat_table(readstat_list, readstat_sum):

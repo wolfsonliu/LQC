@@ -3,12 +3,15 @@ import pytest
 from lqc import Indel, Mismatch, Splice
 from lqc.readstat import ReadStat
 from lqc.report_table import (
+    COL_LABEL,
+    COL_READ_COUNT,
     create_indel_summary_table,
     create_mapping_table,
     create_mismatch_normalized_read_location_table,
     create_readstat_table,
     create_splice_all_table,
     create_splice_table,
+    total_row,
 )
 
 READSTAT_COLUMNS = [
@@ -188,3 +191,14 @@ def test_mismatch_table_fixed_type_order_and_bin_total():
     assert row['ag'] == 1
     assert row['ct'] == 1
     assert row['bin_total'] == 2
+
+
+def test_total_row_pulls_total_cell():
+    import pandas as pd
+    df = pd.DataFrame([
+        {'label': 'chr1', 'read_count': 5},
+        {'label': 'Total', 'read_count': 7},
+    ])
+    assert total_row(df, 'read_count') == 7
+    assert COL_LABEL == 'label'
+    assert COL_READ_COUNT == 'read_count'

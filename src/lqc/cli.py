@@ -54,6 +54,7 @@ from lqc import (
 from lqc._base import concat_stats
 from lqc.constants import TOTAL_LABEL
 from lqc.formatting import FLOAT_FORMAT
+from lqc.report_table import total_row
 from lqc.stat import plan_tasks, reduce_blocks_to_contigs, stat_region
 
 matplotlib.use('Agg')
@@ -764,35 +765,23 @@ def main(argv = None) -> int:
     new_html_string = html_add_mismatch_table(
         new_html_string, t_mismatch,
         smismatch.get_total_count(),
-        t_readstat.loc[
-            t_readstat['label'] == 'Total',
-            'mean_mismatch_per_read_per_kb'
-        ].values[0],
+        total_row(t_readstat, 'mean_mismatch_per_read_per_kb'),
         mismatch_type_counter
     )
 
     new_html_string = html_add_insertion_table(
         new_html_string, t_insertion,
-        t_readstat.loc[
-            t_readstat['label'] == 'Total',
-            'mean_insertion_per_read_per_kb'
-        ].values[0]
+        total_row(t_readstat, 'mean_insertion_per_read_per_kb')
     )
 
     new_html_string = html_add_deletion_table(
         new_html_string, t_deletion,
-        t_readstat.loc[
-            t_readstat['label'] == 'Total',
-            'mean_deletion_per_read_per_kb'
-        ].values[0]
+        total_row(t_readstat, 'mean_deletion_per_read_per_kb')
     )
 
     new_html_string = html_add_splice_table(
         new_html_string, t_splice,
-        t_readstat.loc[
-            t_readstat['label'] == 'Total',
-            'mean_intron_per_read'
-        ].values[0]
+        total_row(t_readstat, 'mean_intron_per_read')
     )
 
     new_html_string = html_add_bootstrap(new_html_string, VERSION)
