@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 import pysam
 
 from lqc.cs import CS
@@ -29,48 +31,52 @@ def bam_or_sam(file_path):
     return expansion
 
 
+@contextmanager
+def open_alignment_file(path):
+    """Yield an opened pysam.AlignmentFile in the mode matching the file type."""
+    fh = pysam.AlignmentFile(
+        path, 'rb' if bam_or_sam(path) == 'BAM' else 'r'
+    )
+    try:
+        yield fh
+    finally:
+        fh.close()
+
+
 def list_bam_contigs(bam_file):
     """Return the reference names present in the BAM/SAM header."""
-    file_type = bam_or_sam(bam_file)
-    file_read = "rb" if file_type == "BAM" else "r"
-    bam = pysam.AlignmentFile(bam_file, file_read)
-    contigs = list(bam.references)
-    bam.close()
-    return contigs
+    with open_alignment_file(bam_file) as bam:
+        return list(bam.references)
 
 
 def check_bam_with_cs_or_md(bam_file):
-    file_type = bam_or_sam(bam_file)
-    file_read = "rb" if file_type == "BAM" else "r"
-
-    bam = pysam.AlignmentFile(bam_file, file_read)
-    bam_type = None
-    for i, read in enumerate(bam, start = 1):
-        if i >= 10:
-            break
-        else:
-            rcsmd = check_cs_md_tag(read.tags)
-            if len(rcsmd) > 0:
-                if "cs" in rcsmd and "MD" in rcsmd:
-                    bam_type = "both"
-                    return bam_type
-                elif "cs" in rcsmd:
-                    if bam_type == "MD":
+    with open_alignment_file(bam_file) as bam:
+        bam_type = None
+        for i, read in enumerate(bam, start = 1):
+            if i >= 10:
+                break
+            else:
+                rcsmd = check_cs_md_tag(read.tags)
+                if len(rcsmd) > 0:
+                    if "cs" in rcsmd and "MD" in rcsmd:
                         bam_type = "both"
                         return bam_type
+                    elif "cs" in rcsmd:
+                        if bam_type == "MD":
+                            bam_type = "both"
+                            return bam_type
+                        else:
+                            bam_type = "cs"
+                    elif "MD" in rcsmd:
+                        if bam_type == "cs":
+                            bam_type = "both"
+                            return bam_type
+                        else:
+                            bam_type = "MD"
                     else:
-                        bam_type = "cs"
-                elif "MD" in rcsmd:
-                    if bam_type == "cs":
-                        bam_type = "both"
-                        return bam_type
-                    else:
-                        bam_type = "MD"
+                        pass
                 else:
                     pass
-            else:
-                pass
-    bam.close()
     return bam_type
 
 
@@ -87,16 +93,12 @@ def write_readcs(bam_file,
     """
     assert method in ['cs', 'MD', 'both'],\
         "method should be either: cs, MD, both."
-    file_type = bam_or_sam(bam_file)
-    file_read = "rb" if file_type == "BAM" else "r"
-    bam = pysam.AlignmentFile(bam_file, file_read)
-
     if method not in ['cs', 'both']:
         genome = pysam.FastaFile(genome_file)
     else:
         pass
 
-    with open(output_file, 'w') as output:
+    with open_alignment_file(bam_file) as bam, open(output_file, 'w') as output:
         output.write(
             'read_name\tcontig\tlow\thigh\tcs_mark\tcs_value\n'
         )
@@ -142,7 +144,6 @@ def write_readcs(bam_file,
                          read.reference_name] +
                         [f'{a}' for a in line]
                     ) + '\n' for line in cs_list)
-    bam.close()
     if method not in ['cs', 'both']:
         genome.close()
     else:

@@ -10,7 +10,12 @@ from lqc.indel import Indel
 from lqc.mismatch import Mismatch
 from lqc.readstat import ReadStat
 from lqc.splice import Splice
-from lqc.utils import bam_or_sam, convert_complement, convert_reverse_complement
+from lqc.utils import (
+    bam_or_sam,
+    convert_complement,
+    convert_reverse_complement,
+    open_alignment_file,
+)
 
 
 class ReadRecord(NamedTuple):
@@ -150,17 +155,14 @@ def prefetch_records(bam_file, contigs, method):
     cs path this is small (a cs string plus a few ints); for the MD path each
     record additionally carries the full ``query_sequence``.
     """
-    file_type = bam_or_sam(bam_file)
-    file_read = "rb" if file_type == "BAM" else "r"
-    bam = pysam.AlignmentFile(bam_file, file_read)
-    per_contig = []
-    for contig in contigs:
-        records = [
-            record_from_read(read, contig, method)
-            for read in bam.fetch(contig)
-        ]
-        per_contig.append((contig, records))
-    bam.close()
+    with open_alignment_file(bam_file) as bam:
+        per_contig = []
+        for contig in contigs:
+            records = [
+                record_from_read(read, contig, method)
+                for read in bam.fetch(contig)
+            ]
+            per_contig.append((contig, records))
     return per_contig
 
 
@@ -173,10 +175,7 @@ def plan_tasks(bam_file, contigs, target_reads=10000):
     ascending coordinate order, so concatenating per-window results preserves
     the current single-contig traversal order.
     """
-    file_type = bam_or_sam(bam_file)
-    file_read = "rb" if file_type == "BAM" else "r"
-    bam = pysam.AlignmentFile(bam_file, file_read)
-    try:
+    with open_alignment_file(bam_file) as bam:
         stats = {
             stat.contig: stat.mapped
             for stat in bam.get_index_statistics()
@@ -194,8 +193,6 @@ def plan_tasks(bam_file, contigs, target_reads=10000):
                 end = ((w + 1) * length) // n_windows
                 tasks.append((index, contig, start, end))
                 index += 1
-    finally:
-        bam.close()
     return tasks
 
 
@@ -261,17 +258,12 @@ def stat_region(task, bam_file, genome_file, method, cs_dir=None):
     selected records are then accumulated by ``stat_records``.
     """
     index, contig, start, end = task
-    file_type = bam_or_sam(bam_file)
-    file_read = "rb" if file_type == "BAM" else "r"
-    bam = pysam.AlignmentFile(bam_file, file_read)
-    try:
+    with open_alignment_file(bam_file) as bam:
         records = []
         for read in bam.fetch(contig, start, end):
             if read.reference_start < start:
                 continue
             records.append(record_from_read(read, contig, method))
-    finally:
-        bam.close()
     return stat_records(
         (index, contig, records), genome_file, method, cs_dir
     )

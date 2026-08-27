@@ -1,6 +1,7 @@
 import pytest
 
 from lqc import utils
+from lqc.utils import open_alignment_file
 
 
 def test_convert_complement():
@@ -30,3 +31,10 @@ def test_bam_or_sam():
 def test_bam_or_sam_rejects_unknown_extension():
     with pytest.raises(AssertionError):
         utils.bam_or_sam('x.txt')
+
+
+def test_open_alignment_file_yields_and_closes_bam(cs_bam):
+    with open_alignment_file(cs_bam) as bam:
+        assert bam is not None
+        assert list(bam.references) == ['chr1']
+    assert bam.closed
