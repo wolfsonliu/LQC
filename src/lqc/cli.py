@@ -9,7 +9,6 @@ import multiprocessing as mp
 import os
 import pickle
 import sys
-from copy import copy
 from functools import partial
 
 import matplotlib
@@ -52,6 +51,8 @@ from lqc import (
     plot_readstat_length_hist,
     plot_splice_type_count,
 )
+from lqc._base import concat_stats
+from lqc.constants import TOTAL_LABEL
 from lqc.formatting import FLOAT_FORMAT
 from lqc.stat import plan_tasks, reduce_blocks_to_contigs, stat_region
 
@@ -436,19 +437,11 @@ def main(argv = None) -> int:
 
     message = 'Sum of statistics from each contig.'
     logger.debug(message)
-    # The summed object is a shallow relabeled copy: ``sum([x])`` returns ``x``
-    # itself, so relabeling in place would rename the per-contig row too. A
-    # shallow copy shares the (read-only after this point) data while carrying
-    # its own ``label``, which also avoids duplicating multi-GB event lists.
-    def relabel(obj):
-        new_obj = copy(obj)
-        new_obj.label = 'Total'
-        return new_obj
-    sreadstat = relabel(sum(l_readstat))
-    sinsertion = relabel(sum(l_insertion))
-    sdeletion = relabel(sum(l_deletion))
-    smismatch = relabel(sum(l_mismatch))
-    ssplice = relabel(sum(l_splice))
+    sreadstat = concat_stats(l_readstat, TOTAL_LABEL)
+    sinsertion = concat_stats(l_insertion, TOTAL_LABEL)
+    sdeletion = concat_stats(l_deletion, TOTAL_LABEL)
+    smismatch = concat_stats(l_mismatch, TOTAL_LABEL)
+    ssplice = concat_stats(l_splice, TOTAL_LABEL)
 
     message = 'Generate summary tables.'
     logger.info(message)
