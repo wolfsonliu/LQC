@@ -78,3 +78,7 @@ def __getattr__(name):
         globals()[name] = value
         return value
     raise AttributeError(f"module 'lqc' has no attribute {name!r}")
+
+
+def __dir__():
+    return list(globals()) + list(_LAZY)
