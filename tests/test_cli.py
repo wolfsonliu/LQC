@@ -83,3 +83,16 @@ def test_output_cs_identical_across_thread_counts(cs_bam, tmp_path):
     assert (out1 / 'read.cs').read_bytes() == (out2 / 'read.cs').read_bytes()
     assert not list(out1.glob('.readcs-*.tmp'))
     assert not list(out2.glob('.readcs-*.tmp'))
+
+
+def test_main_outputs_expected_figure_files(cs_bam, tmp_path):
+    out = tmp_path / 'out'
+    rc = main(['-b', cs_bam, '-o', str(out), '-t', '1',
+               '-c', 'chr1', '--log-level', 'DEBUG'])
+    assert rc == 0
+    produced = {p.name for p in (out / 'fig').glob('*')}
+    for expected in ['readstat_bar_Read_count.png',
+                     'readstat_bar_mean_element_per_read.Total.png',
+                     'insertion_bar_count.png',
+                     'splice_type.png']:
+        assert expected in produced

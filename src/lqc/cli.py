@@ -72,6 +72,47 @@ def savefig(fig, prefix):
     fig.savefig(prefix + '.pdf')
 
 
+READSTAT_BAR_SPECS = [
+    ('Read count', 'readstat_bar_Read_count'),
+    ('Median read length', 'readstat_bar_Median_read_length'),
+    ('Mean read length', 'readstat_bar_Mean_read_length'),
+    ('Insertions per read', 'readstat_bar_insertions_per_read'),
+    ('Insertions per read per kb', 'readstat_bar_insertions_per_read_per_kb'),
+    ('Deletions per read', 'readstat_bar_deletions_per_read'),
+    ('Deletions per read per kb', 'readstat_bar_deletions_per_read_per_kb'),
+    ('Mismatches per read', 'readstat_bar_mismatches_per_read'),
+    ('Mismatches per read per kb', 'readstat_bar_mismatches_per_read_per_kb'),
+    ('Mean intron number', 'readstat_bar_Mean_intron_number'),
+    ('N50', 'readstat_bar_N50'),
+    ('L50', 'readstat_bar_L50'),
+]
+
+MULTI_FIG_SPECS = [
+    ('readstat_bar_mean_element_per_read', plot_readstat_bar_mean_element_per_read, 'readstat'),
+    ('readstat_bar_mean_element_per_read_per_kb', plot_readstat_bar_mean_element_per_read_per_kb, 'readstat'),
+    ('readstat_line_cumulative_length', plot_readstat_cumulative_length, 'readstat'),
+    ('readstat_bar_ratio_with_element', plot_readstat_bar_ratio_with_element, 'readstat'),
+    ('readstat_hist_length', plot_readstat_length_hist, 'readstat'),
+    ('insertion_hist_length', plot_indel_hist_length, 'insertion'),
+    ('deletion_hist_length', plot_indel_hist_length, 'deletion'),
+    ('insertion_hist_location', plot_indel_hist_location, 'insertion'),
+    ('deletion_hist_location', plot_indel_hist_location, 'deletion'),
+    ('mismatch_type', plot_mismatch_type_count, 'mismatch'),
+    ('mismatch_hist_location', plot_mismatch_hist_location, 'mismatch'),
+    ('splice_type', plot_splice_type_count, 'splice'),
+    ('mapping_hist_mapq', plot_mapping_mapq_hist, 'readstat'),
+    ('mapping_hist_aligned_fraction', plot_mapping_aligned_fraction_hist, 'readstat'),
+    ('mapping_scatter_aligned_vs_query', plot_mapping_aligned_vs_query, 'readstat'),
+]
+
+ELEMENT_BAR_SPECS = [
+    ('insertion_bar_count', 'insertion', 'Insertion'),
+    ('deletion_bar_count', 'deletion', 'Deletion'),
+    ('mismatch_bar_count', 'mismatch', 'Mismatch'),
+    ('intron_bar_count', 'splice', 'Intron'),
+]
+
+
 def generate_multiple_figs(plot_func,
                            data_list, data_sum,
                            filelabel,
@@ -248,99 +289,6 @@ def main(argv = None) -> int:
         't_splice_all': os.path.join(
             o_dirs['table'], 'splice_all.txt'
         ),
-        'f_readstat_bar_Read count': os.path.join(
-            o_dirs['fig'], 'readstat_bar_Read_count'
-        ),
-        'f_readstat_bar_Median read length': os.path.join(
-            o_dirs['fig'], 'readstat_bar_Median_read_length'
-        ),
-        'f_readstat_bar_Mean read length': os.path.join(
-            o_dirs['fig'], 'readstat_bar_Mean_read_length'
-        ),
-        'f_readstat_bar_Insertions per read': os.path.join(
-            o_dirs['fig'], 'readstat_bar_insertions_per_read'
-        ),
-        'f_readstat_bar_Insertions per read per kb': os.path.join(
-            o_dirs['fig'], 'readstat_bar_insertions_per_read_per_kb'
-        ),
-        'f_readstat_bar_Deletions per read': os.path.join(
-            o_dirs['fig'], 'readstat_bar_deletions_per_read'
-        ),
-        'f_readstat_bar_Deletions per read per kb': os.path.join(
-            o_dirs['fig'], 'readstat_bar_deletions_per_read_per_kb'
-        ),
-        'f_readstat_bar_Mismatches per read': os.path.join(
-            o_dirs['fig'], 'readstat_bar_mismatches_per_read'
-        ),
-        'f_readstat_bar_Mismatches per read per kb': os.path.join(
-            o_dirs['fig'], 'readstat_bar_mismatches_per_read_per_kb'
-        ),
-        'f_readstat_bar_Mean intron number': os.path.join(
-            o_dirs['fig'], 'readstat_bar_Mean_intron_number'
-        ),
-        'f_readstat_bar_N50': os.path.join(
-            o_dirs['fig'], 'readstat_bar_N50'
-        ),
-        'f_readstat_bar_L50': os.path.join(
-            o_dirs['fig'], 'readstat_bar_L50'
-        ),
-        'f_readstat_bar_mean_element_per_read': os.path.join(
-            o_dirs['fig'], 'readstat_bar_mean_element_per_read'
-        ),
-        'f_readstat_bar_mean_element_per_read_per_kb': os.path.join(
-            o_dirs['fig'], 'readstat_bar_mean_element_per_read_per_kb'
-        ),
-        'f_readstat_line_cumulative_length': os.path.join(
-            o_dirs['fig'], 'readstat_line_cumulative_length'
-        ),
-        'f_readstat_bar_ratio_with_element': os.path.join(
-            o_dirs['fig'], 'readstat_bar_ratio_with_element'
-        ),
-        'f_readstat_hist_length': os.path.join(
-            o_dirs['fig'], 'readstat_hist_length'
-        ),
-        'f_element_Insertion_bar_count': os.path.join(
-            o_dirs['fig'], 'insertion_bar_count'
-        ),
-        'f_element_Deletion_bar_count': os.path.join(
-            o_dirs['fig'], 'deletion_bar_count'
-        ),
-        'f_element_Mismatch_bar_count': os.path.join(
-            o_dirs['fig'], 'mismatch_bar_count'
-        ),
-        'f_element_Intron_bar_count': os.path.join(
-            o_dirs['fig'], 'intron_bar_count'
-        ),
-        'f_insertion_hist_length': os.path.join(
-            o_dirs['fig'], 'insertion_hist_length'
-        ),
-        'f_deletion_hist_length': os.path.join(
-            o_dirs['fig'], 'deletion_hist_length'
-        ),
-        'f_insertion_hist_location': os.path.join(
-            o_dirs['fig'], 'insertion_hist_location'
-        ),
-        'f_deletion_hist_location': os.path.join(
-            o_dirs['fig'], 'deletion_hist_location'
-        ),
-        'f_mismatch_type': os.path.join(
-            o_dirs['fig'], 'mismatch_type'
-        ),
-        'f_mismatch_hist_location': os.path.join(
-            o_dirs['fig'], 'mismatch_hist_location'
-        ),
-        'f_splice_type': os.path.join(
-            o_dirs['fig'], 'splice_type'
-        ),
-        'f_mapping_mapq_hist': os.path.join(
-            o_dirs['fig'], 'mapping_hist_mapq'
-        ),
-        'f_mapping_aligned_fraction_hist': os.path.join(
-            o_dirs['fig'], 'mapping_hist_aligned_fraction'
-        ),
-        'f_mapping_aligned_vs_query': os.path.join(
-            o_dirs['fig'], 'mapping_scatter_aligned_vs_query'
-        ),
         'html': os.path.join(
             o_dirs['base'], 'LQC_report.html'
         )
@@ -425,6 +373,14 @@ def main(argv = None) -> int:
     smismatch = concat_stats(l_mismatch, TOTAL_LABEL)
     ssplice = concat_stats(l_splice, TOTAL_LABEL)
 
+    data_sets = {
+        'readstat': (l_readstat, sreadstat),
+        'insertion': (l_insertion, sinsertion),
+        'deletion': (l_deletion, sdeletion),
+        'mismatch': (l_mismatch, smismatch),
+        'splice': (l_splice, ssplice),
+    }
+
     message = 'Generate summary tables.'
     logger.info(message)
     t_readstat = create_readstat_table(l_readstat, sreadstat)
@@ -486,41 +442,19 @@ def main(argv = None) -> int:
     # write output tables
     message = 'Output summary tables.'
     logger.info(message)
-    t_readstat.to_csv(
-        o_files['t_readstat'],
-        sep = '\t', index = False,
-        float_format = FLOAT_FORMAT
-    )
-    t_insertion.to_csv(
-        o_files['t_insertion'],
-        sep = '\t', index = False,
-        float_format = FLOAT_FORMAT
-    )
-    t_deletion.to_csv(
-        o_files['t_deletion'],
-        sep = '\t', index = False,
-        float_format = FLOAT_FORMAT
-    )
-    t_mismatch.to_csv(
-        o_files['t_mismatch'],
-        sep = '\t', index = False,
-        float_format = FLOAT_FORMAT
-    )
-    t_splice.to_csv(
-        o_files['t_splice'],
-        sep = '\t', index = False,
-        float_format = FLOAT_FORMAT
-    )
-    t_mapping.to_csv(
-        o_files['t_mapping'],
-        sep = '\t', index = False,
-        float_format = FLOAT_FORMAT
-    )
-    t_splice_all.to_csv(
-        o_files['t_splice_all'],
-        sep = '\t', index = False,
-        float_format = FLOAT_FORMAT
-    )
+    for key, table in [
+            ('t_readstat', t_readstat),
+            ('t_insertion', t_insertion),
+            ('t_deletion', t_deletion),
+            ('t_mismatch', t_mismatch),
+            ('t_splice', t_splice),
+            ('t_mapping', t_mapping),
+            ('t_splice_all', t_splice_all),
+    ]:
+        table.to_csv(
+            o_files[key], sep = '\t', index = False,
+            float_format = FLOAT_FORMAT
+        )
     message = 'Output summary tables finished.'
     logger.debug(message)
 
@@ -528,217 +462,23 @@ def main(argv = None) -> int:
     # plot figures
     message = 'Output figures.'
     logger.info(message)
-    # readstat: feature
-    message = 'Output figures: readstat summary features.'
-    logger.debug(message)
-    for feature in [
-            'Read count', 'Median read length',
-            'Mean read length',
-            'Insertions per read', 'Insertions per read per kb',
-            'Deletions per read', 'Deletions per read per kb',
-            'Mismatches per read', 'Mismatches per read per kb',
-            'Mean intron number', 'N50', 'L50'
-    ]:
-        filelabel = 'f_readstat_bar_' + feature
+    figdir = o_dirs['fig']
+    for feature, stem in READSTAT_BAR_SPECS:
         fig = plot_readstat_bar(l_readstat, feature)
-        savefig(fig, o_files[filelabel])
+        savefig(fig, os.path.join(figdir, stem))
         plt.close('all')
 
-    # readstat: mean element per read
-    message = 'Output figures: readstat_bar_mean_element_per_read.'
-    logger.debug(message)
-    filelabel = 'f_readstat_bar_mean_element_per_read'
-    generate_multiple_figs(
-        plot_readstat_bar_mean_element_per_read,
-        data_list = l_readstat,
-        data_sum = sreadstat,
-        filelabel = o_files[filelabel],
-        width = 5, height = 4
-    )
-    message = 'Output figures: readstat_bar_mean_element_per_read_per_kb.'
-    logger.debug(message)
-    filelabel = 'f_readstat_bar_mean_element_per_read_per_kb'
-    generate_multiple_figs(
-        plot_readstat_bar_mean_element_per_read_per_kb,
-        data_list = l_readstat,
-        data_sum = sreadstat,
-        filelabel = o_files[filelabel],
-        width = 5, height = 4
-    )
+    for stem, plot_func, data_key in MULTI_FIG_SPECS:
+        data_list, data_sum = data_sets[data_key]
+        generate_multiple_figs(
+            plot_func, data_list, data_sum,
+            os.path.join(figdir, stem), width = 5, height = 4
+        )
 
-    # readstat: cumulative length
-    message = 'Output figures: readstat_line_cumulative_length.'
-    logger.debug(message)
-    filelabel = 'f_readstat_line_cumulative_length'
-    generate_multiple_figs(
-        plot_readstat_cumulative_length,
-        data_list = l_readstat,
-        data_sum = sreadstat,
-        filelabel = o_files[filelabel],
-        width = 5, height = 4
-    )
-
-    # readstat: ratio with error element
-    message = 'Output figures: readstat_bar_ratio_with_element.'
-    logger.debug(message)
-    filelabel = 'f_readstat_bar_ratio_with_element'
-    generate_multiple_figs(
-        plot_readstat_bar_ratio_with_element,
-        data_list = l_readstat,
-        data_sum = sreadstat,
-        filelabel = o_files[filelabel],
-        width = 5, height = 4
-    )
-
-    # readstat: length hist
-    message = 'Output figures: readstat_hist_length.'
-    logger.debug(message)
-    filelabel = 'f_readstat_hist_length'
-    generate_multiple_figs(
-        plot_readstat_length_hist,
-        data_list = l_readstat,
-        data_sum = sreadstat,
-        filelabel = o_files[filelabel],
-        width = 5, height = 4
-    )
-
-    # error element
-    message = 'Output figures: error element barplots.'
-    logger.debug(message)
-    filelabel = 'f_element_Insertion_bar_count'
-    fig = plot_element_total_count(
-        l_insertion, 'Insertion'
-    )
-    savefig(fig, o_files[filelabel])
-    filelabel = 'f_element_Deletion_bar_count'
-    fig = plot_element_total_count(
-        l_deletion, 'Deletion'
-    )
-    savefig(fig, o_files[filelabel])
-    filelabel = 'f_element_Mismatch_bar_count'
-    fig = plot_element_total_count(
-        l_mismatch, 'Mismatch'
-    )
-    savefig(fig, o_files[filelabel])
-    plt.close('all')
-    filelabel = 'f_element_Intron_bar_count'
-    fig = plot_element_total_count(
-        l_splice, 'Intron'
-    )
-    savefig(fig, o_files[filelabel])
-    plt.close('all')
-
-    # indel: length hist
-    # insertion
-    message = 'Output figures: insertion_hist_length.'
-    logger.debug(message)
-    filelabel = 'f_insertion_hist_length'
-    generate_multiple_figs(
-        plot_indel_hist_length,
-        data_list = l_insertion,
-        data_sum = sinsertion,
-        filelabel = o_files[filelabel],
-        width = 5, height = 4
-    )
-    # deletion
-    message = 'Output figures: deletion_hist_length.'
-    logger.debug(message)
-    filelabel = 'f_deletion_hist_length'
-    generate_multiple_figs(
-        plot_indel_hist_length,
-        data_list = l_deletion,
-        data_sum = sdeletion,
-        filelabel = o_files[filelabel],
-        width = 5, height = 4
-    )
-
-    # indel: read location hist
-    # insertion
-    message = 'Output figures: insertion_hist_location.'
-    logger.debug(message)
-    filelabel = 'f_insertion_hist_location'
-    generate_multiple_figs(
-        plot_indel_hist_location,
-        data_list = l_insertion,
-        data_sum = sinsertion,
-        filelabel = o_files[filelabel],
-        width = 5, height = 4
-    )
-    # deletion
-    message = 'Output figures: deletion_hist_location.'
-    logger.debug(message)
-    filelabel = 'f_deletion_hist_location'
-    generate_multiple_figs(
-        plot_indel_hist_location,
-        data_list = l_deletion,
-        data_sum = sdeletion,
-        filelabel = o_files[filelabel],
-        width = 5, height = 4
-    )
-
-    # mismatch type
-    message = 'Output figures: mismatch_type.'
-    logger.debug(message)
-    filelabel = 'f_mismatch_type'
-    generate_multiple_figs(
-        plot_mismatch_type_count,
-        data_list = l_mismatch,
-        data_sum = smismatch,
-        filelabel = o_files[filelabel],
-        width = 5, height = 4
-    )
-
-    # mismatch: read location hist
-    message = 'Output figures: mismatch_hist_location.'
-    logger.debug(message)
-    filelabel = 'f_mismatch_hist_location'
-    generate_multiple_figs(
-        plot_mismatch_hist_location,
-        data_list = l_mismatch,
-        data_sum = smismatch,
-        filelabel = o_files[filelabel],
-        width = 5, height = 4
-    )
-
-    # splice type
-    message = 'Output figures: splice_type.'
-    logger.debug(message)
-    filelabel = 'f_splice_type'
-    generate_multiple_figs(
-        plot_splice_type_count,
-        data_list = l_splice,
-        data_sum = ssplice,
-        filelabel = o_files[filelabel],
-        width = 5, height = 4
-    )
-
-    # mapping metrics
-    message = 'Output figures: mapping metrics.'
-    logger.debug(message)
-    filelabel = 'f_mapping_mapq_hist'
-    generate_multiple_figs(
-        plot_mapping_mapq_hist,
-        data_list = l_readstat,
-        data_sum = sreadstat,
-        filelabel = o_files[filelabel],
-        width = 5, height = 4
-    )
-    filelabel = 'f_mapping_aligned_fraction_hist'
-    generate_multiple_figs(
-        plot_mapping_aligned_fraction_hist,
-        data_list = l_readstat,
-        data_sum = sreadstat,
-        filelabel = o_files[filelabel],
-        width = 5, height = 4
-    )
-    filelabel = 'f_mapping_aligned_vs_query'
-    generate_multiple_figs(
-        plot_mapping_aligned_vs_query,
-        data_list = l_readstat,
-        data_sum = sreadstat,
-        filelabel = o_files[filelabel],
-        width = 5, height = 4
-    )
+    for stem, data_key, kind in ELEMENT_BAR_SPECS:
+        fig = plot_element_total_count(data_sets[data_key][0], kind)
+        savefig(fig, os.path.join(figdir, stem))
+        plt.close('all')
 
     message = 'Output figures finished.'
     logger.debug(message)
