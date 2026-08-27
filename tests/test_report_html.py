@@ -1,6 +1,12 @@
 from lqc import get_html_template
 from lqc.readstat import ReadStat
-from lqc.report_html import html_add_mapping, html_add_readstat_table
+from lqc.report_html import (
+    _replace_tokens,
+    html_add_deletion_table,
+    html_add_insertion_table,
+    html_add_mapping,
+    html_add_readstat_table,
+)
 from lqc.report_table import create_mapping_table, create_readstat_table
 
 
@@ -50,3 +56,22 @@ def test_html_add_mapping_substitutes_placeholders():
     assert '{%mapping_mapq_median%}' not in html
     assert '{%mapping_table%}' not in html
     assert '<tr class="table-secondary">' in html
+
+
+def test_replace_tokens_substitutes_all_in_order():
+    html = _replace_tokens(
+        '<p>{%a%}-{%b%}</p>', {'{%a%}': '1', '{%b%}': '2'}
+    )
+    assert html == '<p>1-2</p>'
+
+
+def test_indel_tables_share_implementation():
+    import pandas as pd
+    table = pd.DataFrame([{
+        'label': 'Total', 'total_count': 1, 'total_length': 2,
+        'mean_length': 2.0, 'median_length': 2.0,
+    }])
+    ins = html_add_insertion_table('<h>{%insertion_table%}</h>', table, 0.0)
+    dele = html_add_deletion_table('<h>{%deletion_table%}</h>', table, 0.0)
+    assert '{%insertion_table%}' not in ins
+    assert '{%deletion_table%}' not in dele

@@ -3,6 +3,16 @@ import json
 import os
 import re
 
+from lqc.constants import MISMATCH_TYPES, TOTAL_LABEL
+
+
+def _replace_tokens(html_string, tokens):
+    """Apply each ``{token: replacement}`` via ``re.sub`` in insertion order."""
+    result = html_string
+    for token, replacement in tokens.items():
+        result = re.sub(token, replacement, result)
+    return result
+
 
 def html_add_readstat_table(html_string, readstat_table):
     rowstring_list = []
@@ -37,54 +47,21 @@ def html_add_readstat_table(html_string, readstat_table):
                 '\n'.join(tmprow_list) + "</tr>"
             )
 
-    new_html_string = re.sub(
-        r"\{%readstat_total_read_count%\}",
-        f'{total_read_count}', html_string
-    )
-    new_html_string = re.sub(
-        r"\{%readstat_total_base%\}",
-        f'{total_base}', new_html_string
-    )
-    new_html_string = re.sub(
-        r"\{%readstat_median_read_length%\}",
-        f'{total_median_read_length}',
-        new_html_string
-    )
-    new_html_string = re.sub(
-        r"\{%readstat_mean_read_length%\}",
-        f'{total_mean_read_length:.4g}',
-        new_html_string
-    )
-    new_html_string = re.sub(
-        r"\{%readstat_N50%\}",
-        f'{total_N50}',
-        new_html_string
-    )
-    new_html_string = re.sub(
-        r"\{%readstat_L50%\}",
-        f'{total_L50}',
-        new_html_string
-    )
-    new_html_string = re.sub(
-        r'\{%readstat_insertion_per_read_per_kb%\}',
-        f'{total_insertion_per_read_per_kb:.4g}',
-        new_html_string
-    )
-    new_html_string = re.sub(
-        r'\{%readstat_deletion_per_read_per_kb%\}',
-        f'{total_deletion_per_read_per_kb:.4g}',
-        new_html_string
-    )
-    new_html_string = re.sub(
-        r'\{%readstat_mismatch_per_read_per_kb%\}',
-        f'{total_mismatch_per_read_per_kb:.4g}',
-        new_html_string
-    )
-
-    new_html_string = re.sub(
-        r"\{%readstat_table%\}",
-        '\n'.join(rowstring_list), new_html_string
-    )
+    new_html_string = _replace_tokens(html_string, {
+        r"\{%readstat_total_read_count%\}": f'{total_read_count}',
+        r"\{%readstat_total_base%\}": f'{total_base}',
+        r"\{%readstat_median_read_length%\}": f'{total_median_read_length}',
+        r"\{%readstat_mean_read_length%\}": f'{total_mean_read_length:.4g}',
+        r"\{%readstat_N50%\}": f'{total_N50}',
+        r"\{%readstat_L50%\}": f'{total_L50}',
+        r"\{%readstat_insertion_per_read_per_kb%\}" :
+            f'{total_insertion_per_read_per_kb:.4g}',
+        r"\{%readstat_deletion_per_read_per_kb%\}" :
+            f'{total_deletion_per_read_per_kb:.4g}',
+        r"\{%readstat_mismatch_per_read_per_kb%\}" :
+            f'{total_mismatch_per_read_per_kb:.4g}',
+        r"\{%readstat_table%\}": '\n'.join(rowstring_list),
+    })
     return new_html_string
 
 
@@ -92,8 +69,7 @@ def html_add_mismatch_table(html_string, mismatch_table,
                             total_mismatch_count,
                             mean_mismatch_per_read_per_kb,
                             mismatch_type_counter):
-    mis_types = ['ac', 'ag', 'at', 'ca', 'cg', 'ct',
-                 'ga', 'gc', 'gt', 'ta', 'tc', 'tg']
+    mis_types = list(MISMATCH_TYPES)
     rowstring_list = []
     for _, row in mismatch_table.iterrows():
         for mis in mis_types:
@@ -124,16 +100,6 @@ def html_add_mismatch_table(html_string, mismatch_table,
                     '\n'.join(tmprow_list) + "</tr>"
                 )
 
-    new_html_string = re.sub(
-        r"\{%mismatch_total_mismatch_number%\}",
-        f'{total_mismatch_count}',
-        html_string
-    )
-    new_html_string = re.sub(
-        r"\{%mismatch_mean_mismatch_per_read_per_kb%\}",
-        f'{mean_mismatch_per_read_per_kb:.4g}',
-        new_html_string
-    )
     mistype_list1 = [
         f"<li>{mis}: {mismatch_type_counter[mis]}</li>"
         for mis in mis_types[0:6]
@@ -142,141 +108,71 @@ def html_add_mismatch_table(html_string, mismatch_table,
         f"<li>{mis}: {mismatch_type_counter[mis]}</li>"
         for mis in mis_types[6:]
     ]
-    new_html_string = re.sub(
-        r"\{%mismatch_type_list1%\}",
-        "<ul>" + '\n'.join(mistype_list1) + "</ul>",
-        new_html_string
-    )
-    new_html_string = re.sub(
-        r"\{%mismatch_type_list2%\}",
-        "<ul>" + '\n'.join(mistype_list2) + "</ul>",
-        new_html_string
-    )
-    new_html_string = re.sub(
-        r"\{%mismatch_table%\}",
-        '\n'.join(rowstring_list),
-        new_html_string
-    )
+    new_html_string = _replace_tokens(html_string, {
+        r"\{%mismatch_total_mismatch_number%\}": f'{total_mismatch_count}',
+        r"\{%mismatch_mean_mismatch_per_read_per_kb%\}" :
+            f'{mean_mismatch_per_read_per_kb:.4g}',
+        r"\{%mismatch_type_list1%\}" :
+            "<ul>" + '\n'.join(mistype_list1) + "</ul>",
+        r"\{%mismatch_type_list2%\}" :
+            "<ul>" + '\n'.join(mistype_list2) + "</ul>",
+        r"\{%mismatch_table%\}": '\n'.join(rowstring_list),
+    })
     return new_html_string
+
+
+def _html_add_indel_table(html_string, indel_table, per_kb, kind):
+    token = kind  # 'insertion' or 'deletion'
+    rowstring_list = []
+    total_count = total_length = 0
+    mean_length = median_length = 0.0
+    for _, row in indel_table.iterrows():
+        tmprow_list = [
+            '<th scope="row">{}</th>'.format(row['label']),
+            '<td>{}</td>'.format(row['total_count']),
+            '<td>{}</td>'.format(row['total_length']),
+            '<td>{:.4g}</td>'.format(float(row['mean_length'])),
+            '<td>{:.4g}</td>'.format(float(row['median_length']))
+        ]
+        if row['label'] == TOTAL_LABEL:
+            rowstring_list.append(
+                '<tr class="table-secondary">' +
+                '\n'.join(tmprow_list) + "</tr>"
+            )
+            total_count = row['total_count']
+            total_length = row['total_length']
+            mean_length = float(row['mean_length'])
+            median_length = float(row['median_length'])
+        else:
+            rowstring_list.append(
+                "<tr>" + '\n'.join(tmprow_list) + "</tr>"
+            )
+
+    return _replace_tokens(html_string, {
+        r"\{%" + token + r"_total_" + token + r"_number%\}": f'{total_count}',
+        r"\{%" + token + r"_total_" + token + r"_length%\}": f'{total_length}',
+        r"\{%" + token + r"_mean_length%\}": f'{mean_length:.4g}',
+        r"\{%" + token + r"_median_length%\}": f'{median_length:.4g}',
+        r"\{%" + token + r"_mean_" + token + r"_per_read_per_kb%\}":
+            f'{per_kb:.4g}',
+        r"\{%" + token + r"_table%\}": '\n'.join(rowstring_list),
+    })
 
 
 def html_add_insertion_table(html_string, insertion_table,
                              mean_insertion_per_read_per_kb):
-    rowstring_list = []
-    for _, row in insertion_table.iterrows():
-        tmprow_list = [
-            '<th scope="row">{}</th>'.format(row['label']),
-            '<td>{}</td>'.format(row['total_count']),
-            '<td>{}</td>'.format(row['total_length']),
-            '<td>{:.4g}</td>'.format(float(row['mean_length'])),
-            '<td>{:.4g}</td>'.format(float(row['median_length']))
-        ]
-        if row['label'] == "Total":
-            rowstring_list.append(
-                '<tr class="table-secondary">' +
-                '\n'.join(tmprow_list) + "</tr>"
-
-            )
-            total_insertion_count = row['total_count']
-            total_insertion_length = row['total_length']
-            mean_insertion_length = float(row['mean_length'])
-            median_insertion_length = float(row['median_length'])
-        else:
-            rowstring_list.append(
-                "<tr>" +
-                '\n'.join(tmprow_list) + "</tr>"
-            )
-
-    new_html_string = re.sub(
-        r"\{%insertion_total_insertion_number%\}",
-        f'{total_insertion_count}',
-        html_string
+    return _html_add_indel_table(
+        html_string, insertion_table, mean_insertion_per_read_per_kb,
+        'insertion'
     )
-    new_html_string = re.sub(
-        r"\{%insertion_total_insertion_length%\}",
-        f'{total_insertion_length}',
-        new_html_string
-    )
-    new_html_string = re.sub(
-        r"\{%insertion_mean_length%\}",
-        f'{mean_insertion_length:.4g}',
-        new_html_string
-    )
-    new_html_string = re.sub(
-        r"\{%insertion_median_length%\}",
-        f'{median_insertion_length:.4g}',
-        new_html_string
-    )
-    new_html_string = re.sub(
-        r"\{%insertion_mean_insertion_per_read_per_kb%\}",
-        f'{mean_insertion_per_read_per_kb:.4g}',
-        new_html_string
-    )
-    new_html_string = re.sub(
-        r"\{%insertion_table%\}",
-        '\n'.join(rowstring_list), new_html_string
-    )
-    return new_html_string
 
 
 def html_add_deletion_table(html_string, deletion_table,
                             mean_deletion_per_read_per_kb):
-    rowstring_list = []
-    for _, row in deletion_table.iterrows():
-        tmprow_list = [
-            '<th scope="row">{}</th>'.format(row['label']),
-            '<td>{}</td>'.format(row['total_count']),
-            '<td>{}</td>'.format(row['total_length']),
-            '<td>{:.4g}</td>'.format(float(row['mean_length'])),
-            '<td>{:.4g}</td>'.format(float(row['median_length']))
-        ]
-        if row['label'] == "Total":
-            rowstring_list.append(
-                '<tr class="table-secondary">' +
-                '\n'.join(tmprow_list) + "</tr>"
-
-            )
-            total_deletion_count = row['total_count']
-            total_deletion_length = row['total_length']
-            mean_deletion_length = float(row['mean_length'])
-            median_deletion_length = float(row['median_length'])
-        else:
-            rowstring_list.append(
-                "<tr>" +
-                '\n'.join(tmprow_list) + "</tr>"
-            )
-
-    new_html_string = re.sub(
-        r"\{%deletion_total_deletion_number%\}",
-        f'{total_deletion_count}',
-        html_string
+    return _html_add_indel_table(
+        html_string, deletion_table, mean_deletion_per_read_per_kb,
+        'deletion'
     )
-    new_html_string = re.sub(
-        r"\{%deletion_total_deletion_length%\}",
-        f'{total_deletion_length}',
-        new_html_string
-    )
-    new_html_string = re.sub(
-        r"\{%deletion_mean_length%\}",
-        f'{mean_deletion_length:.4g}',
-        new_html_string
-    )
-    new_html_string = re.sub(
-        r"\{%deletion_median_length%\}",
-        f'{median_deletion_length:.4g}',
-        new_html_string
-    )
-    new_html_string = re.sub(
-        r"\{%deletion_mean_deletion_per_read_per_kb%\}",
-        f'{mean_deletion_per_read_per_kb:.4g}',
-        new_html_string
-    )
-    new_html_string = re.sub(
-        r"\{%deletion_table%\}",
-        '\n'.join(rowstring_list),
-        new_html_string
-    )
-    return new_html_string
 
 
 def html_add_splice_table(html_string, splice_table,
@@ -336,29 +232,14 @@ def html_add_splice_table(html_string, splice_table,
         f"<li>at-ac: {total_atac} ({total_atacp:.4g}%)</li>",
         f"<li>other: {total_other} ({total_otherp:.4g}%)</li>"
     ]
-    new_html_string = re.sub(
-        r"\{%splice_type_list%\}",
-        "<ul>" + '\n'.join(splice_list) + "</ul>",
-        html_string
-    )
-    new_html_string = re.sub(
-        r"\{%intron_total_intron_number%\}",
-        '{}'.format(
-            total_gtag + total_gcag +
-            total_atac + total_other
-        ),
-        new_html_string
-    )
-    new_html_string = re.sub(
-        r"\{%intron_mean_intron_per_read%\}",
-        f'{mean_intron_per_read:.4g}',
-        new_html_string
-    )
-    new_html_string = re.sub(
-        r"\{%splice_table%\}",
-        '\n'.join(rowstring_list),
-        new_html_string
-    )
+    new_html_string = _replace_tokens(html_string, {
+        r"\{%splice_type_list%\}" :
+            "<ul>" + '\n'.join(splice_list) + "</ul>",
+        r"\{%intron_total_intron_number%\}" :
+            f'{total_gtag + total_gcag + total_atac + total_other}',
+        r"\{%intron_mean_intron_per_read%\}" : f'{mean_intron_per_read:.4g}',
+        r"\{%splice_table%\}": '\n'.join(rowstring_list),
+    })
     return new_html_string
 
 
@@ -393,31 +274,15 @@ def html_add_mapping(html_string, mapping_table):
         else:
             rowstring_list.append('<tr>' + '\n'.join(tmprow_list) + '</tr>')
 
-    new_html_string = re.sub(
-        r"\{%mapping_aligned_fraction_mean%\}",
-        f'{total_aligned_fraction_mean:.4g}',
-        html_string
-    )
-    new_html_string = re.sub(
-        r"\{%mapping_aligned_fraction_median%\}",
-        f'{total_aligned_fraction_median:.4g}',
-        new_html_string
-    )
-    new_html_string = re.sub(
-        r"\{%mapping_mapq_mean%\}",
-        f'{total_mapq_mean:.4g}',
-        new_html_string
-    )
-    new_html_string = re.sub(
-        r"\{%mapping_mapq_median%\}",
-        f'{total_mapq_median:.4g}',
-        new_html_string
-    )
-    new_html_string = re.sub(
-        r"\{%mapping_table%\}",
-        '\n'.join(rowstring_list),
-        new_html_string
-    )
+    new_html_string = _replace_tokens(html_string, {
+        r"\{%mapping_aligned_fraction_mean%\}" :
+            f'{total_aligned_fraction_mean:.4g}',
+        r"\{%mapping_aligned_fraction_median%\}" :
+            f'{total_aligned_fraction_median:.4g}',
+        r"\{%mapping_mapq_mean%\}" : f'{total_mapq_mean:.4g}',
+        r"\{%mapping_mapq_median%\}" : f'{total_mapq_median:.4g}',
+        r"\{%mapping_table%\}": '\n'.join(rowstring_list),
+    })
     return new_html_string
 
 
