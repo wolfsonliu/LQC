@@ -5,6 +5,25 @@ All notable changes to LQC are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and LQC adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.0.9] - 2026-08-28
+
+### Changed
+- Upgraded the vendored Bootstrap from 5.1.3 to 5.3.8 and switched the JS asset from the
+  `bundle` build (which bundled unused Popper) to the plain `bootstrap.min.js`; the report
+  only uses the Collapse component.
+
+### Fixed
+- Close the BAM handle on every early-return path in `check_bam_with_cs_or_md`, fixing a
+  file-descriptor leak.
+
+### Internal
+- Architecture/maintainability cleanup with byte-identical outputs (vs 0.0.8): a shared
+  constants module; a `_LabelledStat` base class plus `concat_stats`/`ContigStats` helpers;
+  an `open_alignment_file` context manager; de-duplicated HTML table renderers; a
+  `total_row`/column-name contract; declarative figure/table emission in the CLI
+  (`ReadstatBarSpec`/`MultiFigSpec`/`ElementBarSpec`); and lazy package imports
+  (`open_alignment_file` is now exported and `dir()` exposes the public surface).
+
 ## [0.0.8] - 2026-08-27
 
 ### Fixed

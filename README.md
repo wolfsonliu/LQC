@@ -2,7 +2,7 @@
 
 # LQC: Long-read RNA-seq Quality Control
 
-[![](https://img.shields.io/badge/version-v0.0.8-7a0177)](https://pypi.org/project/lqc/)
+[![](https://img.shields.io/badge/version-v0.0.9-7a0177)](https://pypi.org/project/lqc/)
 [![](https://img.shields.io/badge/license-GPLv3-green)](https://img.shields.io/badge/license-GPLv3%2B-green)
 
 The Long-read RNA-seq quality control software.
@@ -25,7 +25,7 @@ Please cite us:
 [![](https://img.shields.io/badge/numpy-v1.10%2B-brightgreen)](https://numpy.org)
 [![](https://img.shields.io/badge/matplotlib-v2.0%2B-brightgreen)](https://matplotlib.org/)
 [![](https://img.shields.io/badge/pysam-v0.16%2B-brightgreen)](https://pysam.readthedocs.io)
-[![](https://img.shields.io/badge/bootstrap-v5.1.3-blueviolet)](https://getbootstrap.com/)
+[![](https://img.shields.io/badge/bootstrap-v5.3.8-blueviolet)](https://getbootstrap.com/)
 
 The LQC software was developed with python3, which demands several
 python packages.
@@ -37,9 +37,9 @@ python packages.
 * [matplotlib](https://matplotlib.org/): 2.0+
 * [pysam](https://pysam.readthedocs.io): 0.16+
 
-[Bootstrap 5.1.3](https://getbootstrap.com/) is used by the final html report. It is
-vendored (MIT license) and inlined, so the report is a single self-contained file that
-opens offline.
+[Bootstrap 5.3.8](https://getbootstrap.com/) is used by the final html report. It is
+vendored (MIT license, no Popper bundle) and inlined, so the report is a single
+self-contained file that opens offline.
 
 ## Installation
 

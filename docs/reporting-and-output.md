@@ -81,8 +81,9 @@ figure or feature · expire: if plotting is moved behind a config-driven registr
 - The `'Total'` row is styled specially (`table-secondary`) and also sourced for the
   headline metric values — keep the aggregate row labeled exactly `'Total'`.
 - **Self-contained output:** `src/lqc/cli.py` finalizes the report with
-  `html_add_bootstrap` (inlines the vendored Bootstrap CSS/JS from `src/lqc/template/`,
-  MIT-licensed), `html_add_data` (embeds the summary tables — readstat, mapping,
+  `html_add_bootstrap` (inlines the vendored Bootstrap 5.3.8 CSS and the plain
+  `bootstrap.min.js` — no Popper bundle — from `src/lqc/template/`, MIT-licensed),
+  `html_add_data` (embeds the summary tables — readstat, mapping,
   insertion, deletion, mismatch, splice — as JSON in
   `<script type="application/json" id="lqc-data">`), and `inline_figures` (rewrites
   `src="fig/..."` to base64 `data:` URIs). The rendered `LQC_report.html` therefore

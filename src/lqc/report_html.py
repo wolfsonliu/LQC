@@ -303,7 +303,7 @@ def html_add_bootstrap(html_string, version):
     css = _read_text(os.path.join(_BOOTSTRAP_DIR, 'bootstrap.min.css'))
     # Escape the sequence that would terminate the inline <script> early.
     js = _read_text(
-        os.path.join(_BOOTSTRAP_DIR, 'bootstrap.bundle.min.js')
+        os.path.join(_BOOTSTRAP_DIR, 'bootstrap.min.js')
     ).replace('</script>', '<\\/script>')
 
     new_html = re.sub(

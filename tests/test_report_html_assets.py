@@ -20,7 +20,7 @@ def test_html_add_bootstrap_inlines_vendored_assets():
     assert '{%version%}' not in html
     assert '<style>' in html
     assert '</style>' in html
-    assert 'Bootstrap v5.1.3' in html
+    assert 'Bootstrap v5.3.8' in html
     assert 'LQC v0.0.5' in html
 
 
