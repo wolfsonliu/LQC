@@ -87,9 +87,10 @@ def write_readcs(bam_file,
     """Dump the ``cs`` elements of every read in the BAM to a 6-column file.
 
     Iterates the entire BAM in file order, independent of any ``-c`` contig
-    selection. The CLI no longer calls this — the single-pass stat workers emit
-    ``read.cs`` for the analyzed contigs instead — but it remains for library
-    callers that want a full-BAM dump.
+    selection. This is the full-BAM library API; the CLI instead streams the
+    same 6-column ``read.cs`` lines per window through ``stat_records`` (called
+    by ``stat_region``) in ``src/lqc/stat.py``, then merges the per-chunk temp
+    files in order.
     """
     assert method in ['cs', 'MD', 'both'],\
         "method should be either: cs, MD, both."

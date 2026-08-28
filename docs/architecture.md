@@ -10,17 +10,19 @@ stat classes and report renderers that `src/lqc/cli.py` composes.
 
 1. Parse CLI args, set up logging (`src/lqc/cli.py`).
 2. `check_bam_with_cs_or_md()` decides the parse method (`cs`, `MD`, or `both`→`cs`).
-3. `prefetch_records()` reads the BAM once into per-read `ReadRecord`s; the CLI
-   `_chunk`s them and `mp.Pool` maps `stat_records()` over the read chunks.
-4. Each worker returns a `StatBlock`; `reduce_blocks_to_contigs()` folds chunks
-   back into per-contig 5-tuples `(ReadStat, Indel, Indel, Mismatch, Splice)`.
-5. `sum()` combines per-contig objects into one `'Total'` object per type.
+3. `plan_tasks()` splits each contig into coordinate windows; `mp.Pool` maps
+   `stat_region()` over them, each worker opening the BAM (worker-side fetch) and
+   accumulating a `StatBlock`.
+4. `reduce_blocks_to_contigs()` folds `StatBlock`s back into per-contig
+   `ContigStats` (a `NamedTuple` of `readstat`, `insertion`, `deletion`,
+   `mismatch`, `splice`).
+5. `concat_stats()` folds per-contig objects into one `'Total'` object per type.
 6. `report_table` turns objects into pandas DataFrames; `report_figure` renders PNG/PDF;
    `report_html` injects tables into the HTML template.
 
-Each of the four stat classes implements `__add__`/`__radd__`, so Python's `sum()` (which
-seeds with `0`) produces a merged object. That is the only reason `src/lqc/cli.py` can do
-`sum(l_readstat)`.
+Each of the four stat classes inherits `_LabelledStat`, whose `__add__` merges two
+same-type objects. `concat_stats()` in `src/lqc/cli.py` copies the first object, folds the
+rest in via `__add__`, and relabels the result `'Total'`.
 
 > **Why** this layering exists: the element classes hold no I/O, `stat.py` is the only
 > module that opens BAM/FASTA, and `report_*` modules only format/plot already-computed
@@ -35,7 +37,7 @@ seeds with `0`) produces a merged object. That is the only reason `src/lqc/cli.p
 | `src/lqc/indel.py` | Insertion/deletion counts, length distribution, normalized location. | `Indel` |
 | `src/lqc/mismatch.py` | Mismatch type counts and binned normalized location. | `Mismatch` |
 | `src/lqc/splice.py` | Splice (intron) pair/site counts. | `Splice` |
-| `src/lqc/stat.py` | Per-read record extraction and stat accumulation; prefetch/chunk/worker/reduce primitives for the parallel pass. | `ReadRecord`, `stat_records`, `reduce_blocks_to_contigs`, `stat_element_from_bam_by_contig` |
+| `src/lqc/stat.py` | Per-read record extraction and stat accumulation; window-based parallel-pass primitives. | `ReadRecord`, `StatBlock`, `ContigStats`, `plan_tasks`, `stat_region`, `reduce_blocks_to_contigs`, `stat_element_from_bam_by_contig` |
 | `src/lqc/utils.py` | Small helpers: file-type detection, tag detection, complement conversion, `write_readcs`. | `bam_or_sam`, `check_bam_with_cs_or_md`, `write_readcs` |
 | `src/lqc/report_table.py` | Build pandas DataFrames for the `.txt` summary tables. | `create_*_table` |
 | `src/lqc/report_figure.py` | matplotlib (Agg) figures. | `plot_*` |
@@ -45,7 +47,7 @@ seeds with `0`) produces a merged object. That is the only reason `src/lqc/cli.p
 | `tests/data/` | Committed small CS/CIGAR+MD fixture used by the unit tests. | `cs_test.test_data` |
 | `scripts/` | Developer utilities (not shipped, not tested). | `generate_cs_test_data.py` |
 | `tmp/data/` | Large real BAM + index for manual smoke runs (gitignored, not CI). | `ENCFF417VHJ.chr22.sorted.bam` |
-| `src/lqc/cli.py` | CLI entry point; composes the above and defines every output filename. | — |
+| `src/lqc/cli.py` | CLI entry point; composes the above and emits tables/figures/HTML via declarative spec lists. | `READSTAT_BAR_SPECS`, `MULTI_FIG_SPECS`, `ELEMENT_BAR_SPECS` |
 
 ## The data objects
 
@@ -63,9 +65,9 @@ seeds with `0`) produces a merged object. That is the only reason `src/lqc/cli.p
   *why: keeps report modules pure and testable · when: adding new input handling ·
   expire: if an explicit I/O layer is introduced.*
 - **A new output artifact is wired end-to-end in `src/lqc/cli.py` only** (compute → table/figure
-  → `report_html` → filename in `o_files`). *why: `src/lqc/cli.py` is the single composition
-  root · when: adding a table, figure, or report section · expire: if composition moves
-  out of `src/lqc/cli.py`.*
+  → `report_html` → filename in `o_files` or a figure spec-list stem). *why: `src/lqc/cli.py` is the
+  single composition root · when: adding a table, figure, or report section · expire: if composition
+  moves out of `src/lqc/cli.py`.*
 
 ## What is documented in code, not here
 

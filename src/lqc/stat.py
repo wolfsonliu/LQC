@@ -150,9 +150,9 @@ def process_record(record, genome,
 def prefetch_records(bam_file, contigs, method):
     """Return ``[(contig, [ReadRecord, ...]), ...]`` in BAM traversal order.
 
-    Materializes every read's ``ReadRecord`` in memory before pooling. For the
-    cs path this is small (a cs string plus a few ints); for the MD path each
-    record additionally carries the full ``query_sequence``.
+    Serial/test helper: the M0+ CLI path uses ``plan_tasks`` + ``stat_region``
+    (worker-side fetch) instead of materializing every read up front. Keep for
+    ``tests/`` and ``tmp/profile_lqc.py``.
     """
     with open_alignment_file(bam_file) as bam:
         per_contig = []
