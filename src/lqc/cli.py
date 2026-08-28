@@ -10,6 +10,7 @@ import os
 import pickle
 import sys
 from functools import partial
+from typing import Callable, NamedTuple
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -76,44 +77,69 @@ def savefig(fig, prefix):
 # several of them by name (e.g. `fig/splice_type.png`). Do not rename a stem
 # without updating the template. Each spec list maps a stem to its plot
 # function and its data source so the main() loops stay declarative.
+class ReadstatBarSpec(NamedTuple):
+    feature: str
+    stem: str
+
+
+class MultiFigSpec(NamedTuple):
+    stem: str
+    plot_func: Callable
+    data_key: str
+
+
+class ElementBarSpec(NamedTuple):
+    stem: str
+    data_key: str
+    kind: str
+
+
 READSTAT_BAR_SPECS = [
-    ('Read count', 'readstat_bar_Read_count'),
-    ('Median read length', 'readstat_bar_Median_read_length'),
-    ('Mean read length', 'readstat_bar_Mean_read_length'),
-    ('Insertions per read', 'readstat_bar_insertions_per_read'),
-    ('Insertions per read per kb', 'readstat_bar_insertions_per_read_per_kb'),
-    ('Deletions per read', 'readstat_bar_deletions_per_read'),
-    ('Deletions per read per kb', 'readstat_bar_deletions_per_read_per_kb'),
-    ('Mismatches per read', 'readstat_bar_mismatches_per_read'),
-    ('Mismatches per read per kb', 'readstat_bar_mismatches_per_read_per_kb'),
-    ('Mean intron number', 'readstat_bar_Mean_intron_number'),
-    ('N50', 'readstat_bar_N50'),
-    ('L50', 'readstat_bar_L50'),
+    ReadstatBarSpec('Read count', 'readstat_bar_Read_count'),
+    ReadstatBarSpec('Median read length',
+                    'readstat_bar_Median_read_length'),
+    ReadstatBarSpec('Mean read length', 'readstat_bar_Mean_read_length'),
+    ReadstatBarSpec('Insertions per read',
+                    'readstat_bar_insertions_per_read'),
+    ReadstatBarSpec('Insertions per read per kb',
+                    'readstat_bar_insertions_per_read_per_kb'),
+    ReadstatBarSpec('Deletions per read',
+                    'readstat_bar_deletions_per_read'),
+    ReadstatBarSpec('Deletions per read per kb',
+                    'readstat_bar_deletions_per_read_per_kb'),
+    ReadstatBarSpec('Mismatches per read',
+                    'readstat_bar_mismatches_per_read'),
+    ReadstatBarSpec('Mismatches per read per kb',
+                    'readstat_bar_mismatches_per_read_per_kb'),
+    ReadstatBarSpec('Mean intron number',
+                    'readstat_bar_Mean_intron_number'),
+    ReadstatBarSpec('N50', 'readstat_bar_N50'),
+    ReadstatBarSpec('L50', 'readstat_bar_L50'),
 ]
 
 MULTI_FIG_SPECS = [
-    ('readstat_bar_mean_element_per_read', plot_readstat_bar_mean_element_per_read, 'readstat'),
-    ('readstat_bar_mean_element_per_read_per_kb', plot_readstat_bar_mean_element_per_read_per_kb, 'readstat'),
-    ('readstat_line_cumulative_length', plot_readstat_cumulative_length, 'readstat'),
-    ('readstat_bar_ratio_with_element', plot_readstat_bar_ratio_with_element, 'readstat'),
-    ('readstat_hist_length', plot_readstat_length_hist, 'readstat'),
-    ('insertion_hist_length', plot_indel_hist_length, 'insertion'),
-    ('deletion_hist_length', plot_indel_hist_length, 'deletion'),
-    ('insertion_hist_location', plot_indel_hist_location, 'insertion'),
-    ('deletion_hist_location', plot_indel_hist_location, 'deletion'),
-    ('mismatch_type', plot_mismatch_type_count, 'mismatch'),
-    ('mismatch_hist_location', plot_mismatch_hist_location, 'mismatch'),
-    ('splice_type', plot_splice_type_count, 'splice'),
-    ('mapping_hist_mapq', plot_mapping_mapq_hist, 'readstat'),
-    ('mapping_hist_aligned_fraction', plot_mapping_aligned_fraction_hist, 'readstat'),
-    ('mapping_scatter_aligned_vs_query', plot_mapping_aligned_vs_query, 'readstat'),
+    MultiFigSpec('readstat_bar_mean_element_per_read', plot_readstat_bar_mean_element_per_read, 'readstat'),
+    MultiFigSpec('readstat_bar_mean_element_per_read_per_kb', plot_readstat_bar_mean_element_per_read_per_kb, 'readstat'),
+    MultiFigSpec('readstat_line_cumulative_length', plot_readstat_cumulative_length, 'readstat'),
+    MultiFigSpec('readstat_bar_ratio_with_element', plot_readstat_bar_ratio_with_element, 'readstat'),
+    MultiFigSpec('readstat_hist_length', plot_readstat_length_hist, 'readstat'),
+    MultiFigSpec('insertion_hist_length', plot_indel_hist_length, 'insertion'),
+    MultiFigSpec('deletion_hist_length', plot_indel_hist_length, 'deletion'),
+    MultiFigSpec('insertion_hist_location', plot_indel_hist_location, 'insertion'),
+    MultiFigSpec('deletion_hist_location', plot_indel_hist_location, 'deletion'),
+    MultiFigSpec('mismatch_type', plot_mismatch_type_count, 'mismatch'),
+    MultiFigSpec('mismatch_hist_location', plot_mismatch_hist_location, 'mismatch'),
+    MultiFigSpec('splice_type', plot_splice_type_count, 'splice'),
+    MultiFigSpec('mapping_hist_mapq', plot_mapping_mapq_hist, 'readstat'),
+    MultiFigSpec('mapping_hist_aligned_fraction', plot_mapping_aligned_fraction_hist, 'readstat'),
+    MultiFigSpec('mapping_scatter_aligned_vs_query', plot_mapping_aligned_vs_query, 'readstat'),
 ]
 
 ELEMENT_BAR_SPECS = [
-    ('insertion_bar_count', 'insertion', 'Insertion'),
-    ('deletion_bar_count', 'deletion', 'Deletion'),
-    ('mismatch_bar_count', 'mismatch', 'Mismatch'),
-    ('intron_bar_count', 'splice', 'Intron'),
+    ElementBarSpec('insertion_bar_count', 'insertion', 'Insertion'),
+    ElementBarSpec('deletion_bar_count', 'deletion', 'Deletion'),
+    ElementBarSpec('mismatch_bar_count', 'mismatch', 'Mismatch'),
+    ElementBarSpec('intron_bar_count', 'splice', 'Intron'),
 ]
 
 
@@ -467,21 +493,21 @@ def main(argv = None) -> int:
     message = 'Output figures.'
     logger.info(message)
     figdir = o_dirs['fig']
-    for feature, stem in READSTAT_BAR_SPECS:
-        fig = plot_readstat_bar(l_readstat, feature)
-        savefig(fig, os.path.join(figdir, stem))
+    for spec in READSTAT_BAR_SPECS:
+        fig = plot_readstat_bar(l_readstat, spec.feature)
+        savefig(fig, os.path.join(figdir, spec.stem))
         plt.close('all')
 
-    for stem, plot_func, data_key in MULTI_FIG_SPECS:
-        data_list, data_sum = data_sets[data_key]
+    for spec in MULTI_FIG_SPECS:
+        data_list, data_sum = data_sets[spec.data_key]
         generate_multiple_figs(
-            plot_func, data_list, data_sum,
-            os.path.join(figdir, stem), width = 5, height = 4
+            spec.plot_func, data_list, data_sum,
+            os.path.join(figdir, spec.stem), width = 5, height = 4
         )
 
-    for stem, data_key, kind in ELEMENT_BAR_SPECS:
-        fig = plot_element_total_count(data_sets[data_key][0], kind)
-        savefig(fig, os.path.join(figdir, stem))
+    for spec in ELEMENT_BAR_SPECS:
+        fig = plot_element_total_count(data_sets[spec.data_key][0], spec.kind)
+        savefig(fig, os.path.join(figdir, spec.stem))
         plt.close('all')
 
     message = 'Output figures finished.'

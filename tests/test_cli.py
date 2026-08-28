@@ -104,7 +104,11 @@ def test_main_outputs_expected_figure_files(cs_bam, tmp_path):
 
 
 def test_figure_spec_lists_match_contract():
-    assert READSTAT_BAR_SPECS == [
+    assert READSTAT_BAR_SPECS[0]._fields == ('feature', 'stem')
+    assert MULTI_FIG_SPECS[0]._fields == ('stem', 'plot_func', 'data_key')
+    assert ELEMENT_BAR_SPECS[0]._fields == ('stem', 'data_key', 'kind')
+
+    assert [(s.feature, s.stem) for s in READSTAT_BAR_SPECS] == [
         ('Read count', 'readstat_bar_Read_count'),
         ('Median read length', 'readstat_bar_Median_read_length'),
         ('Mean read length', 'readstat_bar_Mean_read_length'),
@@ -119,13 +123,14 @@ def test_figure_spec_lists_match_contract():
         ('N50', 'readstat_bar_N50'),
         ('L50', 'readstat_bar_L50'),
     ]
-    assert ELEMENT_BAR_SPECS == [
+    assert [(s.stem, s.data_key, s.kind) for s in ELEMENT_BAR_SPECS] == [
         ('insertion_bar_count', 'insertion', 'Insertion'),
         ('deletion_bar_count', 'deletion', 'Deletion'),
         ('mismatch_bar_count', 'mismatch', 'Mismatch'),
         ('intron_bar_count', 'splice', 'Intron'),
     ]
-    assert [(stem, fn.__name__, key) for stem, fn, key in MULTI_FIG_SPECS] == [
+    assert [(s.stem, s.plot_func.__name__, s.data_key)
+            for s in MULTI_FIG_SPECS] == [
         ('readstat_bar_mean_element_per_read',
          'plot_readstat_bar_mean_element_per_read', 'readstat'),
         ('readstat_bar_mean_element_per_read_per_kb',
@@ -148,7 +153,7 @@ def test_figure_spec_lists_match_contract():
         ('mapping_scatter_aligned_vs_query',
          'plot_mapping_aligned_vs_query', 'readstat'),
     ]
-    data_keys = ({key for _, _, key in MULTI_FIG_SPECS}
-                 | {key for _, key, _ in ELEMENT_BAR_SPECS})
+    data_keys = ({s.data_key for s in MULTI_FIG_SPECS}
+                 | {s.data_key for s in ELEMENT_BAR_SPECS})
     assert data_keys <= {'readstat', 'insertion', 'deletion',
                          'mismatch', 'splice'}
