@@ -13,7 +13,7 @@ def total_row(table, column):
 
 def create_readstat_table(readstat_list, readstat_sum):
     colnames = [
-        'label', 'read_count', 'total_base', 'aligned_base',
+        COL_LABEL, COL_READ_COUNT, 'total_base', 'aligned_base',
         'read_length_mean', 'read_length_median',
         'read_length_N50', 'read_length_L50',
         'mean_insertion_per_read', 'mean_insertion_per_read_per_kb',
@@ -57,7 +57,7 @@ def create_readstat_table(readstat_list, readstat_sum):
 
 def create_mapping_table(readstat_list, readstat_sum):
     colnames = [
-        'label', 'read_count', 'query_base', 'aligned_base',
+        COL_LABEL, COL_READ_COUNT, 'query_base', 'aligned_base',
         'aligned_fraction_mean', 'aligned_fraction_median',
         'mapq_mean', 'mapq_median',
         'reads_aligned_fraction_lt_0.9', 'reads_fully_aligned'
@@ -98,7 +98,7 @@ def create_mismatch_normalized_read_location_table(mismatch_list,
         if t in sum_type_bin_count
     ]
     if not mistypes:
-        return pd.DataFrame(columns = ['label', 'bin'])
+        return pd.DataFrame(columns = [COL_LABEL, 'bin'])
     bins = list(
         sum_type_bin_count[mistypes[0]].keys()
     )
@@ -118,7 +118,7 @@ def create_mismatch_normalized_read_location_table(mismatch_list,
     )
     mistable = pd.DataFrame(
         data_list,
-        columns = ['label', 'bin', *mistypes]
+        columns = [COL_LABEL, 'bin', *mistypes]
     )
     mistable = mistable.copy()
     mistable['bin_total'] = mistable[mistypes].sum(axis = 1)
@@ -141,7 +141,7 @@ def create_indel_summary_table(indel_list, indel_sum):
              indel_sum.get_mean_length(),
              indel_sum.get_median_length()]
         ],
-        columns = ['label', 'total_count',
+        columns = [COL_LABEL, 'total_count',
                    'total_length',
                    'mean_length',
                    'median_length']
@@ -175,7 +175,7 @@ def create_splice_table(splice_list, splice_sum):
     rows = [_row(a) for a in splice_list] + [_row(splice_sum)]
     return pd.DataFrame(
         rows,
-        columns = ['label', 'gt-ag', 'gt-ag_pct',
+        columns = [COL_LABEL, 'gt-ag', 'gt-ag_pct',
                    'gc-ag', 'gc-ag_pct',
                    'at-ac', 'at-ac_pct',
                    'other', 'other_pct']
@@ -196,7 +196,7 @@ def create_splice_all_table(splice_list, splice_sum):
         [splice_sum.get_splice_pair_count_dict().get(a, 0)
          for a in sptypes]
     ]
-    return pd.DataFrame(rows, columns = ['label', *sptypes])
+    return pd.DataFrame(rows, columns = [COL_LABEL, *sptypes])
 
 
 ########################################
